@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Godot Behavior Tree"
-config/description="Production-grade, modular Behavior Tree framework and visual node editor for Godot 4."
+config/description="Behavior Tree addon and visual editor for Godot 4."
 config/version="1.0.0"
 run/main_scene="res://demo/demo.tscn"
 config/features=PackedStringArray("4.3", "4.4", "4.5", "4.6", "4.7")
