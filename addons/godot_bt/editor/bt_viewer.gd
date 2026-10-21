@@ -367,6 +367,10 @@ func _setup_add_task_menu(popup: PopupMenu) -> void:
 	popup.add_item("ReturnFailure (Decorator)", 204)
 	popup.add_item("UntilSuccess (Decorator)", 205)
 	popup.add_item("UntilFailure (Decorator)", 206)
+	popup.add_item("Cooldown (Decorator)", 207)
+	popup.add_item("TimeLimit (Decorator)", 208)
+	popup.add_separator("Actions & References")
+	popup.add_item("SubTree (Action)", 301)
 	popup.id_pressed.connect(_on_add_task_menu_item_pressed)
 
 # ---------------------------------------------------------------- Tree List & Switching
@@ -459,6 +463,9 @@ func _on_add_task_menu_item_pressed(id: int) -> void:
 		204: type_name = "ReturnFailure"; category = "Decorator"
 		205: type_name = "UntilSuccess"; category = "Decorator"
 		206: type_name = "UntilFailure"; category = "Decorator"
+		207: type_name = "Cooldown"; category = "Decorator"
+		208: type_name = "TimeLimit"; category = "Decorator"
+		301: type_name = "SubTree"; category = "Action"
 
 	var reg := BTTaskRegistry.new()
 	var new_task := reg.create_task(type_name)
@@ -729,6 +736,27 @@ func _update_inspector() -> void:
 	name_row.add_child(name_edit)
 	_inspector_form_container.add_child(name_row)
 
+	# Composite Abort Type
+	if task is BTComposite:
+		var abort_row := HBoxContainer.new()
+		var abort_lbl := Label.new()
+		abort_lbl.text = "Abort Type:"
+		abort_lbl.custom_minimum_size = Vector2(70, 0)
+		abort_row.add_child(abort_lbl)
+
+		var abort_opt := OptionButton.new()
+		abort_opt.add_item("None", BTComposite.AbortType.NONE)
+		abort_opt.add_item("Self", BTComposite.AbortType.SELF)
+		abort_opt.add_item("Lower Priority", BTComposite.AbortType.LOWER_PRIORITY)
+		abort_opt.add_item("Both", BTComposite.AbortType.BOTH)
+		abort_opt.select((task as BTComposite).abort_type)
+		abort_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		abort_opt.item_selected.connect(func(idx: int):
+			(task as BTComposite).set_abort_type(idx)
+		)
+		abort_row.add_child(abort_opt)
+		_inspector_form_container.add_child(abort_row)
+
 	_inspector_form_container.add_child(HSeparator.new())
 
 	# 2. Parameters Section
@@ -742,7 +770,7 @@ func _update_inspector() -> void:
 	_inspector_form_container.add_child(params_box)
 
 	for k in task.parameters.keys():
-		if k.begins_with("_"):
+		if k.begins_with("_") or k == "abort_type":
 			continue
 		var p_row := HBoxContainer.new()
 		var k_lbl := Label.new()
@@ -750,22 +778,47 @@ func _update_inspector() -> void:
 		k_lbl.custom_minimum_size = Vector2(90, 0)
 		p_row.add_child(k_lbl)
 
-		var v_edit := LineEdit.new()
-		v_edit.text = str(task.parameters[k])
-		v_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var is_bb := task.is_param_blackboard(k)
 		var key_capture = k
-		v_edit.text_changed.connect(func(new_val: String):
-			if new_val.is_valid_int():
-				task.parameters[key_capture] = int(new_val)
-			elif new_val.is_valid_float():
-				task.parameters[key_capture] = float(new_val)
-			elif new_val.to_lower() == "true":
-				task.parameters[key_capture] = true
-			elif new_val.to_lower() == "false":
-				task.parameters[key_capture] = false
+
+		var bb_toggle_btn := Button.new()
+		bb_toggle_btn.text = "🏷️ BB" if is_bb else "Val"
+		bb_toggle_btn.tooltip_text = "Toggle literal value vs Blackboard variable binding"
+		bb_toggle_btn.custom_minimum_size = Vector2(45, 0)
+		bb_toggle_btn.pressed.connect(func():
+			if is_bb:
+				var cur_key = task.get_param_blackboard_key(key_capture)
+				task.set_param(key_capture, cur_key, false)
 			else:
-				task.parameters[key_capture] = new_val
+				var cur_val = str(task.parameters.get(key_capture, ""))
+				task.set_param(key_capture, cur_val if cur_val != "" else key_capture, true)
+			_update_inspector()
 		)
+		p_row.add_child(bb_toggle_btn)
+
+		var v_edit := LineEdit.new()
+		v_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if is_bb:
+			v_edit.text = task.get_param_blackboard_key(key_capture)
+			v_edit.placeholder_text = "Blackboard key..."
+			v_edit.text_changed.connect(func(new_key: String):
+				task.set_param(key_capture, new_key.strip_edges(), true)
+			)
+		else:
+			v_edit.text = str(task.parameters[k])
+			v_edit.placeholder_text = "Literal value..."
+			v_edit.text_changed.connect(func(new_val: String):
+				if new_val.is_valid_int():
+					task.parameters[key_capture] = int(new_val)
+				elif new_val.is_valid_float():
+					task.parameters[key_capture] = float(new_val)
+				elif new_val.to_lower() == "true":
+					task.parameters[key_capture] = true
+				elif new_val.to_lower() == "false":
+					task.parameters[key_capture] = false
+				else:
+					task.parameters[key_capture] = new_val
+			)
 		p_row.add_child(v_edit)
 
 		var del_p_btn := Button.new()

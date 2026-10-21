@@ -52,6 +52,67 @@ func on_end() -> void:
 	if has_method("OnEnd"):
 		call("OnEnd")
 
+func on_abort() -> void:
+	if has_method("OnConditionalAbort"):
+		call("OnConditionalAbort")
+	elif has_method("OnAbort"):
+		call("OnAbort")
+	on_end()
+
+func on_pause(paused: bool) -> void:
+	if has_method("OnPause"):
+		call("OnPause", paused)
+
+func on_event(event_name: String, data: Variant = null) -> void:
+	if has_method("OnEvent"):
+		call("OnEvent", event_name, data)
+
+# ---------------------------------------------------------------- Parameter & Blackboard Helpers
+## Returns the resolved value of a parameter.
+## If the parameter is bound to a Blackboard key, it fetches the dynamic value from Blackboard.
+func get_param(name: String, default_val: Variant = null) -> Variant:
+	if not parameters.has(name):
+		return default_val
+	var raw = parameters[name]
+	if raw is Dictionary and raw.get("is_blackboard", false):
+		var bb_key: String = str(raw.get("key", ""))
+		return get_blackboard_var(bb_key, default_val)
+	elif raw is String:
+		if raw.begins_with("@") or raw.begins_with("$"):
+			var bb_key: String = raw.substr(1)
+			if blackboard != null and blackboard.has_var(bb_key):
+				return blackboard.get_var(bb_key, default_val)
+	return raw
+
+func set_param(name: String, value: Variant, is_blackboard_key: bool = false) -> void:
+	if is_blackboard_key:
+		parameters[name] = {
+			"is_blackboard": true,
+			"key": str(value)
+		}
+	else:
+		parameters[name] = value
+
+func is_param_blackboard(name: String) -> bool:
+	if not parameters.has(name):
+		return false
+	var raw = parameters[name]
+	if raw is Dictionary and raw.get("is_blackboard", false):
+		return true
+	if raw is String and (raw.begins_with("@") or raw.begins_with("$")):
+		return true
+	return false
+
+func get_param_blackboard_key(name: String) -> String:
+	if not parameters.has(name):
+		return ""
+	var raw = parameters[name]
+	if raw is Dictionary and raw.get("is_blackboard", false):
+		return str(raw.get("key", ""))
+	if raw is String and (raw.begins_with("@") or raw.begins_with("$")):
+		return raw.substr(1)
+	return ""
+
 # Blackboard helper
 func get_blackboard_var(name: String, default_val: Variant = null) -> Variant:
 	if blackboard != null:

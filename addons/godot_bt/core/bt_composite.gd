@@ -2,11 +2,21 @@ class_name BTComposite
 extends BTParentTask
 ## Base class and implementations for Composite control-flow tasks (Sequence, Selector, Parallel, etc.).
 
+enum AbortType { NONE = 0, SELF = 1, LOWER_PRIORITY = 2, BOTH = 3 }
+
+var abort_type: int = AbortType.NONE
 var _execution_status: int = BTStatus.INACTIVE
 
 func _init() -> void:
 	super._init()
 	category = "Composite"
+
+func get_abort_type() -> int:
+	return abort_type
+
+func set_abort_type(val: int) -> void:
+	abort_type = val
+	parameters["abort_type"] = val
 
 func on_start() -> void:
 	current_child_index = 0

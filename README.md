@@ -10,9 +10,12 @@ It provides a lightweight runtime engine for behavior trees along with a built-i
 - **Dual Editing**: Configure nodes via the Inspector panel or edit the underlying JSON representation directly with two-way sync.
 - **Blackboard**: Key-value blackboard with change signals for sharing state across tasks.
 - **Core Nodes**:
-  - **Composites**: Sequence, Selector, Parallel, RandomSelector, RandomSequence.
-  - **Decorators**: Inverter, Repeater, Succeeder, Failer, TimeLimit, Cooldown.
-  - **Leaves**: Extendable `BTAction` and `BTCondition` base classes in GDScript.
+  - **Composites**: Sequence, Selector, Parallel, RandomSelector, RandomSequence (with **Conditional Aborts**: None, Self, Lower Priority, Both).
+  - **Decorators**: Inverter, Repeater, ReturnSuccess, ReturnFailure, UntilSuccess, UntilFailure, TimeLimit, Cooldown.
+  - **SubTree**: Modular tree embedding (`BTSubTree`) to reuse sub-behaviors with shared or scoped blackboards.
+  - **Leaves**: Extendable `BTTask` (or `BTAction` / `BTCondition`) base classes in GDScript.
+- **Dynamic Parameters & Blackboard**: Dual-mode parameters supporting literal values or dynamic blackboard variable bindings (`@var_name`).
+- **Task Lifecycle**: Clean hooks for `on_awake`, `on_start`, `on_update`, `on_end`, `on_abort`, `on_pause`, and `on_event`.
 - **Pluggable Storage**: Load and save trees using JSON files on disk (`BTFileTreeSource`) or in-memory dictionaries (`BTMemoryTreeSource`).
 - **Decoupled**: Pure GDScript runtime with no external dependencies.
 

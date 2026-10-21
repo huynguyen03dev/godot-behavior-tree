@@ -148,3 +148,63 @@ class BTUntilFailure extends BTDecorator:
 
 	func override_status(status: int) -> int:
 		return _execution_status
+
+# ---------------------------------------------------------------- BTCooldown
+class BTCooldown extends BTDecorator:
+	var cooldown_time: float = 1.0
+	var _last_execution_time: float = -999999.0
+
+	func _init() -> void:
+		super._init()
+		type_name = "Cooldown"
+		friendly_name = "Cooldown"
+
+	func on_start() -> void:
+		cooldown_time = float(get_param("cooldown_time", cooldown_time))
+		var current_time: float = Time.get_ticks_msec() / 1000.0
+		if current_time - _last_execution_time < cooldown_time:
+			# Still on cooldown -> fail immediately
+			_execution_status = BTStatus.FAILURE
+			current_child_index = children.size()
+		else:
+			super.on_start()
+
+	func on_child_executed(child_index: int, child_status: int) -> void:
+		super.on_child_executed(child_index, child_status)
+		if child_status != BTStatus.RUNNING:
+			_last_execution_time = Time.get_ticks_msec() / 1000.0
+			_execution_status = child_status
+
+	func override_status(status: int) -> int:
+		return _execution_status
+
+# ---------------------------------------------------------------- BTTimeLimit
+class BTTimeLimit extends BTDecorator:
+	var time_limit: float = 5.0
+	var _start_time: float = 0.0
+
+	func _init() -> void:
+		super._init()
+		type_name = "TimeLimit"
+		friendly_name = "Time Limit"
+
+	func on_start() -> void:
+		time_limit = float(get_param("time_limit", time_limit))
+		_start_time = Time.get_ticks_msec() / 1000.0
+		super.on_start()
+
+	func on_child_executed(child_index: int, child_status: int) -> void:
+		super.on_child_executed(child_index, child_status)
+		var elapsed = (Time.get_ticks_msec() / 1000.0) - _start_time
+		if child_status == BTStatus.RUNNING and elapsed >= time_limit:
+			# Exceeded time limit -> abort child and fail
+			if child_index >= 0 and child_index < children.size():
+				var child_task: BTTask = children[child_index]
+				if child_task != null:
+					child_task.on_abort()
+			_execution_status = BTStatus.FAILURE
+		else:
+			_execution_status = child_status
+
+	func override_status(status: int) -> int:
+		return _execution_status

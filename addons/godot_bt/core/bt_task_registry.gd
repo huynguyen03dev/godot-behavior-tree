@@ -3,6 +3,8 @@ extends RefCounted
 ## Task Registry & Factory for generic Behavior Trees.
 ## Manages task type registrations, dynamic instantiation, and fallback placeholders.
 
+const BTSubTreeScript = preload("res://addons/godot_bt/core/bt_subtree.gd")
+
 class BTUnknownTask extends BTTask:
 	func _init(p_type: String = "UnknownTask") -> void:
 		super._init()
@@ -72,3 +74,8 @@ func _register_builtins() -> void:
 	register_task("Repeater", func(): return BTDecorator.BTRepeater.new(), "Decorator")
 	register_task("UntilSuccess", func(): return BTDecorator.BTUntilSuccess.new(), "Decorator")
 	register_task("UntilFailure", func(): return BTDecorator.BTUntilFailure.new(), "Decorator")
+	register_task("Cooldown", func(): return BTDecorator.BTCooldown.new(), "Decorator")
+	register_task("TimeLimit", func(): return BTDecorator.BTTimeLimit.new(), "Decorator")
+
+	# SubTree & Actions
+	register_task("SubTree", func(): return BTSubTreeScript.new(), "Action")

@@ -18,7 +18,11 @@ func _init() -> void:
 		_test_tree_builder_and_serialization(),
 		_test_runner_execution(),
 		_test_file_adapter(),
-		_test_editor_ui()
+		_test_editor_ui(),
+		_test_task_parameters_and_blackboard_binding(),
+		_test_decorators_cooldown_and_timelimit(),
+		_test_conditional_aborts(),
+		_test_lifecycle_and_events()
 	]
 
 	for group in test_groups:
@@ -130,3 +134,194 @@ func _test_editor_ui() -> Array:
 		rows.append(["Viewer creates 9 GraphNodes", viewer._graph_nodes_by_id.size() == 9, "nodes=%d" % viewer._graph_nodes_by_id.size()])
 		viewer.free()
 	return rows
+
+# ---------------------------------------------------------------- Test Mock Classes
+class TestMockCondition extends BTTask:
+	var condition_met: bool = false
+	func _init(p_met: bool = false) -> void:
+		super._init()
+		type_name = "MockCondition"
+		category = "Condition"
+		condition_met = p_met
+
+	func on_update() -> int:
+		return BTStatus.SUCCESS if condition_met else BTStatus.FAILURE
+
+class TestMockRunningAction extends BTTask:
+	var abort_called: bool = false
+	var update_count: int = 0
+	var event_received: String = ""
+
+	func _init() -> void:
+		super._init()
+		type_name = "MockRunningAction"
+		category = "Action"
+
+	func on_update() -> int:
+		update_count += 1
+		return BTStatus.RUNNING
+
+	func on_abort() -> void:
+		abort_called = true
+		super.on_abort()
+
+	func on_event(event_name: String, data: Variant = null) -> void:
+		event_received = event_name
+
+func _test_task_parameters_and_blackboard_binding() -> Array:
+	var rows := []
+	var bb = BTBlackboard.new()
+	bb.set_var("target_speed", 12.5, "float")
+	bb.set_var("enemy_name", "Goblin", "String")
+
+	var task = BTTask.new()
+	task.blackboard = bb
+
+	# Literal param
+	task.set_param("fov", 90.0)
+	rows.append(["Literal param get", float(task.get_param("fov", 0.0)) == 90.0, "fov=%s" % str(task.get_param("fov"))])
+	rows.append(["Literal param is not blackboard", not task.is_param_blackboard("fov"), "is_bb"])
+
+	# Blackboard binding with @ syntax
+	task.parameters["speed"] = "@target_speed"
+	rows.append(["@key param binds to blackboard", abs(float(task.get_param("speed", 0.0)) - 12.5) < 0.001, "speed=%s" % str(task.get_param("speed"))])
+	rows.append(["@key is detected as blackboard", task.is_param_blackboard("speed"), "is_bb"])
+
+	# Blackboard binding with set_param(..., true)
+	task.set_param("enemy", "enemy_name", true)
+	rows.append(["set_param(..., true) binds to blackboard", str(task.get_param("enemy", "")) == "Goblin", "enemy=%s" % str(task.get_param("enemy"))])
+	rows.append(["get_param_blackboard_key returns key", task.get_param_blackboard_key("enemy") == "enemy_name", "key=%s" % task.get_param_blackboard_key("enemy")])
+
+	# Dynamic update in blackboard
+	bb.set_var("enemy_name", "Dragon", "String")
+	rows.append(["Dynamic blackboard update resolves in get_param", str(task.get_param("enemy", "")) == "Dragon", "enemy=%s" % str(task.get_param("enemy"))])
+
+	return rows
+
+func _test_decorators_cooldown_and_timelimit() -> Array:
+	var rows := []
+
+	# Cooldown test
+	var cd = BTDecorator.BTCooldown.new()
+	cd.cooldown_time = 0.5
+	var child_act = TestMockCondition.new(true) # Returns SUCCESS
+	cd.children.append(child_act)
+
+	var tree = BTTree.new()
+	tree.set_root(cd)
+	var runner = BTRunner.new(tree)
+	runner.start()
+
+	# Tick 1: runs child and succeeds
+	var s1 = runner.tick()
+	rows.append(["Cooldown tick 1 runs child and succeeds", s1 == BTStatus.SUCCESS, "s1=%d" % s1])
+
+	# Next tick immediate: should fail because of cooldown
+	runner.is_running = true # Keep runner active for next tick
+	var s2 = runner.tick()
+	rows.append(["Cooldown tick 2 blocked by cooldown timer", s2 == BTStatus.FAILURE, "s2=%d" % s2])
+
+	# TimeLimit test
+	var tl = BTDecorator.BTTimeLimit.new()
+	tl.time_limit = 0.05
+	var tl_act = TestMockRunningAction.new()
+	tl.children.append(tl_act)
+
+	var tl_tree = BTTree.new()
+	tl_tree.set_root(tl)
+	var tl_runner = BTRunner.new(tl_tree)
+	tl_runner.start()
+
+	var t_s1 = tl_runner.tick()
+	rows.append(["TimeLimit tick 1 running", t_s1 == BTStatus.RUNNING, "ts1=%d" % t_s1])
+
+	# Wait exceeding time_limit
+	OS.delay_msec(60)
+	var t_s2 = tl_runner.tick()
+	rows.append(["TimeLimit tick 2 aborted due to timeout", t_s2 == BTStatus.FAILURE and tl_act.abort_called, "ts2=%d, abort=%s" % [t_s2, str(tl_act.abort_called)]])
+
+	return rows
+
+func _test_conditional_aborts() -> Array:
+	var rows := []
+
+	# 1. Lower Priority Abort on Selector
+	var tree = BTTree.new()
+	var selector = BTComposite.BTSelector.new()
+	selector.set_abort_type(BTComposite.AbortType.LOWER_PRIORITY)
+	tree.set_root(selector)
+
+	var cond = TestMockCondition.new(false)
+	var high_action = TestMockRunningAction.new()
+	var high_seq = BTComposite.BTSequence.new()
+	tree.connect_parent_child(selector, high_seq)
+	tree.connect_parent_child(high_seq, cond)
+	tree.connect_parent_child(high_seq, high_action)
+
+	var low_action = TestMockRunningAction.new()
+	tree.connect_parent_child(selector, low_action)
+
+	var runner = BTRunner.new(tree)
+	runner.start()
+
+	# Tick 1: Condition is false, so low_action runs
+	var st1 = runner.tick()
+	rows.append(["Tick 1: Low priority action is RUNNING", st1 == BTStatus.RUNNING and low_action.update_count == 1, "st1=%d, low=%d" % [st1, low_action.update_count]])
+	rows.append(["Tick 1: High action has not run", high_action.update_count == 0, "high=%d" % high_action.update_count])
+	rows.append(["Tick 1: Low action not aborted", not low_action.abort_called, "aborted=%s" % str(low_action.abort_called)])
+
+	# Now change condition to true!
+	cond.condition_met = true
+
+	# Tick 2: Selector re-evaluates high_seq, condition succeeds, aborts low_action, runs high_seq!
+	var st2 = runner.tick()
+	rows.append(["Tick 2: Low priority action was aborted", low_action.abort_called, "aborted=%s" % str(low_action.abort_called)])
+	rows.append(["Tick 2: High priority action now running", high_action.update_count == 1, "high=%d" % high_action.update_count])
+	rows.append(["Tick 2: Runner status is RUNNING", st2 == BTStatus.RUNNING, "st2=%d" % st2])
+
+	# 2. Self Abort on Sequence
+	var tree_seq = BTTree.new()
+	var seq = BTComposite.BTSequence.new()
+	seq.set_abort_type(BTComposite.AbortType.SELF)
+	tree_seq.set_root(seq)
+
+	var seq_cond = TestMockCondition.new(true)
+	var seq_action = TestMockRunningAction.new()
+	tree_seq.connect_parent_child(seq, seq_cond)
+	tree_seq.connect_parent_child(seq, seq_action)
+
+	var seq_runner = BTRunner.new(tree_seq)
+	seq_runner.start()
+
+	# Tick 1: Condition true, action is RUNNING
+	var s_st1 = seq_runner.tick()
+	rows.append(["Seq Tick 1: Action is RUNNING", s_st1 == BTStatus.RUNNING and seq_action.update_count == 1, "st1=%d" % s_st1])
+
+	# Now condition becomes false!
+	seq_cond.condition_met = false
+
+	# Tick 2: Sequence re-evaluates condition, it fails -> abort action and sequence fails!
+	var s_st2 = seq_runner.tick()
+	rows.append(["Seq Tick 2: Action was aborted on condition failure", seq_action.abort_called, "aborted=%s" % str(seq_action.abort_called)])
+	rows.append(["Seq Tick 2: Sequence failed", s_st2 == BTStatus.FAILURE, "st2=%d" % s_st2])
+
+	return rows
+
+func _test_lifecycle_and_events() -> Array:
+	var rows := []
+	var tree = BTTree.new()
+	var act = TestMockRunningAction.new()
+	tree.set_root(act)
+
+	var runner = BTRunner.new(tree)
+	runner.start()
+	runner.tick()
+
+	runner.send_event("on_damage", 50)
+	rows.append(["send_event reaches active tasks", act.event_received == "on_damage", "evt=%s" % act.event_received])
+
+	runner.interrupt(act)
+	rows.append(["interrupt aborts running task", act.abort_called, "aborted=%s" % str(act.abort_called)])
+
+	return rows
+

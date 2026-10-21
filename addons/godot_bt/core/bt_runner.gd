@@ -145,6 +145,13 @@ func _run_task(task: BTTask) -> int:
 		if not _prepared_for_tick.has(task):
 			parent_task.on_tick_start()
 			_prepared_for_tick[task] = true
+
+		# Check conditional aborts for composites with active running children
+		if task is BTComposite:
+			var composite := task as BTComposite
+			if composite.abort_type != BTComposite.AbortType.NONE and composite.current_child_index > 0:
+				_check_conditional_abort(composite)
+
 		var executed_child := false
 		var last_child_index := -1
 		while parent_task.can_execute():
@@ -184,3 +191,112 @@ func _run_task(task: BTTask) -> int:
 		task_finished.emit(task, result)
 
 	return result
+
+func _check_conditional_abort(composite: BTComposite) -> bool:
+	if composite.children.is_empty():
+		return false
+	var cur_idx := composite.current_child_index
+	if cur_idx <= 0 or cur_idx >= composite.children.size():
+		return false
+
+	var abort_type := composite.abort_type
+
+	# LowerPriority or Both: check if higher-priority branch (< cur_idx) can now run
+	if composite is BTComposite.BTSelector and (abort_type == BTComposite.AbortType.LOWER_PRIORITY or abort_type == BTComposite.AbortType.BOTH):
+		for i in range(0, cur_idx):
+			var child: BTTask = composite.children[i]
+			var status := _reevaluate_branch(child)
+			if status == BTStatus.SUCCESS:
+				# Higher priority condition met! Abort current running branch
+				_abort_task_branch(composite.children[cur_idx])
+				composite.current_child_index = i
+				composite._execution_status = BTStatus.RUNNING
+				return true
+
+	# Self or Both: check if active sequence's guard conditions (< cur_idx) failed
+	if composite is BTComposite.BTSequence and (abort_type == BTComposite.AbortType.SELF or abort_type == BTComposite.AbortType.BOTH):
+		for i in range(0, cur_idx):
+			var child: BTTask = composite.children[i]
+			var status := _reevaluate_branch(child)
+			if status == BTStatus.FAILURE:
+				# Guard condition failed! Abort current running child and fail sequence
+				_abort_task_branch(composite.children[cur_idx])
+				composite._execution_status = BTStatus.FAILURE
+				composite.current_child_index = composite.children.size()
+				return true
+
+	return false
+
+func _reevaluate_branch(task: BTTask) -> int:
+	if task == null or task.is_placeholder:
+		return BTStatus.INACTIVE
+
+	if task is BTComposite.BTSequence:
+		var seq := task as BTComposite.BTSequence
+		for child in seq.children:
+			var s := _reevaluate_branch(child)
+			if s == BTStatus.FAILURE:
+				return BTStatus.FAILURE
+			elif s == BTStatus.RUNNING:
+				return BTStatus.SUCCESS
+		return BTStatus.SUCCESS
+	elif task is BTComposite.BTSelector:
+		var sel := task as BTComposite.BTSelector
+		for child in sel.children:
+			var s := _reevaluate_branch(child)
+			if s == BTStatus.SUCCESS:
+				return BTStatus.SUCCESS
+		return BTStatus.FAILURE
+	elif task is BTDecorator.BTInverter:
+		var inv := task as BTDecorator.BTInverter
+		if not inv.children.is_empty():
+			var s := _reevaluate_branch(inv.children[0])
+			if s == BTStatus.SUCCESS:
+				return BTStatus.FAILURE
+			elif s == BTStatus.FAILURE:
+				return BTStatus.SUCCESS
+			return s
+		return BTStatus.SUCCESS
+	else:
+		if task.category == "Condition" or task.get("is_condition") == true:
+			if task.owner == null:
+				task.owner = self
+			if task.blackboard == null and tree != null:
+				task.blackboard = tree.blackboard
+			return task.on_update()
+		else:
+			# Action reached: preconditions prior to this action succeeded
+			return BTStatus.SUCCESS
+
+func _abort_task_branch(task: BTTask) -> void:
+	if task == null:
+		return
+	if task is BTParentTask:
+		for child in (task as BTParentTask).children:
+			_abort_task_branch(child)
+	if _started.has(task):
+		task.on_abort()
+		_started.erase(task)
+		_last_status[task] = BTStatus.FAILURE
+		task_finished.emit(task, BTStatus.FAILURE)
+
+## Broadcasts a named event to all tasks in the tree.
+func send_event(event_name: String, data: Variant = null) -> void:
+	if tree == null:
+		return
+	for task in tree.node_list:
+		if task != null and not task.is_placeholder:
+			task.on_event(event_name, data)
+
+## Pauses or resumes execution of the tree and notifies active tasks.
+func pause(paused: bool = true) -> void:
+	is_running = not paused
+	for task in _started.keys():
+		if task != null and not task.is_placeholder:
+			task.on_pause(paused)
+
+## Explicitly interrupts and aborts an active task branch.
+func interrupt(task: BTTask, status: int = BTStatus.FAILURE) -> void:
+	_abort_task_branch(task)
+	_last_status[task] = status
+
