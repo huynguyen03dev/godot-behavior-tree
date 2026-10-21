@@ -1,0 +1,26 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Godot Behavior Tree"
+config/description="Production-grade, modular Behavior Tree framework and visual node editor for Godot 4."
+config/version="1.0.0"
+run/main_scene="res://demo/demo.tscn"
+config/features=PackedStringArray("4.3", "4.4", "4.5", "4.6", "4.7")
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_bt/plugin.cfg")
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

@@ -1,0 +1,135 @@
+{
+	"tree_name": "PatrolAndCombatAI",
+	"description": "Sample Behavior Tree demonstrating Combat, Pursuit, and Waypoint Patrol logic.",
+	"root_id": 1,
+	"nodes": [
+		{
+			"id": 1,
+			"friendly_name": "Root Sequence",
+			"type_name": "Sequence",
+			"category": "Composite",
+			"is_placeholder": false,
+			"parent_id": -1,
+			"children_ids": [2, 3],
+			"parameters": {}
+		},
+		{
+			"id": 2,
+			"friendly_name": "Check Health Above 20",
+			"type_name": "Condition",
+			"category": "Condition",
+			"is_placeholder": false,
+			"parent_id": 1,
+			"children_ids": [],
+			"parameters": {
+				"threshold": 20,
+				"variable": "health"
+			}
+		},
+		{
+			"id": 3,
+			"friendly_name": "Combat Or Patrol Selector",
+			"type_name": "Selector",
+			"category": "Composite",
+			"is_placeholder": false,
+			"parent_id": 1,
+			"children_ids": [4, 7],
+			"parameters": {}
+		},
+		{
+			"id": 4,
+			"friendly_name": "Combat Sequence",
+			"type_name": "Sequence",
+			"category": "Composite",
+			"is_placeholder": false,
+			"parent_id": 3,
+			"children_ids": [5, 6],
+			"parameters": {}
+		},
+		{
+			"id": 5,
+			"friendly_name": "Can See Target?",
+			"type_name": "Condition",
+			"category": "Condition",
+			"is_placeholder": false,
+			"parent_id": 4,
+			"children_ids": [],
+			"parameters": {
+				"max_distance": 15.0,
+				"fov_degrees": 90.0
+			}
+		},
+		{
+			"id": 6,
+			"friendly_name": "Attack Target",
+			"type_name": "Action",
+			"category": "Action",
+			"is_placeholder": false,
+			"parent_id": 4,
+			"children_ids": [],
+			"parameters": {
+				"damage": 25,
+				"cooldown": 1.5
+			}
+		},
+		{
+			"id": 7,
+			"friendly_name": "Patrol Sequence",
+			"type_name": "Sequence",
+			"category": "Composite",
+			"is_placeholder": false,
+			"parent_id": 3,
+			"children_ids": [8, 9],
+			"parameters": {}
+		},
+		{
+			"id": 8,
+			"friendly_name": "Move To Next Waypoint",
+			"type_name": "Action",
+			"category": "Action",
+			"is_placeholder": false,
+			"parent_id": 7,
+			"children_ids": [],
+			"parameters": {
+				"speed": 4.5,
+				"tolerance": 0.5
+			}
+		},
+		{
+			"id": 9,
+			"friendly_name": "Wait At Waypoint",
+			"type_name": "Repeater",
+			"category": "Decorator",
+			"is_placeholder": false,
+			"parent_id": 7,
+			"children_ids": [],
+			"parameters": {
+				"count": 3
+			}
+		}
+	],
+	"blackboard": {
+		"health": {
+			"value": 100,
+			"type_name": "int",
+			"is_shared": true,
+			"description": "Current agent health point"
+		},
+		"has_target": {
+			"value": false,
+			"type_name": "bool",
+			"is_shared": true,
+			"description": "True if an enemy target is spotted"
+		},
+		"current_waypoint_index": {
+			"value": 0,
+			"type_name": "int",
+			"is_shared": false,
+			"description": "Index of current patrol waypoint"
+		}
+	},
+	"metadata": {
+		"author": "huynguyen03dev",
+		"version": "1.0"
+	}
+}

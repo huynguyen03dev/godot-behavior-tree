@@ -1,0 +1,27 @@
+class_name BTMemoryTreeSource
+extends BTTreeSourceProvider
+## In-memory Behavior Tree Source Provider for dynamically generated trees and unit tests.
+
+var _trees: Dictionary = {} # name -> BTTree
+
+func get_source_name() -> String:
+	return "Memory BT Source"
+
+func register_tree(name: String, tree: BTTree) -> void:
+	if tree != null:
+		tree.tree_name = name
+		_trees[name] = tree
+
+func list_trees() -> Array:
+	var keys = _trees.keys()
+	keys.sort()
+	return keys
+
+func load_tree(identifier: String) -> BTTree:
+	return _trees.get(identifier, null)
+
+func save_tree(identifier: String, tree: BTTree) -> bool:
+	if tree == null or identifier == "":
+		return false
+	register_tree(identifier, tree)
+	return true
