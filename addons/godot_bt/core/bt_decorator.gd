@@ -22,6 +22,13 @@ func on_child_executed(child_index: int, child_status: int) -> void:
 func on_end() -> void:
 	_execution_status = BTStatus.INACTIVE
 
+## Simulated time on the owning runner (advanced by each tick's delta).
+## Time-based decorators use this instead of wall-clock time so pauses, manual
+## ticking, and Engine.time_scale behave predictably. Falls back to 0.0 when
+## the decorator is not driven by a BTRunner.
+func _runner_time() -> float:
+	return (owner as BTRunner).time if owner is BTRunner else 0.0
+
 # ---------------------------------------------------------------- BTInverter
 class BTInverter extends BTDecorator:
 	func _init() -> void:
@@ -76,11 +83,21 @@ class BTRepeater extends BTDecorator:
 		super.on_start()
 		_iteration = 0
 		count = int(get_param("count", count))
-		repeat_forever = bool(get_param("repeat_forever", repeat_forever))
-		end_on_failure = bool(get_param("end_on_failure", end_on_failure))
+		repeat_forever = coerce_bool(get_param("repeat_forever", repeat_forever), repeat_forever)
+		end_on_failure = coerce_bool(get_param("end_on_failure", end_on_failure), end_on_failure)
 		if count <= 0 and not repeat_forever:
 			_execution_status = BTStatus.SUCCESS
 			current_child_index = children.size()
+
+	## Typed parameter schema for the editor. Reports the public config
+	## fields without injecting defaults into `parameters`, so direct
+	## property assignment keeps working.
+	func get_parameter_schema() -> Dictionary:
+		return {
+			"count": {"type": "int", "default": count},
+			"repeat_forever": {"type": "bool", "default": repeat_forever},
+			"end_on_failure": {"type": "bool", "default": end_on_failure},
+		}
 
 	func can_execute() -> bool:
 		if repeat_forever:
@@ -167,8 +184,7 @@ class BTCooldown extends BTDecorator:
 
 	func on_start() -> void:
 		cooldown_time = float(get_param("cooldown_time", cooldown_time))
-		var current_time: float = Time.get_ticks_msec() / 1000.0
-		if current_time - _last_execution_time < cooldown_time:
+		if _runner_time() - _last_execution_time < cooldown_time:
 			# Still on cooldown -> fail immediately
 			_execution_status = BTStatus.FAILURE
 			current_child_index = children.size()
@@ -178,11 +194,19 @@ class BTCooldown extends BTDecorator:
 	func on_child_executed(child_index: int, child_status: int) -> void:
 		super.on_child_executed(child_index, child_status)
 		if child_status != BTStatus.RUNNING:
-			_last_execution_time = Time.get_ticks_msec() / 1000.0
+			_last_execution_time = _runner_time()
 			_execution_status = child_status
 
 	func override_status(status: int) -> int:
 		return _execution_status
+
+	## Typed parameter schema for the editor. Reports the public config
+	## fields without injecting defaults into `parameters`, so direct
+	## property assignment keeps working.
+	func get_parameter_schema() -> Dictionary:
+		return {
+			"cooldown_time": {"type": "float", "default": cooldown_time},
+		}
 
 # ---------------------------------------------------------------- BTTimeLimit
 class BTTimeLimit extends BTDecorator:
@@ -196,12 +220,12 @@ class BTTimeLimit extends BTDecorator:
 
 	func on_start() -> void:
 		time_limit = float(get_param("time_limit", time_limit))
-		_start_time = Time.get_ticks_msec() / 1000.0
+		_start_time = _runner_time()
 		super.on_start()
 
 	func on_child_executed(child_index: int, child_status: int) -> void:
 		super.on_child_executed(child_index, child_status)
-		var elapsed = (Time.get_ticks_msec() / 1000.0) - _start_time
+		var elapsed := _runner_time() - _start_time
 		if child_status == BTStatus.RUNNING and elapsed >= time_limit:
 			# Exceeded time limit -> abort child and fail
 			if child_index >= 0 and child_index < children.size():
@@ -214,3 +238,11 @@ class BTTimeLimit extends BTDecorator:
 
 	func override_status(status: int) -> int:
 		return _execution_status
+
+	## Typed parameter schema for the editor. Reports the public config
+	## fields without injecting defaults into `parameters`, so direct
+	## property assignment keeps working.
+	func get_parameter_schema() -> Dictionary:
+		return {
+			"time_limit": {"type": "float", "default": time_limit},
+		}

@@ -86,6 +86,7 @@ class BTSelector extends BTComposite:
 class BTParallel extends BTComposite:
 	var _children_status: Array = []
 	var _dispatched_this_tick: Array[bool] = []
+	var _warned_placeholders: Dictionary = {} # placeholder task -> true
 
 	func _init() -> void:
 		super._init()
@@ -120,16 +121,28 @@ class BTParallel extends BTComposite:
 	func on_child_started(child_index: int) -> void:
 		if child_index >= 0 and child_index < _dispatched_this_tick.size():
 			_dispatched_this_tick[child_index] = true
+		if child_index >= 0 and child_index < children.size():
+			var child: BTTask = children[child_index]
+			if child.is_placeholder and not _warned_placeholders.has(child):
+				_warned_placeholders[child] = true
+				push_warning("BTParallel '%s': child '%s' is an unregistered placeholder and is ignored while other branches run." % [friendly_name, child.type_name])
 
+	## Aggregates branch statuses. Inactive branches (for example unregistered
+	## placeholder tasks) do not contribute while at least one sibling is
+	## active; only when every branch is inactive does the Parallel go inactive.
 	func _aggregate_status() -> int:
 		var any_running := false
+		var saw_active := false
 		for status in _children_status:
 			if status == BTStatus.INACTIVE:
-				return BTStatus.INACTIVE
+				continue
+			saw_active = true
 			if status == BTStatus.FAILURE:
 				return BTStatus.FAILURE
 			if status == BTStatus.RUNNING:
 				any_running = true
+		if not saw_active:
+			return BTStatus.INACTIVE
 		return BTStatus.RUNNING if any_running else BTStatus.SUCCESS
 
 	func on_child_executed(child_index: int, child_status: int) -> void:

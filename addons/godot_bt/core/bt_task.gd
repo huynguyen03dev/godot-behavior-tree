@@ -85,6 +85,9 @@ func on_event(event_name: String, data: Variant = null) -> void:
 # ---------------------------------------------------------------- Parameter & Blackboard Helpers
 ## Returns the resolved value of a parameter.
 ## If the parameter is bound to a Blackboard key, it fetches the dynamic value from Blackboard.
+## String bindings use a leading "@" or "$" ("@key" / "$key"); escape a literal
+## with "@@key" / "$$key". A binding that cannot resolve (no blackboard, or the
+## key is missing) returns default_val instead of the raw binding string.
 func get_param(name: String, default_val: Variant = null) -> Variant:
 	if not parameters.has(name):
 		return default_val
@@ -93,10 +96,14 @@ func get_param(name: String, default_val: Variant = null) -> Variant:
 		var bb_key: String = str(raw.get("key", ""))
 		return get_blackboard_var(bb_key, default_val)
 	elif raw is String:
+		if raw.begins_with("@@") or raw.begins_with("$$"):
+			# Escaped literal: "@@foo" -> "@foo", "$$foo" -> "$foo"
+			return raw.substr(1)
 		if raw.begins_with("@") or raw.begins_with("$"):
 			var bb_key: String = raw.substr(1)
 			if blackboard != null and blackboard.has_var(bb_key):
 				return blackboard.get_var(bb_key, default_val)
+			return default_val
 	return raw
 
 func set_param(name: String, value: Variant, is_blackboard_key: bool = false) -> void:
@@ -114,8 +121,11 @@ func is_param_blackboard(name: String) -> bool:
 	var raw = parameters[name]
 	if raw is Dictionary and raw.get("is_blackboard", false):
 		return true
-	if raw is String and (raw.begins_with("@") or raw.begins_with("$")):
-		return true
+	if raw is String:
+		if raw.begins_with("@@") or raw.begins_with("$$"):
+			return false
+		if raw.begins_with("@") or raw.begins_with("$"):
+			return true
 	return false
 
 func get_param_blackboard_key(name: String) -> String:
@@ -124,9 +134,36 @@ func get_param_blackboard_key(name: String) -> String:
 	var raw = parameters[name]
 	if raw is Dictionary and raw.get("is_blackboard", false):
 		return str(raw.get("key", ""))
-	if raw is String and (raw.begins_with("@") or raw.begins_with("$")):
-		return raw.substr(1)
+	if raw is String:
+		if raw.begins_with("@@") or raw.begins_with("$$"):
+			return ""
+		if raw.begins_with("@") or raw.begins_with("$"):
+			return raw.substr(1)
 	return ""
+
+## Coerces a Variant to bool without the bool() constructor, which rejects
+## strings. Accepts bool directly; int/float by non-zero; and the strings
+## "true"/"1" -> true, "false"/"0" -> false (case-insensitive, trimmed).
+## Anything else returns the fallback.
+static func coerce_bool(value: Variant, fallback: bool = false) -> bool:
+	match typeof(value):
+		TYPE_BOOL:
+			return value
+		TYPE_INT:
+			return value != 0
+		TYPE_FLOAT:
+			return value != 0.0
+		TYPE_STRING:
+			var s := (value as String).strip_edges().to_lower()
+			match s:
+				"true", "1":
+					return true
+				"false", "0":
+					return false
+				_:
+					return fallback
+		_:
+			return fallback
 
 # Blackboard helper
 func get_blackboard_var(name: String, default_val: Variant = null) -> Variant:

@@ -208,7 +208,7 @@ func _test_task_parameters_and_blackboard_binding() -> Array:
 func _test_decorators_cooldown_and_timelimit() -> Array:
 	var rows := []
 
-	# Cooldown test
+	# Cooldown test (simulated time: advance time by ticking with deltas)
 	var cd = BTDecorator.BTCooldown.new()
 	cd.cooldown_time = 0.5
 	var child_act = TestMockCondition.new(true) # Returns SUCCESS
@@ -220,13 +220,18 @@ func _test_decorators_cooldown_and_timelimit() -> Array:
 	runner.start()
 
 	# Tick 1: runs child and succeeds
-	var s1 = runner.tick()
+	var s1 = runner.tick(0.0)
 	rows.append(["Cooldown tick 1 runs child and succeeds", s1 == BTStatus.SUCCESS, "s1=%d" % s1])
 
-	# Next tick immediate: should fail because of cooldown
+	# Next tick with no simulated time elapsed: should fail because of cooldown
 	runner.start() # A completed run is inactive; start a fresh run for the cooldown check.
-	var s2 = runner.tick()
+	var s2 = runner.tick(0.0)
 	rows.append(["Cooldown tick 2 blocked by cooldown timer", s2 == BTStatus.FAILURE, "s2=%d" % s2])
+
+	# Advance simulated time past the cooldown: it opens again
+	runner.start()
+	var s3 = runner.tick(0.5)
+	rows.append(["Cooldown reopens once simulated time passes", s3 == BTStatus.SUCCESS, "s3=%d" % s3])
 	runner.stop()
 	runner.free()
 
@@ -241,13 +246,19 @@ func _test_decorators_cooldown_and_timelimit() -> Array:
 	var tl_runner = BTRunner.new(tl_tree)
 	tl_runner.start()
 
-	var t_s1 = tl_runner.tick()
+	var t_s1 = tl_runner.tick(0.0)
 	rows.append(["TimeLimit tick 1 running", t_s1 == BTStatus.RUNNING, "ts1=%d" % t_s1])
 
-	# Wait exceeding time_limit
-	OS.delay_msec(60)
-	var t_s2 = tl_runner.tick()
-	rows.append(["TimeLimit tick 2 aborted due to timeout", t_s2 == BTStatus.FAILURE and tl_act.abort_called, "ts2=%d, abort=%s" % [t_s2, str(tl_act.abort_called)]])
+	# Zero delta never advances simulated time, so the limit is never reached
+	var zero_delta_running := true
+	for i in 3:
+		if tl_runner.tick(0.0) != BTStatus.RUNNING:
+			zero_delta_running = false
+	rows.append(["TimeLimit with zero delta never expires", zero_delta_running, "zero-delta running=%s" % str(zero_delta_running)])
+
+	# Advance simulated time beyond time_limit
+	var t_s2 = tl_runner.tick(0.06)
+	rows.append(["TimeLimit aborts after simulated delta exceeds limit", t_s2 == BTStatus.FAILURE and tl_act.abort_called, "ts2=%d, abort=%s" % [t_s2, str(tl_act.abort_called)]])
 	tl_runner.stop()
 	tl_runner.free()
 
