@@ -105,9 +105,11 @@ func _physics_process(delta: float) -> void:
 
 Open the **Behavior Tree** tab at the bottom of the editor. With no custom provider configured it scans `res://` for `.json` trees; use **📁 Source…** to pick another folder, or set the project setting `behavior_tree/custom_source_provider` to a script path extending `BTTreeSourceProvider`. **＋ New** starts an unsaved `new_tree` with a Sequence root.
 
-- **Canvas**: Drag and connect nodes — dragging a child to another parent reparents it, and refused connections are explained in the status bar. Node positions persist in the tree's `metadata["node_positions"]` and survive reloads. The root cannot be deleted; select another node and press **⭐ Set as Root** first.
+- **Canvas**: Drag and connect nodes — dragging a child to another parent reparents it, and refused connections are explained in the status bar. Node positions persist in the tree's `metadata["node_positions"]` and survive reloads. The root cannot be deleted; select another node and press **⭐ Set as Root** first. Deleting a node removes its whole subtree.
+- **Undo/Redo**: Every editing action (add/delete/connect/rename/parameters/blackboard edits, Apply JSON) is undoable with **Ctrl+Z** and redoable with **Ctrl+Shift+Z** / **Ctrl+Y** while the panel has focus; loading or creating a tree clears the history.
 - **Inspector**: Click any node to inspect and edit its name, abort type, and parameters. Built-in decorators expose typed controls for their configuration (Repeater `count` / `repeat_forever` / `end_on_failure`, Cooldown `cooldown_time`, TimeLimit `time_limit`), editing never changes a parameter's type, and `Vector2` / `Vector3` / `Color` values accept `(x, y[, z[, w]])`.
 - **Code View**: Switch to the Code View tab to view or edit the raw JSON tree directly. Click **⚡ Apply JSON to Tree** to update the graph; it validates first and warns when the model changed since the JSON was captured.
+- **Filter**: The search box and the "Placeholders Only" checkbox hide non-matching nodes in the graph and list only matches (plus their ancestors) in the Tree tab.
 
 **Save** validates the tree before writing and reports the first validation error. Unsaved changes prompt before switching or reloading trees, and the Godot editor warns about unsaved behavior trees on close (the plugin's save hooks write the open tree).
 
@@ -132,7 +134,7 @@ godot --headless --path . -s res://tests/test_minigame_regressions.gd
 godot --headless --path . -s res://tests/test_demo_regressions.gd
 ```
 
-Roadmap items not yet implemented include full Undo/Redo, incremental graph rendering for very large trees, and scoped blackboards for subtrees.
+Roadmap items no longer open: Undo/Redo, New/Open workflows, and real filtering shipped. Still open: incremental rendering is partially in (surviving nodes are reused; structural edits still rebuild connections), scoped blackboards for subtrees, and a recursive file-source listing.
 
 ## Behavior notes
 
