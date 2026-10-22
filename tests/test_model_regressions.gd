@@ -12,6 +12,20 @@ class SubTreeProbeTask extends BTTask:
 		blackboard.set_var("runtime_task_ref", weakref(self))
 		return BTStatus.SUCCESS
 
+class RealDecoratorTask extends BTDecorator:
+	func on_update() -> int:
+		return children[0].last_status if not children.is_empty() else BTStatus.FAILURE
+
+class CacheProbeA extends BTTask:
+	func on_update() -> int:
+		blackboard.set_var("cache_calls", int(blackboard.get_var("cache_calls", 0)) + 1)
+		return BTStatus.SUCCESS
+
+class CacheProbeB extends BTTask:
+	func on_update() -> int:
+		blackboard.set_var("cache_version_b", true)
+		return BTStatus.SUCCESS
+
 func _init() -> void:
 	call_deferred("_run")
 
@@ -84,7 +98,14 @@ func _run() -> void:
 	var unknown_data := {"root_id": 1, "nodes": [{"id": 1, "type_name": "NoSuchTask", "is_placeholder": false, "children_ids": [], "parameters": {}}]}
 	var unknown := BTTree.from_dict(unknown_data)
 	_check(unknown != null and unknown.root_task.is_placeholder, "serialized flag cannot disable unknown placeholder")
+	_test_validate_from_dict_agreement()
+	_test_registry_category_override()
+	_test_nonfinite_and_rejected_encodings()
+	_test_save_tree_validation()
+	_test_file_source_paths()
+	_test_reparent()
 	await _test_subtree_end_to_end()
+	await _test_subtree_caching()
 	print("Model regression suite: %d checks, %d failures" % [_checks, _failures])
 	quit(1 if _failures > 0 else 0)
 
@@ -167,6 +188,260 @@ func _run_subtree_fixture(path: String, expected_status: int) -> bool:
 	var status := runner.tick(0.01)
 	runner.free()
 	return status == expected_status
+
+# ------------------------------------------------------------- Fix: S7/P30
+func _test_validate_from_dict_agreement() -> void:
+	var registry := BTTaskRegistry.new()
+	registry.register_task("FakeDecorator", func(): return BTTask.new(), "Decorator")
+	registry.register_task("RealDecorator", func(): return RealDecoratorTask.new(), "Decorator")
+	registry.register_task("RealComposite", func(): return BTComposite.BTSequence.new(), "Composite")
+
+	# Custom task registered as "Decorator" but returning a plain BTTask, given two children.
+	var fake := {"root_id": 1, "nodes": [
+		{"id": 1, "type_name": "FakeDecorator", "children_ids": [2, 3], "parameters": {}},
+		{"id": 2, "children_ids": [], "parameters": {}},
+		{"id": 3, "children_ids": [], "parameters": {}}
+	]}
+	_check(not BTTree.validate_dict(fake, registry).is_empty(), "custom leaf 'Decorator' with children fails registry validation")
+	_check(BTTree.from_dict(fake, registry) == null, "custom leaf 'Decorator' with children rejected by from_dict")
+	_check(BTTree.validate_dict(fake).is_empty(), "validate_dict without registry stays permissive for unknown types")
+
+	# Builtin Inverter with two children: both functions reject.
+	var two_kids := {"root_id": 1, "nodes": [
+		{"id": 1, "type_name": "Inverter", "children_ids": [2, 3], "parameters": {}},
+		{"id": 2, "children_ids": [], "parameters": {}},
+		{"id": 3, "children_ids": [], "parameters": {}}
+	]}
+	_check(not BTTree.validate_dict(two_kids).is_empty(), "builtin Inverter with two children rejected without registry")
+	_check(not BTTree.validate_dict(two_kids, registry).is_empty(), "builtin Inverter with two children rejected with registry")
+	_check(BTTree.from_dict(two_kids, registry) == null, "builtin Inverter with two children rejected by from_dict")
+
+	# A valid custom BTParentTask decorator is accepted by both.
+	var good := {"root_id": 1, "nodes": [
+		{"id": 1, "type_name": "RealDecorator", "children_ids": [2], "parameters": {}},
+		{"id": 2, "type_name": "RealComposite", "children_ids": [3], "parameters": {}},
+		{"id": 3, "children_ids": [], "parameters": {}}
+	]}
+	_check(BTTree.validate_dict(good, registry).is_empty(), "custom parent-task decorator accepted by validation")
+	var good_tree := BTTree.from_dict(good, registry)
+	_check(good_tree != null and good_tree.root_task is RealDecoratorTask, "custom parent-task decorator loads via from_dict")
+
+	# from_dict validates with its registry even for a single child.
+	var leaf_with_kid := {"root_id": 1, "nodes": [
+		{"id": 1, "type_name": "FakeDecorator", "children_ids": [2], "parameters": {}},
+		{"id": 2, "children_ids": [], "parameters": {}}
+	]}
+	_check(BTTree.from_dict(leaf_with_kid, registry) == null, "registry leaf task with one child rejected by from_dict")
+
+# ------------------------------------------------------------- Fix: S6
+func _test_registry_category_override() -> void:
+	var registry := BTTaskRegistry.new()
+	registry.register_task("CustomActionTask", func(): return BTTask.new(), "Action")
+	# The registered task sits under a builtin root; set_root would relabel the
+	# root itself, so the child carries the observable category.
+	var data := {"root_id": 1, "nodes": [
+		{"id": 1, "type_name": "Sequence", "children_ids": [2, 3], "parameters": {}},
+		{"id": 2, "type_name": "CustomActionTask", "category": "Condition", "children_ids": [], "parameters": {}},
+		{"id": 3, "type_name": "NoSuchTask", "category": "Condition", "children_ids": [], "parameters": {}}
+	]}
+	var tree := BTTree.from_dict(data, registry)
+	_check(tree != null and tree.get_node_by_id(2).category == "Action", "registry category overrides JSON category for known types")
+	_check(tree != null and tree.get_node_by_id(3).category == "Condition", "JSON category remains the fallback for unknown types")
+
+# ------------------------------------------------------------- Fix: P12/P18
+func _test_nonfinite_and_rejected_encodings() -> void:
+	var tree := BTTree.new()
+	tree.set_root(BTTask.new())
+	tree.blackboard.set_var("pos_inf", INF)
+	tree.blackboard.set_var("neg_inf", -INF)
+	tree.blackboard.set_var("not_a_number", NAN)
+	var encoded := tree.to_dict()
+	_check(BTTree.validate_dict(encoded).is_empty(), "non-finite floats encode to valid tagged values")
+	var restored := BTTree.from_dict(JSON.parse_string(JSON.stringify(encoded)))
+	_check(restored != null and restored.blackboard.get_var("pos_inf") == INF, "INF survives JSON roundtrip")
+	_check(restored != null and restored.blackboard.get_var("neg_inf") == -INF, "-INF survives JSON roundtrip")
+	_check(restored != null and is_nan(float(restored.blackboard.get_var("not_a_number"))), "NaN survives JSON roundtrip")
+
+	_check(not BTTree.validate_dict({"root_id": 1, "nodes": [{"id": 1, "children_ids": [], "parameters": {"x": INF}}]}).is_empty(), "raw non-finite float remains invalid")
+	_check(not BTTree.validate_dict({"root_id": 1, "nodes": [{"id": 1, "children_ids": [], "parameters": {"x": {"__bt_type": "float", "value": "bogus"}}}]}).is_empty(), "malformed float tag rejected")
+	_check(not BTTree.validate_dict({"root_id": 1, "nodes": [{"id": 1, "children_ids": [], "parameters": {"x": {"__bt_type": "float", "value": "inf", "extra": 1}}}]}).is_empty(), "float tag with extra keys rejected")
+	_check(not BTTree.validate_dict({"root_id": 1, "nodes": [{"id": 1, "children_ids": [], "parameters": {"cb": Callable()}}]}).is_empty(), "Callable parameter values rejected")
+	_check(not BTTree.validate_dict({"root_id": 1, "nodes": [{"id": 1, "children_ids": [], "parameters": {"rid": RID()}}]}).is_empty(), "RID parameter values rejected")
+	var probe_node := Node.new()
+	_check(not BTTree.validate_dict({"root_id": 1, "nodes": [{"id": 1, "children_ids": [], "parameters": {}}], "blackboard": {"n": {"value": probe_node}}}).is_empty(), "Object blackboard values rejected")
+	probe_node.free()
+
+# ------------------------------------------------------------- Fix: P12/P18 save validation
+func _test_save_tree_validation() -> void:
+	var dir_a := "user://bt_model_save_a"
+	DirAccess.make_dir_recursive_absolute(dir_a)
+	var source := BTFileTreeSource.new(dir_a)
+
+	var keep := BTTree.new()
+	keep.set_root(BTTask.new())
+	keep.tree_name = "keep"
+	_check(source.save_tree("keep", keep), "valid tree saves to file source")
+
+	var broken := BTTree.new()
+	broken.set_root(BTTask.new())
+	var node_value := Node.new()
+	broken.blackboard.set_var("target", node_value)
+	_check(not source.save_tree("keep", broken), "tree with Object in blackboard rejected by file save")
+	var reloaded := source.load_tree("keep")
+	_check(reloaded != null and reloaded.tree_name == "keep", "rejected save leaves the original file untouched")
+	_check(not source.save_tree("fresh_bad", broken), "invalid tree does not save under a new identifier")
+	_check(not FileAccess.file_exists(dir_a + "/fresh_bad.json"), "invalid tree creates no new file")
+
+	var memory := BTMemoryTreeSource.new()
+	memory.register_tree("alive", keep)
+	_check(not memory.save_tree("alive", broken), "memory source rejects an invalid tree")
+	_check(memory.load_tree("alive") == keep, "memory source keeps the previous tree after a rejected save")
+	var live := BTTree.new()
+	live.set_root(BTTask.new())
+	_check(memory.save_tree("mem", live), "memory source stores a valid tree")
+	_check(memory.load_tree("mem") == live, "memory source stores the live tree without cloning")
+	node_value.free()
+
+	for path in [dir_a + "/keep.json"]:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dir_a))
+
+# ------------------------------------------------------------- Fix: P11/B5
+func _test_file_source_paths() -> void:
+	var dir_a := "user://bt_model_paths_a"
+	var dir_other := "user://bt_model_paths_other"
+	DirAccess.make_dir_recursive_absolute(dir_a)
+	DirAccess.make_dir_recursive_absolute(dir_other)
+	var foo_path := dir_other + "/foo.json"
+
+	var foo_tree := BTTree.new()
+	foo_tree.set_root(BTComposite.BTSequence.new())
+	foo_tree.tree_name = "original-foo"
+	_write_tree_fixture(foo_path, foo_tree.to_dict())
+
+	var source := BTFileTreeSource.new(dir_a)
+	_check(not source.list_trees().has("foo"), "source directory starts without the external tree")
+
+	var loaded := source.load_tree(foo_path)
+	_check(loaded != null, "loading by full path outside the source directory works")
+
+	var edited := BTTree.new()
+	edited.set_root(BTComposite.BTSequence.new())
+	edited.tree_name = "updated-foo"
+	_check(source.save_tree("foo", edited), "saving by basename after a path load succeeds")
+	_check(_read_file_text(foo_path).contains("updated-foo"), "save by basename updates the originally loaded file")
+	_check(not FileAccess.file_exists(dir_a + "/foo.json"), "save by basename creates no copy in the source directory")
+
+	var fresh := BTTree.new()
+	fresh.set_root(BTComposite.BTSequence.new())
+	fresh.tree_name = "new-tree"
+	_check(source.save_tree("new.json", fresh), "saving a relative .json identifier succeeds")
+	_check(FileAccess.file_exists(dir_a + "/new.json"), "relative .json identifier lands in the source directory")
+
+	var extra_path := dir_a + "/fresh.json"
+	var extra := BTTree.new()
+	extra.set_root(BTTask.new())
+	_write_tree_fixture(extra_path, extra.to_dict())
+	_check(not source.list_trees().has("fresh"), "newly written file is not listed before refresh")
+	source.refresh()
+	_check(source.list_trees().has("fresh"), "refresh lists a newly written file")
+	_check(source.load_tree("fresh") != null, "refreshed file loads by basename")
+	_check(str(source.get_tree_path("fresh")).begins_with("user://"), "scanned paths stay in res:// or user:// form")
+	_check(source.save_tree("foo", edited), "basename mapping to the external file survives refresh")
+
+	for path in [foo_path, dir_a + "/new.json", extra_path]:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dir_a))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dir_other))
+
+# ------------------------------------------------------------- Fix: E3
+func _test_reparent() -> void:
+	var tree := BTTree.new()
+	var root := BTComposite.BTSequence.new()
+	tree.set_root(root)
+	var a := BTComposite.BTSelector.new()
+	var b := BTComposite.BTSequence.new()
+	tree.connect_parent_child(root, a)
+	tree.connect_parent_child(root, b)
+	var leaf := BTTask.new()
+	tree.connect_parent_child(a, leaf)
+	_check(leaf.parent == a, "leaf starts under parent A")
+
+	tree.connect_parent_child(b, leaf)
+	_check(leaf.parent == b, "reparenting moves the child to parent B")
+	_check(b.children.has(leaf), "new parent holds the reparented child")
+	_check(not a.children.has(leaf), "old parent releases the reparented child")
+	_check(root.children.size() == 2, "reparent does not duplicate the node")
+
+	tree.connect_parent_child(b, root)
+	_check(root.parent == null, "connecting an ancestor as a child is refused")
+	tree.connect_parent_child(leaf, root)
+	_check(root.parent == null, "connecting to a leaf parent is refused")
+
+	var deco := BTDecorator.BTInverter.new()
+	tree.connect_parent_child(root, deco)
+	var first := BTTask.new()
+	tree.connect_parent_child(deco, first)
+	var holder := BTComposite.BTSequence.new()
+	tree.connect_parent_child(root, holder)
+	var second := BTTask.new()
+	tree.connect_parent_child(holder, second)
+	tree.connect_parent_child(deco, second)
+	_check(deco.children.size() == 1 and deco.children[0] == first, "decorator still refuses a second child")
+	_check(second.parent == holder and holder.children.has(second), "refused child stays with its existing parent")
+
+# ------------------------------------------------------------- Fix: M10
+func _test_subtree_caching() -> void:
+	var path_a := "user://bt_model_cache_a.json"
+	var path_b := "user://bt_model_cache_b.json"
+	var registry := BTTaskRegistry.new()
+	registry.register_task("CacheProbeA", func(): return CacheProbeA.new(), "Action")
+	registry.register_task("CacheProbeB", func(): return CacheProbeB.new(), "Action")
+	var dict_a := {"root_id": 1, "nodes": [{"id": 1, "type_name": "CacheProbeA", "children_ids": [], "parameters": {}}]}
+	var dict_b := {"root_id": 1, "nodes": [{"id": 1, "type_name": "CacheProbeB", "children_ids": [], "parameters": {}}]}
+	_write_tree_fixture(path_a, dict_a)
+	_write_tree_fixture(path_b, dict_b)
+
+	var parent_tree := BTTree.new()
+	parent_tree.registry = registry
+	var subtree := BTSubTree.new(path_a)
+	parent_tree.set_root(subtree)
+	var runner := BTRunner.new(parent_tree)
+	runner.start()
+	_check(runner.tick(0.1) == BTStatus.SUCCESS, "cached subtree first run succeeds")
+	_check(int(parent_tree.blackboard.get_var("cache_calls", 0)) == 1, "subtree task executed once")
+	_check(not bool(parent_tree.blackboard.get_var("cache_version_b", false)), "version B task not yet seen")
+
+	# Rewrite the file on disk: the cached parse must be reused across a restart.
+	_write_tree_fixture(path_a, dict_b)
+	runner.start()
+	_check(runner.tick(0.1) == BTStatus.SUCCESS, "cached subtree second run succeeds")
+	_check(int(parent_tree.blackboard.get_var("cache_calls", 0)) == 2, "cached subtree reruns the old parsed tree")
+	_check(not bool(parent_tree.blackboard.get_var("cache_version_b", false)), "rewritten file is not reloaded while tree_path is unchanged")
+
+	# Changing tree_path forces a reload from the new file.
+	subtree.tree_path = path_b
+	subtree.parameters["tree_path"] = path_b
+	runner.start()
+	_check(runner.tick(0.1) == BTStatus.SUCCESS, "subtree runs after tree_path change")
+	_check(bool(parent_tree.blackboard.get_var("cache_version_b", false)), "changing tree_path reloads the new file")
+
+	runner.stop()
+	runner.free()
+	await process_frame
+	for path in [path_a, path_b]:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+func _read_file_text(path: String) -> String:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return ""
+	var text := file.get_as_text()
+	file.close()
+	return text
 
 func _check(condition: bool, label: String) -> void:
 	_checks += 1

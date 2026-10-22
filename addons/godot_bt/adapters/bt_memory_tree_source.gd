@@ -23,5 +23,9 @@ func load_tree(identifier: String) -> BTTree:
 func save_tree(identifier: String, tree: BTTree) -> bool:
 	if tree == null or identifier == "":
 		return false
+	var errors := BTTree.validate_dict(tree.to_dict(), tree.registry)
+	if not errors.is_empty():
+		push_error("BTMemoryTreeSource: refusing to store tree '%s': %s" % [identifier, "; ".join(errors)])
+		return false
 	register_tree(identifier, tree)
 	return true

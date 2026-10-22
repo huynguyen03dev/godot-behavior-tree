@@ -45,14 +45,16 @@ func connect_parent_child(parent_task: BTTask, child_task: BTTask) -> void:
 		if ancestor == child_task:
 			return
 		ancestor = ancestor.parent
-	if child_task.parent != null and child_task.parent != parent_task:
-		return
 	add_node(parent_task)
 	add_node(child_task)
 	if parent_task is BTParentTask:
+		# add_child_task reparents a child that already has a different parent,
+		# so moving a node from one parent to another is allowed here.
 		(parent_task as BTParentTask).add_child_task(child_task)
-	elif "children" in parent_task:
-		if parent_task.children is Array and not parent_task.children.has(child_task):
+	elif "children" in parent_task and parent_task.children is Array:
+		if not parent_task.children.has(child_task):
+			if child_task.parent != null and child_task.parent != parent_task:
+				disconnect_parent_child(child_task.parent, child_task)
 			parent_task.children.append(child_task)
 			child_task.parent = parent_task
 
@@ -124,6 +126,10 @@ func get_stats() -> Dictionary:
 	}
 
 # ---------------------------------------------------------------- Serialization
+
+const BUILTIN_COMPOSITE_TYPES := ["Sequence", "Selector", "Parallel", "RandomSequence", "RandomSelector"]
+const BUILTIN_DECORATOR_TYPES := ["Inverter", "ReturnSuccess", "ReturnFailure", "Repeater", "UntilSuccess", "UntilFailure", "Cooldown", "TimeLimit"]
+
 func to_dict() -> Dictionary:
 	var nodes_data: Array = []
 	for task in node_list:
@@ -166,7 +172,11 @@ func to_dict() -> Dictionary:
 		"metadata": metadata
 	}
 
-static func validate_dict(data: Dictionary) -> PackedStringArray:
+## Validates serialized tree data. Without a registry only builtin type names
+## are known (backwards compatible); with a registry, the task the registry
+## creates decides whether a node may hold children and whether it is a
+## single-child decorator, exactly like from_dict does.
+static func validate_dict(data: Dictionary, registry: BTTaskRegistry = null) -> PackedStringArray:
 	var errors := PackedStringArray()
 	if not data.get("nodes", null) is Array:
 		errors.append("nodes must be an array")
@@ -194,7 +204,7 @@ static func validate_dict(data: Dictionary) -> PackedStringArray:
 			if not _valid_encoded(parameter_value):
 				errors.append("node %d contains malformed encoded value" % id)
 				break
-		if str(node.get("type_name", "")) in ["Sequence", "Selector", "Parallel", "RandomSequence", "RandomSelector"] and parameters.has("abort_type"):
+		if BUILTIN_COMPOSITE_TYPES.has(str(node.get("type_name", ""))) and parameters.has("abort_type"):
 			var abort_value: Variant = parameters["abort_type"]
 			if not _is_integer_id(abort_value) or int(abort_value) < 0 or int(abort_value) > 3:
 				errors.append("node %d abort_type must be an integer from 0 to 3" % id)
@@ -210,6 +220,12 @@ static func validate_dict(data: Dictionary) -> PackedStringArray:
 		if not node.get("children_ids", []) is Array:
 			continue
 		var child_ids: Array = node.get("children_ids", [])
+		if not child_ids.is_empty():
+			var shape := _node_parent_shape(node, registry)
+			if not shape.can_have_children:
+				errors.append("node %d of type '%s' has children but cannot hold them" % [id, str(node.get("type_name", ""))])
+			elif shape.is_decorator and child_ids.size() > 1:
+				errors.append("decorator %d has multiple children" % id)
 		for child_value in child_ids:
 			var child: int = int(child_value) if _is_integer_id(child_value) else -1
 			if child < 0 or not by_id.has(child):
@@ -217,8 +233,6 @@ static func validate_dict(data: Dictionary) -> PackedStringArray:
 				continue
 			parents[child] += 1
 			edges[id].append(child)
-		if str(node.get("type_name", "")) in ["Inverter", "ReturnSuccess", "ReturnFailure", "Repeater", "UntilSuccess", "UntilFailure", "Cooldown", "TimeLimit"] and child_ids.size() > 1:
-			errors.append("decorator %d has multiple children" % id)
 	for id in by_id:
 		if parents[id] > 1: errors.append("node %d has multiple parents" % id)
 	if by_id.has(root_id) and parents[root_id] > 0:
@@ -234,6 +248,27 @@ static func validate_dict(data: Dictionary) -> PackedStringArray:
 static func _is_integer_id(value: Variant) -> bool:
 	return value is int or (value is float and is_finite(value) and floor(value) == value)
 
+## Decides whether a serialized node may hold children and whether it is a
+## single-child decorator. With a registry the decision comes from the task the
+## registry creates (the same predicate from_dict applies); without one only
+## builtin type names are known and unknown types stay permissive for
+## backwards compatibility.
+static func _node_parent_shape(node: Dictionary, registry: BTTaskRegistry) -> Dictionary:
+	var type_name := str(node.get("type_name", ""))
+	if registry != null:
+		var created: BTTask = registry.create_task(type_name)
+		if created is BTParentTask:
+			return {
+				"can_have_children": true,
+				"is_decorator": created is BTDecorator or registry.get_category(type_name) == "Decorator"
+			}
+		return {"can_have_children": false, "is_decorator": false}
+	if BUILTIN_DECORATOR_TYPES.has(type_name):
+		return {"can_have_children": true, "is_decorator": true}
+	if BUILTIN_COMPOSITE_TYPES.has(type_name):
+		return {"can_have_children": true, "is_decorator": false}
+	return {"can_have_children": true, "is_decorator": false}
+
 static func _has_cycle(id: int, edges: Dictionary, colors: Dictionary) -> bool:
 	colors[id] = 1
 	for child in edges[id]:
@@ -243,11 +278,18 @@ static func _has_cycle(id: int, edges: Dictionary, colors: Dictionary) -> bool:
 	return false
 
 static func _valid_encoded(value: Variant) -> bool:
+	# Objects, Callables and RIDs cannot be represented in JSON; accepting them
+	# here would let save write files that silently corrupt on reload.
+	if value is Object or value is Callable or value is RID:
+		return false
 	if value is float and not is_finite(value): return false
 	if value is Array:
 		for item in value:
 			if not _valid_encoded(item): return false
 	elif value is Dictionary:
+		if value.has("__bt_type") and value["__bt_type"] == "float":
+			var tag_value: Variant = value.get("value", null)
+			return value.size() == 2 and tag_value is String and ["inf", "-inf", "nan"].has(tag_value)
 		if value.has("__bt_type") and value["__bt_type"] in ["Vector2", "Vector3", "Color"]:
 			if value.size() != 2 or not value.has("value") or not value.value is Array:
 				return false
@@ -261,6 +303,13 @@ static func _valid_encoded(value: Variant) -> bool:
 	return true
 
 static func _encode_value(value: Variant) -> Variant:
+	if value is float and not is_finite(value):
+		# JSON.stringify mangles non-finite floats; store them as tagged values.
+		if value > 0.0:
+			return {"__bt_type": "float", "value": "inf"}
+		if value < 0.0:
+			return {"__bt_type": "float", "value": "-inf"}
+		return {"__bt_type": "float", "value": "nan"}
 	if value is Vector2: return {"__bt_type":"Vector2", "value":[value.x, value.y]}
 	if value is Vector3: return {"__bt_type":"Vector3", "value":[value.x, value.y, value.z]}
 	if value is Color: return {"__bt_type":"Color", "value":[value.r, value.g, value.b, value.a]}
@@ -275,6 +324,11 @@ static func _encode_value(value: Variant) -> Variant:
 	return value
 
 static func _decode_value(value: Variant) -> Variant:
+	if value is Dictionary and value.size() == 2 and value.has("__bt_type") and value.has("value") and value["__bt_type"] == "float" and _valid_encoded(value):
+		match str(value.value):
+			"inf": return INF
+			"-inf": return -INF
+			"nan": return NAN
 	if value is Dictionary and value.size() == 2 and value.has("__bt_type") and value.has("value") and value["__bt_type"] in ["Vector2", "Vector3", "Color"] and _valid_encoded(value):
 		var v: Array = value.value
 		match value.__bt_type:
@@ -292,7 +346,10 @@ static func _decode_value(value: Variant) -> Variant:
 	return value
 
 static func from_dict(data: Dictionary, registry: BTTaskRegistry = null) -> BTTree:
-	var errors := validate_dict(data)
+	# Validate with the registry that will build the tree so validate_dict and
+	# from_dict always agree on which nodes may hold children.
+	var validation_registry := registry if registry != null else BTTaskRegistry.new()
+	var errors := validate_dict(data, validation_registry)
 	if not errors.is_empty():
 		push_error("Invalid behavior tree data: " + "; ".join(errors))
 		return null
@@ -316,7 +373,11 @@ static func from_dict(data: Dictionary, registry: BTTaskRegistry = null) -> BTTr
 		var task: BTTask = registry.create_task(type_name)
 		task.id = nid
 		task.friendly_name = str(n_dict.get("friendly_name", type_name))
-		task.category = str(n_dict.get("category", task.category))
+		# Types known to the registry own their category (create_task already
+		# applied it); the JSON category is only a fallback for placeholders
+		# and unknown types.
+		if not registry.has_task(type_name):
+			task.category = str(n_dict.get("category", task.category))
 		task.parameters = {}
 		for parameter_key in n_dict.get("parameters", {}):
 			task.parameters[parameter_key] = _decode_value(n_dict.parameters[parameter_key])
