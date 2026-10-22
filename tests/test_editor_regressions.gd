@@ -7,6 +7,7 @@ var failures: int = 0
 class SnapshotProvider extends BTTreeSourceProvider:
 	var snapshots: Dictionary = {}
 	var save_count: int = 0
+	var last_error: String = ""
 	var registry: BTTaskRegistry
 
 	func _init(p_registry: BTTaskRegistry) -> void:
@@ -22,6 +23,12 @@ class SnapshotProvider extends BTTreeSourceProvider:
 
 	func save_tree(identifier: String, tree: BTTree) -> bool:
 		save_count += 1
+		last_error = ""
+		var reg: BTTaskRegistry = registry if registry != null else tree.registry
+		var errors := BTTree.validate_dict(tree.to_dict(), reg)
+		if not errors.is_empty():
+			last_error = errors[0]
+			return false
 		snapshots[identifier] = JSON.parse_string(JSON.stringify(tree.to_dict()))
 		return true
 
@@ -209,6 +216,13 @@ func _run() -> void:
 	_test_dirty_close_hooks()
 	_test_inspector_rebuild()
 	_test_editor_misc()
+	_test_n1_switch_source_clears_state()
+	_test_n2_add_task_attachment_guard()
+	_test_n4_cancel_pending_action()
+	_test_n6_save_external_data_unapplied_json()
+	_test_n8_refresh_tree_list_skips_corrupt_to_valid()
+	_test_n10_vector_color_parsing()
+	_test_n11_new_tree_dropdown_and_save_sync()
 	print("Editor regressions: %d passed, %d failed" % [checks - failures, failures])
 	quit(1 if failures else 0)
 
@@ -253,21 +267,30 @@ func _test_root_deletion_and_set_as_root() -> void:
 	failures += int(not _expect(root_task.parent == null, "the previous root has no parent afterwards"))
 	viewer.free()
 
-# ---------------------------------------------------------------- B1/H2: save validation
+# ---------------------------------------------------------------- B1/H2/N3: save validation
 func _test_save_validation() -> void:
 	var viewer := _make_viewer()
 	var provider := SnapshotProvider.new(BTTaskRegistry.new())
 	provider.snapshots["Broken"] = {}
+	viewer.set_tree_source(provider)
 	var tree := _tree_with_root()
 	viewer.load_generic_tree(tree, "Broken")
-	viewer.set_tree_source(provider)
 	# Break the tree: without a root the serialized form cannot be loaded again.
 	tree.remove_node(tree.root_task)
 	viewer._on_save_pressed()
 	checks += 3
-	failures += int(not _expect(provider.save_count == 0, "an invalid tree is never handed to the provider"))
-	failures += int(not _expect(viewer._stats_label.text.begins_with("❌"), "an invalid tree reports the first validation error"))
+	failures += int(not _expect(provider.save_count == 1, "an invalid tree calls provider save_tree exactly once"))
+	failures += int(not _expect(viewer._stats_label.text.begins_with("❌"), "an invalid tree reports the validation error from provider"))
 	failures += int(not _expect(viewer._stats_label.text.contains("root_id"), "the reported error names the problem"))
+
+	# Valid tree: save succeeds and provider is called once
+	provider.save_count = 0
+	var valid_tree := _tree_with_root()
+	viewer.load_generic_tree(valid_tree, "Valid")
+	viewer._on_save_pressed()
+	checks += 2
+	failures += int(not _expect(provider.save_count == 1, "valid tree calls provider save_tree exactly once"))
+	failures += int(not _expect(viewer._stats_label.text.begins_with("✅"), "valid tree reports success"))
 	viewer.free()
 
 # ---------------------------------------------------------------- B2: onboarding
@@ -341,9 +364,9 @@ func _test_corrupt_tree_status() -> void:
 	viewer.load_generic_tree(tree, "Good")
 	viewer.set_tree_source(BrokenProvider.new())
 	checks += 3
-	failures += int(not _expect(viewer.current_tree == tree, "a tree that fails to load keeps the previous tree"))
+	failures += int(not _expect(viewer.current_tree == null, "a tree that fails to load clears loaded state instead of keeping previous tree"))
 	failures += int(not _expect(viewer._stats_label.text == "❌ Failed to load tree 'broken'", "the load failure is reported"))
-	failures += int(not _expect(viewer.current_tree_name == "Good", "the previously loaded tree stays selected"))
+	failures += int(not _expect(viewer.current_tree_name == "", "the previously loaded tree is not resurrected"))
 	viewer.free()
 
 # ---------------------------------------------------------------- E10: typed parameters
@@ -370,7 +393,7 @@ func _test_typed_parameters() -> void:
 	failures += int(not _expect(_row_has(viewer._inspector_form_container, "count:", "SpinBox"), "int schema rows use a SpinBox"))
 	failures += int(not _expect(_row_has(viewer._inspector_form_container, "repeat_forever:", "CheckBox"), "bool schema rows use a CheckBox"))
 
-	# A Vector2 parameter survives an edit attempt.
+	# A Vector2 parameter becomes editable.
 	viewer.select_node_by_id(2)
 	var edit := _find_line_edit(viewer._inspector_form_container, str(Vector2(3, 4)))
 	checks += 1
@@ -379,7 +402,13 @@ func _test_typed_parameters() -> void:
 		edit.text_changed.emit("(5, 6)")
 	checks += 2
 	failures += int(not _expect(typeof(leaf.parameters["target"]) == TYPE_VECTOR2, "editing a Vector2 parameter keeps its type"))
-	failures += int(not _expect(leaf.parameters["target"] == Vector2(3, 4), "an edit that does not parse keeps the old value"))
+	failures += int(not _expect(leaf.parameters["target"] == Vector2(5, 6), "editing Vector2 to '(5, 6)' updates value to Vector2(5, 6)"))
+
+	# Garbage input keeps the old value
+	if edit != null:
+		edit.text_changed.emit("garbage")
+	checks += 1
+	failures += int(not _expect(leaf.parameters["target"] == Vector2(5, 6), "garbage input keeps the old Vector2 value"))
 
 	# "+ Add" coerces the value instead of storing a string.
 	var key_edit := _find_line_edit_by_placeholder(viewer._inspector_form_container, "New param key...")
@@ -589,6 +618,217 @@ func _test_editor_misc() -> void:
 	checks += 2
 	failures += int(not _expect(viewer._inspector_content.text.contains("[lb]"), "square brackets are escaped for the inspector BBCode"))
 	failures += int(not _expect(not viewer._inspector_content.text.contains("Custom[Type]"), "the raw name does not leak into the BBCode"))
+	viewer.free()
+
+# ---------------------------------------------------------------- N1: switch source clears state
+func _test_n1_switch_source_clears_state() -> void:
+	var viewer := _make_viewer()
+	var prov_a := BTMemoryTreeSource.new()
+	var tree_orig := _tree_with_root()
+	tree_orig.tree_name = "Orig"
+	prov_a.save_tree("Orig", tree_orig)
+
+	viewer.set_tree_source(prov_a)
+	viewer.load_tree_by_name("Orig")
+	checks += 2
+	failures += int(not _expect(viewer.current_tree_name == "Orig", "Orig loaded from source A"))
+	failures += int(not _expect(viewer.current_tree != null, "source A has loaded tree"))
+
+	var prov_b := BTMemoryTreeSource.new()
+	viewer.set_tree_source(prov_b)
+	checks += 3
+	failures += int(not _expect(viewer.current_tree == null, "switching to empty source B clears current_tree"))
+	failures += int(not _expect(viewer.current_tree_name == "", "switching to empty source B clears current_tree_name"))
+	failures += int(not _expect(viewer.selected_node_id == -1, "switching to empty source B clears selection"))
+
+	viewer._on_save_pressed()
+	checks += 2
+	failures += int(not _expect(prov_b.list_trees().is_empty(), "provider B receives nothing after save on empty source"))
+	failures += int(not _expect(not viewer._stats_label.text.begins_with("✅"), "status does not claim success after save on empty source"))
+	viewer.free()
+
+# ---------------------------------------------------------------- N2: add task attachment guard
+func _test_n2_add_task_attachment_guard() -> void:
+	var viewer := _make_viewer()
+	var tree := BTTree.new()
+	var leaf_root := BTTask.new()
+	leaf_root.id = 1
+	leaf_root.friendly_name = "LeafRoot"
+	tree.set_root(leaf_root)
+	viewer.load_generic_tree(tree, "LeafRootTree")
+
+	var popup: PopupMenu = viewer._add_task_menu_button.get_popup()
+	var seq_id := -1
+	for i in popup.item_count:
+		if popup.get_item_metadata(i) == "Sequence":
+			seq_id = popup.get_item_id(i)
+			break
+
+	var initial_size := tree.node_list.size()
+	viewer._on_add_task_menu_item_pressed(seq_id)
+	checks += 3
+	failures += int(not _expect(tree.node_list.size() == initial_size, "leaf root -> node_list unchanged on Add Task"))
+	failures += int(not _expect(tree.root_task == leaf_root, "leaf root -> root is not replaced on Add Task"))
+	failures += int(not _expect(viewer._stats_label.text == "Cannot attach: root 'LeafRoot' cannot take children; select a node that can take children", "status explains why leaf root cannot attach child"))
+
+	# Decorator root with existing child cannot take a second child
+	var dec_tree := BTTree.new()
+	var dec_root := BTDecorator.BTInverter.new()
+	dec_root.id = 1
+	dec_root.friendly_name = "InvertRoot"
+	dec_tree.set_root(dec_root)
+	var dec_child := BTTask.new()
+	dec_child.id = 2
+	dec_tree.connect_parent_child(dec_root, dec_child)
+	viewer.load_generic_tree(dec_tree, "FullDecoratorTree")
+	var dec_size := dec_tree.node_list.size()
+	viewer._on_add_task_menu_item_pressed(seq_id)
+	checks += 2
+	failures += int(not _expect(dec_tree.node_list.size() == dec_size, "full decorator root -> node_list unchanged"))
+	failures += int(not _expect(viewer._stats_label.text == "Cannot attach: root 'InvertRoot' cannot take children; select a node that can take children", "status explains full decorator cannot take children"))
+
+	# No-root case promotes new task to root
+	var empty_tree := BTTree.new()
+	viewer.load_generic_tree(empty_tree, "NoRootTree")
+	viewer._on_add_task_menu_item_pressed(seq_id)
+	checks += 2
+	failures += int(not _expect(empty_tree.root_task != null, "no-root case promotes new task to root"))
+	failures += int(not _expect(empty_tree.node_list.size() == 1, "no-root case adds exactly one node"))
+	viewer.free()
+
+# ---------------------------------------------------------------- N4: cancel pending action
+func _test_n4_cancel_pending_action() -> void:
+	var viewer := _make_viewer()
+	var tree := _tree_with_root()
+	viewer.load_generic_tree(tree, "StaleCancel")
+	viewer._tab_bar.current_tab = 2
+	tree.root_task.friendly_name = "InspectorEdit"
+	viewer._json_text_edit.text = JSON.stringify({"root_id": 1, "nodes": [{"id": 1, "type": "Sequence", "name": "FromJSON"}]})
+	viewer._on_apply_json_pressed()
+
+	checks += 2
+	failures += int(not _expect(viewer._confirm_dialog.visible, "stale apply opens confirmation dialog"))
+	failures += int(not _expect(viewer._pending_action.is_valid(), "stale apply arms _pending_action"))
+
+	# Cancel the dialog
+	viewer._confirm_dialog.canceled.emit()
+	viewer._confirm_dialog.hide()
+	checks += 2
+	failures += int(not _expect(not viewer._pending_action.is_valid(), "canceling clears _pending_action"))
+	failures += int(not _expect(viewer._confirm_dialog.dialog_text == "Discard unapplied changes?", "canceling restores dialog text"))
+
+	# Trigger confirmation path; stale apply must not execute
+	viewer._confirm_dialog.confirmed.emit()
+	checks += 1
+	failures += int(not _expect(viewer.current_tree.root_task.friendly_name == "InspectorEdit", "stale apply did not execute after being canceled"))
+	viewer.free()
+
+# ---------------------------------------------------------------- N6: save external data with unapplied JSON
+func _test_n6_save_external_data_unapplied_json() -> void:
+	var viewer = _make_viewer()
+	var tree := _tree_with_root()
+	viewer.set_tree_source(SnapshotProvider.new(BTTaskRegistry.new()))
+	viewer.load_generic_tree(tree, "ExternalSave")
+
+	viewer._tab_bar.current_tab = 2
+	viewer._json_text_edit.text = "unapplied edit"
+	viewer._tab_bar.current_tab = 0
+
+	# Call save_current_tree (as invoked by plugin._save_external_data)
+	var saved := viewer.save_current_tree()
+	checks += 3
+	failures += int(not _expect(not saved, "save_current_tree returns false on unapplied JSON draft"))
+	failures += int(not _expect(viewer._stats_label.text == "Unapplied JSON edits; apply JSON before saving.", "save_external_data sets viewer status on unapplied JSON draft"))
+	failures += int(not _expect(viewer._json_draft_modified, "draft remains marked modified without exception"))
+
+	viewer.free()
+
+# ---------------------------------------------------------------- N8: corrupt-first tree list
+class CorruptThenValidProvider extends BTTreeSourceProvider:
+	var valid_tree: BTTree
+	func _init(p_valid: BTTree) -> void:
+		valid_tree = p_valid
+
+	func list_trees() -> Array:
+		return ["corrupt_tree", "valid_tree"]
+
+	func load_tree(identifier: String) -> BTTree:
+		if identifier == "valid_tree":
+			return valid_tree
+		return null
+
+class AllCorruptProvider extends BTTreeSourceProvider:
+	func list_trees() -> Array:
+		return ["bad1", "bad2"]
+
+	func load_tree(_identifier: String) -> BTTree:
+		return null
+
+func _test_n8_refresh_tree_list_skips_corrupt_to_valid() -> void:
+	var viewer := _make_viewer()
+	var valid := _tree_with_root()
+	valid.tree_name = "valid_tree"
+	var provider := CorruptThenValidProvider.new(valid)
+	viewer.set_tree_source(provider)
+
+	checks += 3
+	failures += int(not _expect(viewer.current_tree == valid, "valid tree loads even when first listed tree is corrupt"))
+	failures += int(not _expect(viewer.current_tree_name == "valid_tree", "valid tree name is selected"))
+	failures += int(not _expect(viewer._tree_option_button.get_item_text(viewer._tree_option_button.selected) == "valid_tree", "dropdown selects valid tree"))
+
+	# Source where all trees are corrupt
+	var bad_provider := AllCorruptProvider.new()
+	viewer.set_tree_source(bad_provider)
+	checks += 2
+	failures += int(not _expect(viewer.current_tree == null, "when all trees corrupt, state stays empty"))
+	failures += int(not _expect(viewer._stats_label.text == "❌ Failed to load tree 'bad1'", "when all trees corrupt, failure on first tree is reported"))
+	viewer.free()
+
+# ---------------------------------------------------------------- N10: vector and color parsing
+func _test_n10_vector_color_parsing() -> void:
+	var viewer := _make_viewer()
+	# Vector2
+	checks += 4
+	failures += int(not _expect(viewer._coerce_param_value("(5, 6)", Vector2(1, 2), TYPE_VECTOR2) == Vector2(5, 6), "parse (5, 6) to Vector2"))
+	failures += int(not _expect(viewer._coerce_param_value("Vector2(7.5, -8.2)", Vector2(1, 2), TYPE_VECTOR2) == Vector2(7.5, -8.2), "parse Vector2(7.5, -8.2)"))
+	failures += int(not _expect(viewer._coerce_param_value("garbage", Vector2(1, 2), TYPE_VECTOR2) == Vector2(1, 2), "garbage keeps old Vector2"))
+	failures += int(not _expect(viewer._coerce_param_value("(1, 2, 3)", Vector2(1, 2), TYPE_VECTOR2) == Vector2(1, 2), "wrong arity keeps old Vector2"))
+
+	# Vector3
+	checks += 3
+	failures += int(not _expect(viewer._coerce_param_value("(1, 2, 3)", Vector3(0, 0, 0), TYPE_VECTOR3) == Vector3(1, 2, 3), "parse (1, 2, 3) to Vector3"))
+	failures += int(not _expect(viewer._coerce_param_value("Vector3(4, 5, 6)", Vector3(0, 0, 0), TYPE_VECTOR3) == Vector3(4, 5, 6), "parse Vector3(4, 5, 6)"))
+	failures += int(not _expect(viewer._coerce_param_value("garbage", Vector3(0, 0, 0), TYPE_VECTOR3) == Vector3(0, 0, 0), "garbage keeps old Vector3"))
+
+	# Color
+	checks += 3
+	failures += int(not _expect(viewer._coerce_param_value("(1, 0, 0, 1)", Color.BLACK, TYPE_COLOR) == Color(1, 0, 0, 1), "parse (1, 0, 0, 1) to Color"))
+	failures += int(not _expect(viewer._coerce_param_value("Color(0, 1, 0, 0.5)", Color.BLACK, TYPE_COLOR) == Color(0, 1, 0, 0.5), "parse Color(0, 1, 0, 0.5)"))
+	failures += int(not _expect(viewer._coerce_param_value("garbage", Color.BLACK, TYPE_COLOR) == Color.BLACK, "garbage keeps old Color"))
+	viewer.free()
+
+# ---------------------------------------------------------------- N11: new tree dropdown and save sync
+func _test_n11_new_tree_dropdown_and_save_sync() -> void:
+	var viewer := _make_viewer()
+	var provider := BTMemoryTreeSource.new()
+	viewer.set_tree_source(provider)
+
+	checks += 1
+	failures += int(not _expect(viewer._tree_option_button.item_count == 0, "empty provider has 0 dropdown items initially"))
+
+	# Press "+ New"
+	viewer._on_new_tree_pressed()
+	checks += 3
+	failures += int(not _expect(viewer._tree_option_button.item_count == 1, "＋ New inserts an entry in the dropdown before save"))
+	failures += int(not _expect(viewer._tree_option_button.get_item_text(viewer._tree_option_button.selected) == "new_tree", "＋ New selects new_tree in dropdown before save"))
+	failures += int(not _expect(viewer.current_tree_name == "new_tree", "current_tree_name is new_tree"))
+
+	# Save the tree
+	var ok := viewer.save_current_tree()
+	checks += 3
+	failures += int(not _expect(ok, "saving new_tree succeeds"))
+	failures += int(not _expect(provider.load_tree("new_tree") != null, "provider now stores new_tree"))
+	failures += int(not _expect(viewer._tree_option_button.get_item_text(viewer._tree_option_button.selected) == "new_tree", "successful save refreshes dropdown and keeps new_tree selected"))
 	viewer.free()
 
 # ---------------------------------------------------------------- Helpers
