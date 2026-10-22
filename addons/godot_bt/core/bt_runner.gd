@@ -6,8 +6,15 @@ extends Node
 signal tree_finished(status: int)
 signal task_started(task)
 signal task_finished(task, status: int)
+## Emitted for each started task that ends because its branch was aborted
+## (conditional abort, interrupt, or sibling failure). Emitted before the
+## compatibility task_finished(task, FAILURE) signal.
+signal task_aborted(task)
 
 enum UpdateInterval { EVERY_FRAME = 0, SPECIFIED_SECONDS = 1 }
+## Deprecated: the execution budget now applies whenever
+## max_task_executions_per_tick > 0, regardless of this enum. The enum is kept
+## only for backward compatibility with existing scenes and scripts.
 enum ExecutionsPerTick { NO_LIMIT = 0, COUNT = 1 }
 
 @export var update_interval: UpdateInterval = UpdateInterval.EVERY_FRAME
@@ -16,10 +23,18 @@ enum ExecutionsPerTick { NO_LIMIT = 0, COUNT = 1 }
 @export var max_task_executions_per_tick: int = 0
 @export var auto_start: bool = false
 @export var max_ticks: int = 0
+## When false (default) the runner records no per-task tick entries. When true,
+## tick_log collects the last 512 executed task names for debugging.
+@export var debug_log := false
 
 var tree: BTTree = null
 var actor: Node = null
 var delta: float = 0.0
+## Simulated time advanced by each running tick's delta. Monotonic for the
+## runner's lifetime: start()/set_tree() never reset it. Time-based decorators
+## (TimeLimit, Cooldown) read it instead of wall-clock time so pauses, manual
+## ticking, and Engine.time_scale behave predictably.
+var time: float = 0.0
 var is_running: bool = false
 var last_status: int = BTStatus.INACTIVE
 var ticks: int = 0
@@ -36,6 +51,7 @@ var _elapsed: float = 0.0
 var _paused: bool = false
 var _execution_generation: int = 0
 var _activation_interrupts: Dictionary = {}
+var _ticking: bool = false
 
 func _init(p_tree: BTTree = null) -> void:
 	if p_tree != null:
@@ -48,12 +64,20 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not is_running:
 		return
-	if update_interval == UpdateInterval.SPECIFIED_SECONDS:
-		_elapsed += delta
-		if _elapsed < update_interval_seconds:
-			return
-		_elapsed = 0.0
-	tick(delta)
+	if update_interval != UpdateInterval.SPECIFIED_SECONDS:
+		tick(delta)
+		return
+	if update_interval_seconds <= 0.0:
+		tick(delta)
+		return
+	_elapsed += delta
+	if _elapsed < update_interval_seconds:
+		return
+	# Hand the tree the full accumulated interval, and subtract the interval
+	# instead of resetting so leftover time carries toward the next tick.
+	var step := _elapsed
+	_elapsed -= update_interval_seconds
+	tick(step)
 
 func _exit_tree() -> void:
 	stop()
@@ -92,16 +116,20 @@ func start() -> void:
 	if actor == null and get_parent() is Node:
 		actor = get_parent()
 
-	# Assign owner so lifecycle callbacks can access the runner
+	# Assign owner so lifecycle callbacks can access the runner, and keep every
+	# task pointing at the tree's current blackboard so replacing
+	# tree.blackboard before start() reaches all tasks.
 	for task in tree.node_list:
 		if task != null and not task.is_placeholder:
 			task.owner = self
+			task.blackboard = tree.blackboard
 
 	# Root task recursively resets subtree, avoiding repeated on_reset calls
 	if tree.root_task != null and not tree.root_task.is_placeholder:
 		tree.root_task.on_reset()
 
-	# Call on_awake once per task
+	# Call on_awake once per start (not once per task lifetime; tasks that need
+	# one-time-per-lifetime init must guard themselves)
 	var awake_generation := _execution_generation
 	var awake_tree := tree
 	for task in tree.node_list:
@@ -121,8 +149,20 @@ func stop() -> void:
 	for task in started:
 		if task != null and not task.is_placeholder:
 			task.on_end()
+			# Mirror natural finish/abort so lifecycle listeners see every
+			# started task closed; stop() is no longer signal-silent.
+			task_finished.emit(task, task.last_status)
 
 func tick(p_delta: float = 0.0) -> int:
+	if _ticking:
+		push_warning("BTRunner.tick() was called re-entrantly from inside a running tick; the nested tick is ignored.")
+		return last_status
+	_ticking = true
+	var status := _tick_internal(p_delta)
+	_ticking = false
+	return status
+
+func _tick_internal(p_delta: float = 0.0) -> int:
 	if tree == null or tree.root_task == null:
 		return BTStatus.INACTIVE
 	if not is_running:
@@ -132,6 +172,7 @@ func tick(p_delta: float = 0.0) -> int:
 		return last_status
 
 	delta = p_delta
+	time += p_delta
 	ticks += 1
 	task_executions = 0
 	_prepared_for_tick.clear()
@@ -162,7 +203,7 @@ func _run_task(task: BTTask) -> int:
 		_last_status[task] = pending_status
 		task.last_status = pending_status
 		return pending_status
-	if executions_per_tick == ExecutionsPerTick.COUNT and max_task_executions_per_tick > 0 \
+	if max_task_executions_per_tick > 0 \
 			and task_executions >= max_task_executions_per_tick and not task is BTParentTask:
 		return BTStatus.RUNNING
 
@@ -173,7 +214,7 @@ func _run_task(task: BTTask) -> int:
 	if task.is_placeholder:
 		if stopped_at_placeholder == "":
 			stopped_at_placeholder = task.type_name
-			tick_log.append("<placeholder:%s>" % stopped_at_placeholder)
+			_log_tick("<placeholder:%s>" % stopped_at_placeholder)
 		return BTStatus.INACTIVE
 
 	# Start task
@@ -187,7 +228,7 @@ func _run_task(task: BTTask) -> int:
 		if activation_generation != _execution_generation or not _started.has(task):
 			return int(_activation_interrupts.get(task, BTStatus.INACTIVE))
 
-	tick_log.append(task.friendly_name if task.friendly_name != "" else task.type_name)
+	_log_tick(task.friendly_name if task.friendly_name != "" else task.type_name)
 
 	var result := BTStatus.INACTIVE
 	if task is BTParentTask:
@@ -203,7 +244,12 @@ func _run_task(task: BTTask) -> int:
 		if task is BTComposite:
 			var composite := task as BTComposite
 			if composite.abort_type != BTComposite.AbortType.NONE and composite.current_child_index > 0:
+				var abort_generation := _execution_generation
 				_check_conditional_abort(composite)
+				# Condition probes run user code; stop()/set_tree()/interrupt()
+				# from inside one must unwind this tick like every other hook.
+				if abort_generation != _execution_generation or _activation_interrupts.has(task):
+					return int(_activation_interrupts.get(task, BTStatus.INACTIVE))
 
 		var executed_child := false
 		var last_child_index := -1
@@ -232,7 +278,7 @@ func _run_task(task: BTTask) -> int:
 			result = child_status
 			if child_status == BTStatus.RUNNING and not parent_task.can_run_parallel_children():
 				break
-			if executions_per_tick == ExecutionsPerTick.COUNT and max_task_executions_per_tick > 0 \
+			if max_task_executions_per_tick > 0 \
 					and task_executions >= max_task_executions_per_tick:
 				break
 		if not executed_child:
@@ -374,7 +420,17 @@ func _abort_task_branch(task: BTTask) -> void:
 		_last_status[task] = BTStatus.FAILURE
 		task.last_status = BTStatus.FAILURE
 		task.on_abort()
+		task_aborted.emit(task)
 		task_finished.emit(task, BTStatus.FAILURE)
+
+## Appends a tick entry when debug logging is enabled, keeping tick_log at
+## most 512 entries (oldest entries are dropped first).
+func _log_tick(entry: String) -> void:
+	if not debug_log:
+		return
+	tick_log.append(entry)
+	while tick_log.size() > 512:
+		tick_log.pop_front()
 
 ## Broadcasts a named event to all tasks in the tree.
 func send_event(event_name: String, data: Variant = null) -> void:
@@ -400,8 +456,13 @@ func pause(paused: bool = true) -> void:
 			task.on_pause(paused)
 
 ## Explicitly interrupts and aborts an active task branch.
+## Interrupting a task that was never started (and is not the root) is a no-op:
+## there is no active branch to end, and leaving a pending terminal status
+## would poison the task's first execution later.
 func interrupt(task: BTTask, status: int = BTStatus.FAILURE) -> void:
 	if task == null or tree == null:
+		return
+	if task != tree.root_task and not _started.has(task):
 		return
 	_activation_interrupts[task] = status
 	_last_status[task] = status
