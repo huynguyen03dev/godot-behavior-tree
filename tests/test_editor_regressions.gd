@@ -7,7 +7,6 @@ var failures: int = 0
 class SnapshotProvider extends BTTreeSourceProvider:
 	var snapshots: Dictionary = {}
 	var save_count: int = 0
-	var last_error: String = ""
 	var registry: BTTaskRegistry
 
 	func _init(p_registry: BTTaskRegistry) -> void:
