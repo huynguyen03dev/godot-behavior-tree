@@ -222,6 +222,12 @@ func _run() -> void:
 	_test_n8_refresh_tree_list_skips_corrupt_to_valid()
 	_test_n10_vector_color_parsing()
 	_test_n11_new_tree_dropdown_and_save_sync()
+	_test_undo_redo_rename()
+	_test_undo_redo_add_task_and_history_cleared()
+	_test_undo_delete_subtree()
+	_test_filtering()
+	_test_source_label()
+	_test_incremental_render_identity()
 	print("Editor regressions: %d passed, %d failed" % [checks - failures, failures])
 	quit(1 if failures else 0)
 
@@ -960,3 +966,116 @@ func _find_line_edit(node: Node, expected: String) -> LineEdit:
 		if found != null:
 			return found
 	return null
+
+# ---------------------------------------------------------------- Undo/Redo
+func _test_undo_redo_rename() -> void:
+	var viewer := _make_viewer()
+	var tree := _tree_with_root()
+	var child := BTComposite.BTSelector.new()
+	child.id = 2
+	child.friendly_name = "Child"
+	tree.connect_parent_child(tree.root_task, child)
+	viewer.load_generic_tree(tree, "UndoTree")
+	viewer.select_node_by_id(1)
+	var name_edit := _find_line_edit(viewer._inspector_form_container, "Root")
+	checks += 1
+	failures += int(not _expect(name_edit != null, "the inspector offers a name field"))
+	if name_edit == null:
+		viewer.free()
+		return
+	name_edit.text_changed.emit("Renamed")
+	checks += 1
+	failures += int(not _expect(viewer.current_tree.root_task.friendly_name == "Renamed", "rename applies to the model"))
+	checks += 1
+	failures += int(not _expect(viewer.has_undo(), "rename is undoable"))
+	viewer.undo()
+	checks += 2
+	failures += int(not _expect(viewer.current_tree.root_task.friendly_name == "Root", "undo restores the previous name"))
+	failures += int(not _expect(not viewer._has_unsaved_changes(), "undo back to the baseline clears the dirty flag"))
+	viewer.redo()
+	checks += 1
+	failures += int(not _expect(viewer.current_tree.root_task.friendly_name == "Renamed", "redo re-applies the rename"))
+	viewer.free()
+
+func _test_undo_delete_subtree() -> void:
+	var viewer := _make_viewer()
+	var tree := _tree_with_root()
+	var branch := BTComposite.BTSelector.new()
+	branch.id = 2
+	branch.friendly_name = "Branch"
+	var leaf := BTDecorator.BTInverter.new()
+	leaf.id = 3
+	leaf.friendly_name = "Leaf"
+	tree.connect_parent_child(tree.root_task, branch)
+	tree.connect_parent_child(branch, leaf)
+	viewer.load_generic_tree(tree, "SubtreeTree")
+	viewer.select_node_by_id(2)
+	checks += 1
+	failures += int(not _expect(viewer._delete_task(branch), "deleting a branch succeeds"))
+	checks += 2
+	failures += int(not _expect(viewer.current_tree.get_node_count() == 1, "deleting a branch removes its subtree"))
+	failures += int(not _expect(viewer.current_tree.get_node_by_id(3) == null, "the subtree leaf is removed with the branch"))
+	viewer.undo()
+	checks += 2
+	failures += int(not _expect(viewer.current_tree.get_node_count() == 3, "undo restores the deleted subtree"))
+	failures += int(not _expect(viewer.current_tree.get_node_by_id(2) != null and viewer.current_tree.get_node_by_id(3) != null, "undo restores the branch and its leaf"))
+	viewer.redo()
+	checks += 1
+	failures += int(not _expect(viewer.current_tree.get_node_count() == 1, "redo re-deletes the subtree"))
+	viewer.free()
+
+func _test_filtering() -> void:
+	var viewer := _make_viewer()
+	var tree := _tree_with_root()
+	var combat := BTTask.new()
+	combat.id = 2
+	combat.friendly_name = "Combat"
+	var patrol := BTTask.new()
+	patrol.id = 3
+	patrol.friendly_name = "Patrol"
+	tree.connect_parent_child(tree.root_task, combat)
+	tree.connect_parent_child(tree.root_task, patrol)
+	viewer.load_generic_tree(tree, "FilterTree")
+	viewer.set_search_filter("combat")
+	checks += 3
+	failures += int(not _expect(viewer._graph_nodes_by_id[2].visible, "matching nodes stay visible in the graph"))
+	failures += int(not _expect(not viewer._graph_nodes_by_id[3].visible, "non-matching nodes are hidden in the graph"))
+	failures += int(not _expect(_hierarchy_ids(viewer._hierarchy_tree).has(2) and not _hierarchy_ids(viewer._hierarchy_tree).has(3), "the hierarchy lists matches but not non-matches"))
+	viewer.set_search_filter("")
+	checks += 2
+	failures += int(not _expect(viewer._graph_nodes_by_id[3].visible, "clearing the filter restores hidden nodes"))
+	failures += int(not _expect(_hierarchy_ids(viewer._hierarchy_tree).has(3), "clearing the filter restores the hierarchy"))
+	viewer.free()
+
+func _test_source_label() -> void:
+	var viewer := _make_viewer()
+	var provider := BTMemoryTreeSource.new()
+	viewer.set_tree_source(provider)
+	checks += 2
+	failures += int(not _expect(viewer._source_label.visible, "the source label is visible"))
+	failures += int(not _expect(viewer._source_label.text.begins_with("Source:"), "the source label names the source"))
+	viewer.free()
+
+func _test_incremental_render_identity() -> void:
+	var viewer := _make_viewer()
+	var tree := _tree_with_root()
+	var child := BTTask.new()
+	child.id = 2
+	child.friendly_name = "Child"
+	tree.connect_parent_child(tree.root_task, child)
+	viewer.load_generic_tree(tree, "RenderTree")
+	var root_gnode: GraphNode = viewer._graph_nodes_by_id[1]
+	var child_gnode: GraphNode = viewer._graph_nodes_by_id[2]
+	viewer.select_node_by_id(1)
+	var name_edit := _find_line_edit(viewer._inspector_form_container, "Root")
+	if name_edit != null:
+		name_edit.text_changed.emit("Renamed Root")
+	viewer._render_current_tree()
+	checks += 2
+	failures += int(not _expect(viewer._graph_nodes_by_id[1] == root_gnode, "re-render reuses the surviving GraphNode"))
+	failures += int(not _expect(root_gnode.title.contains("Renamed Root"), "the reused node shows the new title"))
+	viewer._delete_task(child)
+	checks += 2
+	failures += int(not _expect(not viewer._graph_nodes_by_id.has(2), "the removed node leaves the graph map"))
+	failures += int(not _expect(not is_instance_valid(child_gnode), "the removed GraphNode is freed"))
+	viewer.free()
