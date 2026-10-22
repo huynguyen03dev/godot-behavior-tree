@@ -29,13 +29,22 @@ func get_tree_path(identifier: String) -> String:
 ## Rescans the source directory. Mappings registered by load_tree for files
 ## outside the directory are kept so later saves still target those files.
 func refresh() -> void:
-	var loaded_external := {}
+	var external_mappings := {}
 	for key in _tree_files.keys():
-		loaded_external[key] = _tree_files[key]
+		var path: String = _tree_files[key]
+		if not _is_in_directory(path):
+			external_mappings[key] = path
 	_scan_directory()
-	for key in loaded_external.keys():
+	for key in external_mappings.keys():
 		if not _tree_files.has(key):
-			_tree_files[key] = loaded_external[key]
+			_tree_files[key] = external_mappings[key]
+
+func _is_in_directory(path: String) -> bool:
+	var dir_norm := _directory_path.simplify_path()
+	var path_norm := path.simplify_path()
+	if dir_norm == "res://" or dir_norm == "user://":
+		return path_norm.begins_with(dir_norm)
+	return path_norm == dir_norm or path_norm.begins_with(dir_norm + "/")
 
 func load_tree(identifier: String) -> BTTree:
 	var path: String = identifier
@@ -67,33 +76,46 @@ func load_tree(identifier: String) -> BTTree:
 	if tree != null:
 		# Remember the resolved file so a later save_tree by basename updates
 		# this file instead of creating a new one in the source directory.
-		_tree_files[path.get_file().get_basename()] = path
+		var base_key := path.get_file().get_basename()
+		if not _tree_files.has(base_key):
+			_tree_files[base_key] = path
 	return tree
 
 func save_tree(identifier: String, tree: BTTree) -> bool:
+	last_error = ""
 	if tree == null or identifier == "":
+		last_error = "tree is null or identifier is empty"
 		return false
 	var data := tree.to_dict()
 	var errors := BTTree.validate_dict(data, tree.registry)
 	if not errors.is_empty():
+		last_error = errors[0]
 		push_error("BTFileTreeSource: refusing to save tree '%s': %s" % [identifier, "; ".join(errors)])
 		return false
 	var path := _resolve_save_path(identifier)
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
+		var err_msg := "BTFileTreeSource: failed to open file for writing at '%s'" % path
+		push_error(err_msg)
+		last_error = err_msg
 		return false
 	file.store_string(JSON.stringify(data, "\t"))
 	file.close()
-	_tree_files[identifier.get_file().get_basename()] = path
+	var base_key := identifier.get_file().get_basename()
+	if _tree_files.has(base_key):
+		if _tree_files[base_key] != path:
+			push_warning("BTFileTreeSource: basename '%s' already maps to '%s'; keeping existing mapping instead of '%s'" % [base_key, _tree_files[base_key], path])
+	else:
+		_tree_files[base_key] = path
 	return true
 
 ## Relative identifiers resolve under the source directory (appending ".json"
 ## when missing); res://, user:// and absolute paths are used as-is.
 func _resolve_save_path(identifier: String) -> String:
-	if _tree_files.has(identifier):
-		return _tree_files[identifier]
 	if identifier.begins_with("res://") or identifier.begins_with("user://") or identifier.is_absolute_path():
 		return identifier
+	if _tree_files.has(identifier):
+		return _tree_files[identifier]
 	return _directory_path.path_join(identifier if identifier.ends_with(".json") else identifier + ".json")
 
 func _scan_directory() -> void:

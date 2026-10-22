@@ -576,5 +576,32 @@ func _initialize() -> void:
 	_check(fx_abort_finished.size() == 1 and fx_abort_finished[0][0] == fx_abort_leaf and fx_abort_finished[0][1] == BTStatus.FAILURE, "S4 aborted task still reports task_finished(FAILURE) for compatibility")
 	_finish(r)
 
+	# ---- L1: BTSubTree caches failed loads and warns once ----
+	var fx_missing_st := BTSubTree.new("res://nonexistent_subtree_path_xyz.json")
+	var fx_st_tree := BTTree.new()
+	fx_st_tree.set_root(fx_missing_st)
+	r = _runner(fx_st_tree)
+	var st_statuses: Array[int] = []
+	for _i in range(3):
+		r.start()
+		st_statuses.append(r.tick(0.1))
+	_check(st_statuses == [BTStatus.FAILURE, BTStatus.FAILURE, BTStatus.FAILURE], "L1 missing subtree returns FAILURE across 3 start/tick cycles")
+	_check(fx_missing_st._load_failure_warned == true, "L1 load failure warned flag is set")
+	_check(fx_missing_st._loaded_path != "", "L1 failed load caches loaded path")
+	_finish(r)
+
+	# ---- L8: stop() clears _ticking backstop ----
+	var fx_l8_leaf := Probe.new()
+	fx_l8_leaf.results = [BTStatus.SUCCESS]
+	var fx_l8_tree := BTTree.new(); fx_l8_tree.set_root(fx_l8_leaf)
+	r = _runner(fx_l8_tree)
+	r.start()
+	r._ticking = true
+	r.stop()
+	r.start()
+	var fx_l8_status := r.tick(0.1)
+	_check(fx_l8_leaf.calls == 1 and fx_l8_status == BTStatus.SUCCESS, "L8 stop() resets _ticking backstop so wedged runner can tick again")
+	_finish(r)
+
 	print("Runtime regression suite: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)

@@ -2,6 +2,8 @@ class_name BTTreeSourceProvider
 extends RefCounted
 ## Abstract interface for Behavior Tree source providers (JSON files, Resources, Memory, Network).
 
+var last_error: String = ""
+
 func get_source_name() -> String:
 	return "Generic BT Source"
 

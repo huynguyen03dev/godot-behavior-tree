@@ -26,12 +26,18 @@ class CacheProbeB extends BTTask:
 		blackboard.set_var("cache_version_b", true)
 		return BTStatus.SUCCESS
 
+class DuckParent extends BTTask:
+	var children: Array = []
+	func on_update() -> int:
+		return BTStatus.SUCCESS
+
 func _init() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
 	_failures = 0
 	_checks = 0
+	_purge_user_scratch()
 	var tree := BTTree.new()
 	var root := BTComposite.BTSequence.new()
 	tree.set_root(root)
@@ -104,6 +110,7 @@ func _run() -> void:
 	_test_save_tree_validation()
 	_test_file_source_paths()
 	_test_reparent()
+	_test_round2_fixes()
 	await _test_subtree_end_to_end()
 	await _test_subtree_caching()
 	print("Model regression suite: %d checks, %d failures" % [_checks, _failures])
@@ -434,6 +441,161 @@ func _test_subtree_caching() -> void:
 	for path in [path_a, path_b]:
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+func _purge_user_scratch() -> void:
+	var dir := DirAccess.open("user://")
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var name := dir.get_next()
+	var to_delete: Array[String] = []
+	while name != "":
+		if name.begins_with("bt_"):
+			to_delete.append("user://" + name)
+		name = dir.get_next()
+	dir.list_dir_end()
+	for path in to_delete:
+		_delete_recursive(path)
+
+func _delete_recursive(path: String) -> void:
+	if DirAccess.dir_exists_absolute(path):
+		var sub := DirAccess.open(path)
+		if sub != null:
+			sub.list_dir_begin()
+			var n := sub.get_next()
+			while n != "":
+				if n != "." and n != "..":
+					_delete_recursive(path + "/" + n)
+				n = sub.get_next()
+			sub.list_dir_end()
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	elif FileAccess.file_exists(path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+func _test_round2_fixes() -> void:
+	# ------------------------------------------------------------- Fix: L4
+	# connect_parent_child refuses when child_task == tree.root_task
+	var l4_tree := BTTree.new()
+	var l4_root := BTComposite.BTSequence.new()
+	l4_tree.set_root(l4_root)
+	var l4_child := BTTask.new()
+	l4_tree.connect_parent_child(l4_root, l4_child)
+	var l4_orphan := BTComposite.BTSequence.new()
+	l4_tree.add_node(l4_orphan)
+	l4_tree.connect_parent_child(l4_orphan, l4_root)
+	_check(l4_root.parent == null, "L4 connect_parent_child refuses reparenting root_task under orphan")
+	_check(not l4_orphan.children.has(l4_root), "L4 orphan does not receive root_task as child")
+
+	# ------------------------------------------------------------- Fix: M1
+	# Memoize the parent-shape decision inside validate_dict per type_name
+	var m1_registry := BTTaskRegistry.new()
+	var m1_counter := [0]
+	m1_registry.register_task("M1ShapeTask", func():
+		m1_counter[0] += 1
+		return BTComposite.BTSequence.new()
+	, "Composite")
+	var m1_data := {
+		"root_id": 1,
+		"nodes": [
+			{"id": 1, "type_name": "M1ShapeTask", "children_ids": [2, 3], "parameters": {}},
+			{"id": 2, "type_name": "M1ShapeTask", "children_ids": [4], "parameters": {}},
+			{"id": 3, "type_name": "M1ShapeTask", "children_ids": [5], "parameters": {}},
+			{"id": 4, "type_name": "BTTask", "children_ids": [], "parameters": {}},
+			{"id": 5, "type_name": "BTTask", "children_ids": [], "parameters": {}}
+		]
+	}
+	var m1_errors := BTTree.validate_dict(m1_data, m1_registry)
+	_check(m1_errors.is_empty(), "M1 validation succeeds for custom parent tasks")
+	_check(m1_counter[0] == 1, "M1 shape decision memoized: created task once for 3 nodes of same type_name (creates=%d)" % m1_counter[0])
+
+	# ------------------------------------------------------------- Fix: M4
+	# Duck-typed custom parents (plain BTTask with `var children: Array = []`)
+	var m4_registry := BTTaskRegistry.new()
+	m4_registry.register_task("DuckParent", func(): return DuckParent.new(), "Action")
+	var m4_data := {
+		"root_id": 1,
+		"nodes": [
+			{"id": 1, "type_name": "DuckParent", "children_ids": [2], "parameters": {}},
+			{"id": 2, "type_name": "BTTask", "children_ids": [], "parameters": {}}
+		]
+	}
+	var m4_errors := BTTree.validate_dict(m4_data, m4_registry)
+	_check(m4_errors.is_empty(), "M4 DuckParent validates with child: %s" % str(m4_errors))
+	var m4_tree := BTTree.from_dict(m4_data, m4_registry)
+	_check(m4_tree != null and m4_tree.root_task != null, "M4 DuckParent loads via from_dict")
+	_check(m4_tree != null and m4_tree.root_task.get("children") is Array and m4_tree.root_task.children.size() == 1, "M4 DuckParent retains child in children array")
+
+	# ------------------------------------------------------------- Fix: M3
+	# Persist direct config assignment via schema & composite abort_type
+	var m3_tree := BTTree.new()
+	var m3_repeater := BTDecorator.BTRepeater.new()
+	m3_repeater.count = 5
+	m3_repeater.repeat_forever = true
+	m3_repeater.end_on_failure = true
+	var m3_composite := BTComposite.BTSelector.new()
+	m3_composite.abort_type = BTComposite.AbortType.BOTH
+	var m3_leaf := BTTask.new()
+	m3_tree.set_root(m3_repeater)
+	m3_tree.connect_parent_child(m3_repeater, m3_composite)
+	m3_tree.connect_parent_child(m3_composite, m3_leaf)
+	var m3_dict := m3_tree.to_dict()
+	var m3_reloaded := BTTree.from_dict(m3_dict)
+	_check(m3_reloaded != null, "M3 tree reloads from dict")
+	if m3_reloaded != null:
+		var rep: BTDecorator.BTRepeater = m3_reloaded.root_task as BTDecorator.BTRepeater
+		_check(rep != null and rep.count == 5, "M3 rep.count = 5 persisted directly")
+		_check(rep != null and rep.repeat_forever == true, "M3 rep.repeat_forever = true persisted directly")
+		_check(rep != null and rep.end_on_failure == true, "M3 rep.end_on_failure = true persisted directly")
+		var comp: BTComposite = rep.children[0] as BTComposite if rep != null and rep.children.size() > 0 else null
+		_check(comp != null and comp.abort_type == BTComposite.AbortType.BOTH, "M3 composite abort_type = BOTH persisted directly")
+
+	# ------------------------------------------------------------- Fix: M2, L5, N9
+	var dir_a := "user://bt_m2_dir_a"
+	var dir_b := "user://bt_m2_dir_b"
+	DirAccess.make_dir_recursive_absolute(dir_a)
+	DirAccess.make_dir_recursive_absolute(dir_b)
+	var path_a_shared := dir_a + "/shared.json"
+	var path_b_shared := dir_b + "/shared.json"
+
+	var tree_a := BTTree.new(); tree_a.set_root(BTTask.new()); tree_a.tree_name = "tree-A"
+	var tree_b := BTTree.new(); tree_b.set_root(BTTask.new()); tree_b.tree_name = "tree-B"
+	_write_tree_fixture(path_a_shared, tree_a.to_dict())
+	_write_tree_fixture(path_b_shared, tree_b.to_dict())
+
+	var fsource := BTFileTreeSource.new(dir_a)
+	# Precondition: dir_a contains shared.json, so _tree_files["shared"] -> path_a_shared
+	_check(fsource.list_trees().has("shared"), "M2 dir_a lists shared tree")
+	# Load external b/shared.json
+	var loaded_b := fsource.load_tree(path_b_shared)
+	_check(loaded_b != null and loaded_b.tree_name == "tree-B", "M2 loaded external b/shared.json")
+	# load_tree("shared") must still load dir_a's shared.json
+	var loaded_shared := fsource.load_tree("shared")
+	_check(loaded_shared != null and loaded_shared.tree_name == "tree-A", "M2 load_tree('shared') still returns in-directory a/shared.json")
+	# Saving the external file by full path must not hijack the a/ mapping
+	var tree_b_edited := BTTree.new(); tree_b_edited.set_root(BTTask.new()); tree_b_edited.tree_name = "tree-B-edited"
+	var saved_ext := fsource.save_tree(path_b_shared, tree_b_edited)
+	_check(saved_ext, "M2 saving external tree by full path succeeds")
+	_check(fsource.get_tree_path("shared") == path_a_shared, "M2 basename mapping 'shared' still points to dir_a path")
+
+	# L5: save_tree pushes error and sets last_error when file cannot be opened
+	var uncreatable_path := "user://bt_nonexistent_dir_98765/sub/cannot_create.json"
+	var l5_saved := fsource.save_tree(uncreatable_path, tree_a)
+	_check(not l5_saved, "L5 save_tree into uncreatable path returns false")
+	_check(fsource.last_error.contains("failed to open file for writing"), "L5 last_error contains open error: %s" % fsource.last_error)
+
+	# N9: refresh drops deleted in-directory files, preserves external mappings
+	var temp_in_dir := dir_a + "/deleteme.json"
+	_write_tree_fixture(temp_in_dir, tree_a.to_dict())
+	fsource.refresh()
+	_check(fsource.list_trees().has("deleteme"), "N9 deleteme listed before removal")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(temp_in_dir))
+	fsource.refresh()
+	_check(not fsource.list_trees().has("deleteme"), "N9 deleted in-directory file dropped after refresh")
+	_check(fsource.get_tree_path(path_b_shared.get_file().get_basename()) == path_a_shared, "N9 shared mapping retained")
+
+	# Clean up scratch dirs
+	_delete_recursive(dir_a)
+	_delete_recursive(dir_b)
 
 func _read_file_text(path: String) -> String:
 	var file := FileAccess.open(path, FileAccess.READ)
