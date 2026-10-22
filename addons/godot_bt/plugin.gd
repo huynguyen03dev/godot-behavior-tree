@@ -23,5 +23,26 @@ func _enter_tree() -> void:
 func _exit_tree() -> void:
 	if _viewer_instance != null:
 		remove_control_from_bottom_panel(_viewer_instance)
-		_viewer_instance.free()
-		_viewer_instance = null
+	_viewer_instance.free()
+	_viewer_instance = null
+
+## Godot 4.4+ asks plugins for unsaved state before the editor closes.
+## Returns a non-empty message while the viewer holds unsaved changes.
+func _get_unsaved_status(for_scene: String) -> String:
+	if _viewer_instance == null:
+		return ""
+	if not _viewer_instance.has_method("_has_unsaved_changes"):
+		return ""
+	if not _viewer_instance._has_unsaved_changes():
+		return ""
+	if for_scene.is_empty():
+		return "The Behavior Tree editor has unsaved changes. Save them before closing."
+	return "The Behavior Tree editor has unsaved changes. Save them before closing %s." % for_scene.get_file()
+
+## Called when the editor saves the project or closes. Writes the open
+## behavior tree back to its source.
+func _save_external_data() -> void:
+	if _viewer_instance == null:
+		return
+	if _viewer_instance.has_method("save_current_tree"):
+		_viewer_instance.save_current_tree()
