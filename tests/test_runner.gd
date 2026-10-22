@@ -124,7 +124,7 @@ func _test_file_adapter() -> Array:
 		tree = provider.load_tree("patrol_ai")
 	rows.append(["Loaded demo tree successfully", tree != null, "tree loaded"])
 	if tree != null:
-		rows.append(["Demo tree has 9 nodes", tree.get_node_count() == 9, "count=%d" % tree.get_node_count()])
+		rows.append(["Demo tree has 10 nodes", tree.get_node_count() == 10, "count=%d" % tree.get_node_count()])
 		rows.append(["Demo tree root is Sequence", tree.root_task.type_name == "Sequence", "root=%s" % tree.root_task.type_name])
 	return rows
 
@@ -138,7 +138,7 @@ func _test_editor_ui() -> Array:
 		viewer.set_tree_source(provider)
 		viewer.load_tree_file("res://demo/data/patrol_ai.json")
 		rows.append(["Viewer loads demo tree", viewer.current_tree != null, "viewer loaded"])
-		rows.append(["Viewer creates 9 GraphNodes", viewer._graph_nodes_by_id.size() == 9, "nodes=%d" % viewer._graph_nodes_by_id.size()])
+		rows.append(["Viewer creates 10 GraphNodes", viewer._graph_nodes_by_id.size() == 10, "nodes=%d" % viewer._graph_nodes_by_id.size()])
 		viewer.free()
 	return rows
 

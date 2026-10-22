@@ -102,9 +102,21 @@
 			"category": "Decorator",
 			"is_placeholder": false,
 			"parent_id": 7,
-			"children_ids": [],
+			"children_ids": [10],
 			"parameters": {
 				"count": 3
+			}
+		},
+		{
+			"id": 10,
+			"friendly_name": "Wait",
+			"type_name": "Action",
+			"category": "Action",
+			"is_placeholder": false,
+			"parent_id": 9,
+			"children_ids": [],
+			"parameters": {
+				"duration": 1.0
 			}
 		}
 	],
