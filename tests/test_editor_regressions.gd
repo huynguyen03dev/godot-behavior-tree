@@ -997,6 +997,30 @@ func _test_undo_redo_rename() -> void:
 	failures += int(not _expect(viewer.current_tree.root_task.friendly_name == "Renamed", "redo re-applies the rename"))
 	viewer.free()
 
+func _test_undo_redo_add_task_and_history_cleared() -> void:
+	var viewer := _make_viewer()
+	viewer.load_generic_tree(_tree_with_root(), "HistoryTree")
+	var popup: PopupMenu = viewer._add_task_menu_button.get_popup()
+	var selector_id := -1
+	for i in popup.item_count:
+		if popup.get_item_metadata(i) == "Selector":
+			selector_id = popup.get_item_id(i)
+			break
+	checks += 1
+	failures += int(not _expect(selector_id >= 0, "the Add Task menu lists built-in composites"))
+	if selector_id >= 0:
+		popup.id_pressed.emit(selector_id)
+		checks += 2
+		failures += int(not _expect(viewer.current_tree.get_node_count() == 2, "Add Task adds a node"))
+		failures += int(not _expect(viewer.has_undo(), "Add Task is undoable"))
+		viewer.undo()
+		checks += 1
+		failures += int(not _expect(viewer.current_tree.get_node_count() == 1, "undo removes the added task"))
+	viewer.load_generic_tree(_tree_with_root(), "HistoryTree")
+	checks += 1
+	failures += int(not _expect(not viewer.has_undo(), "loading a tree clears the undo history"))
+	viewer.free()
+
 func _test_undo_delete_subtree() -> void:
 	var viewer := _make_viewer()
 	var tree := _tree_with_root()
