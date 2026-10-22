@@ -324,6 +324,9 @@ func _initialize() -> void:
 	_check(r.tick_log.size() == 0, "P16 tick_log stays empty with debug_log off after 2000 ticks")
 	r.debug_log = true
 	r.start()
+	for _i in 3:
+		r.tick()
+	_check(r.tick_log.size() == 3, "P16 tick_log records one entry per tick with debug_log on")
 	for _i in 2000:
 		r.tick()
 	_check(r.tick_log.size() > 0 and r.tick_log.size() <= 512, "P16 tick_log capped at 512 entries with debug_log on")
@@ -369,6 +372,14 @@ func _initialize() -> void:
 	for _i in 5:
 		r._process(0.1)
 	_check(r.ticks == 1 and fx_delta_leaf.deltas.size() == 1 and abs(fx_delta_leaf.deltas[0] - 0.5) < 0.0001, "P3 five 0.1s frames produce one 0.5s tick")
+	_finish(r)
+
+	# EVERY_FRAME mode (the default) must tick every frame with the frame delta
+	var fx_frame_leaf := DeltaProbe.new()
+	var fx_frame_tree := BTTree.new(); fx_frame_tree.set_root(fx_frame_leaf)
+	r = _runner(fx_frame_tree); r.start()
+	r._process(0.1)
+	_check(r.ticks == 1 and fx_frame_leaf.deltas.size() == 1 and abs(fx_frame_leaf.deltas[0] - 0.1) < 0.0001, "P3 EVERY_FRAME _process ticks each frame with the frame delta")
 	_finish(r)
 
 	# ---- P5: simulated time drives TimeLimit and Cooldown ----

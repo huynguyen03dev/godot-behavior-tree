@@ -64,18 +64,20 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not is_running:
 		return
-	if update_interval == UpdateInterval.SPECIFIED_SECONDS:
-		if update_interval_seconds <= 0.0:
-			tick(delta)
-			return
-		_elapsed += delta
-		if _elapsed < update_interval_seconds:
-			return
-		# Hand the tree the full accumulated interval, and subtract the interval
-		# instead of resetting so leftover time carries toward the next tick.
-		var step := _elapsed
-		_elapsed -= update_interval_seconds
-		tick(step)
+	if update_interval != UpdateInterval.SPECIFIED_SECONDS:
+		tick(delta)
+		return
+	if update_interval_seconds <= 0.0:
+		tick(delta)
+		return
+	_elapsed += delta
+	if _elapsed < update_interval_seconds:
+		return
+	# Hand the tree the full accumulated interval, and subtract the interval
+	# instead of resetting so leftover time carries toward the next tick.
+	var step := _elapsed
+	_elapsed -= update_interval_seconds
+	tick(step)
 
 func _exit_tree() -> void:
 	stop()
@@ -226,7 +228,7 @@ func _run_task(task: BTTask) -> int:
 		if activation_generation != _execution_generation or not _started.has(task):
 			return int(_activation_interrupts.get(task, BTStatus.INACTIVE))
 
-		_log_tick(task.friendly_name if task.friendly_name != "" else task.type_name)
+	_log_tick(task.friendly_name if task.friendly_name != "" else task.type_name)
 
 	var result := BTStatus.INACTIVE
 	if task is BTParentTask:
