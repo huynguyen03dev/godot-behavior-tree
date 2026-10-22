@@ -11,15 +11,15 @@ It provides a lightweight runtime engine for behavior trees along with a built-i
 - **Blackboard**: Key-value blackboard with change signals for sharing state across tasks.
 - **Core Nodes**:
   - **Composites**: Sequence, Selector, Parallel, RandomSelector, RandomSequence. Conditional aborts support Self on Sequence and Lower Priority on Selector; Both combines those supported checks. This is not full external-sibling observer or Behavior Designer abort parity. Runtime abort checks reevaluate the guard prefix; conditions can provide a pure `evaluate_condition(runner)` probe (recommended), while legacy `Condition` tasks using `on_update()` remain supported.
-  - **Decorators**: Inverter, Repeater, ReturnSuccess, ReturnFailure, UntilSuccess, UntilFailure, TimeLimit, Cooldown.
-  - **SubTree**: Modular tree embedding (`BTSubTree`) to reuse sub-behaviors with a shared blackboard.
+  - **Decorators**: Inverter, Repeater, ReturnSuccess, ReturnFailure, UntilSuccess, UntilFailure, TimeLimit, Cooldown — with typed Inspector controls for their configuration.
+  - **SubTree**: Modular tree embedding (`BTSubTree`) to reuse sub-behaviors with a shared blackboard; the parsed subtree is cached across runner restarts and reloaded only when `tree_path` changes.
   - **Leaves**: Extend `BTTask` in GDScript; tasks identify their category as Action or Condition.
-- **Dynamic Parameters & Blackboard**: Dual-mode parameters supporting literal values or dynamic blackboard variable bindings (`@var_name`).
-- **Task Lifecycle**: Hooks include `on_awake`, `on_reset`, `on_start`, `on_update`, `on_end`, `on_abort`, `on_pause`, and `on_event`.
-- **Pluggable Storage**: Load and save trees using JSON files on disk (`BTFileTreeSource`) or in-memory dictionaries (`BTMemoryTreeSource`).
+- **Dynamic Parameters & Blackboard**: Dual-mode parameters supporting literal values or dynamic blackboard variable bindings (`@var_name` / `$var_name`). An unresolvable binding returns the parameter default, and `@@` / `$$` escape a literal leading `@` / `$`.
+- **Task Lifecycle**: Hooks include `on_awake`, `on_reset`, `on_start`, `on_update`, `on_end`, `on_abort`, `on_pause`, and `on_event`. Signals: `tree_finished`, `task_started`, `task_finished`, and `task_aborted` (fires when a running task ends because its branch was aborted).
+- **Pluggable Storage**: Load and save trees using JSON files on disk (`BTFileTreeSource`) or in-memory dictionaries (`BTMemoryTreeSource`). Saving validates the tree first and refuses invalid data.
 - **Decoupled**: Pure GDScript runtime with no external dependencies.
 
-The runner update budget bounds dispatched leaf task updates per tick only. Condition reevaluation/probes (including legacy condition `on_update()` checks) are additional work outside `task_executions` and are not bounded by this budget; keep condition evaluation cheap and side-effect-free, preferably via `evaluate_condition(runner)`. A budget of zero or less is unlimited; when a positive budget is exhausted, traversal yields and resumes on a later tick. Task update hooks can use the runner's actor and current tick delta.
+The runner update budget bounds dispatched leaf task updates per tick only: set `max_task_executions_per_tick` (0 = unlimited; the legacy `ExecutionsPerTick` enum is deprecated and ignored). Condition reevaluation/probes (including legacy condition `on_update()` checks) are additional work outside `task_executions` and are not bounded by this budget; keep condition evaluation cheap and side-effect-free, preferably via `evaluate_condition(runner)`. When the budget is exhausted, traversal yields and resumes on a later tick. Task update hooks can use the runner's `actor`, `delta`, and monotonic `time` (advanced by each tick's delta). `TimeLimit` and `Cooldown` run on this simulated time, so pausing the runner, manual ticking, or `Engine.time_scale` behaves predictably.
 
 ## Installation
 
@@ -103,11 +103,13 @@ func _physics_process(delta: float) -> void:
 
 ## Editor Usage
 
-Open the **Behavior Tree** tab at the bottom of the editor:
+Open the **Behavior Tree** tab at the bottom of the editor. With no custom provider configured it scans `res://` for `.json` trees; use **📁 Source…** to pick another folder, or set the project setting `behavior_tree/custom_source_provider` to a script path extending `BTTreeSourceProvider`. **＋ New** starts an unsaved `new_tree` with a Sequence root.
 
-- **Canvas**: Drag and connect nodes. Supports zoom, pan, minimap, auto-layout, and multi-selection.
-- **Inspector**: Click any node to inspect and edit its properties, parameters, or comments.
-- **Code View**: Switch to the Code View tab to view or edit the raw JSON tree directly. Click **Apply Changes** to update the graph canvas.
+- **Canvas**: Drag and connect nodes — dragging a child to another parent reparents it, and refused connections are explained in the status bar. Node positions persist in the tree's `metadata["node_positions"]` and survive reloads. The root cannot be deleted; select another node and press **⭐ Set as Root** first.
+- **Inspector**: Click any node to inspect and edit its name, abort type, and parameters. Built-in decorators expose typed controls for their configuration (Repeater `count` / `repeat_forever` / `end_on_failure`, Cooldown `cooldown_time`, TimeLimit `time_limit`), and editing never changes a parameter's type.
+- **Code View**: Switch to the Code View tab to view or edit the raw JSON tree directly. Click **⚡ Apply JSON to Tree** to update the graph; it validates first and warns when the model changed since the JSON was captured.
+
+**Save** validates the tree before writing and reports the first validation error. Unsaved changes prompt before switching or reloading trees, and the Godot editor warns about unsaved behavior trees on close (the plugin's save hooks write the open tree).
 
 ## Running Tests & Demo
 
@@ -117,7 +119,7 @@ Launch at the demo's intended viewport size with `godot --path . --resolution 11
 
 Optional playtest telemetry: append `-- --playtest-state=/absolute/path.json` after the scene. It prints JSON-line snapshots and overwrites the given file every 0.2 seconds with phase, player position/health/parcels, guard positions/behavior/search state/runner ticks, lifecycle counters, round, live runner count, elapsed time, dash cooldown/time, and invulnerability. Telemetry is observational only.
 
-An interactive demo scene is included under `demo/demo.tscn`.
+An interactive demo scene is included under `demo/demo.tscn`. **Step BT Tick** executes exactly one tick and reports the result (the demo registers its own Condition/Action leaf tasks and re-binds the runner automatically when you apply JSON in the embedded viewer).
 
 Run the headless suites from the project root. Godot 4.3+ is the target; these suites were verified with Godot 4.7.2.
 
@@ -126,9 +128,20 @@ godot --headless --path . -s res://tests/test_runner.gd
 godot --headless --path . -s res://tests/test_runtime_regressions.gd
 godot --headless --path . -s res://tests/test_model_regressions.gd
 godot --headless --path . -s res://tests/test_editor_regressions.gd
+godot --headless --path . -s res://tests/test_minigame_regressions.gd
+godot --headless --path . -s res://tests/test_demo_regressions.gd
 ```
 
-Roadmap items not yet implemented include Undo/Redo, New/Open workflows, and scoped blackboards for subtrees.
+Roadmap items not yet implemented include full Undo/Redo, incremental graph rendering for very large trees, and scoped blackboards for subtrees.
+
+## Behavior notes
+
+- An unregistered task type loads as an inactive placeholder: Sequence/Selector stop the tree with INACTIVE (`stopped_at_placeholder` records the type), while Parallel ignores inactive branches as long as another sibling is active.
+- A decorator with no child returns INACTIVE and stops the tree.
+- Repeater/UntilSuccess/UntilFailure run at most one child iteration per tick, so `count = 100` needs at least 100 ticks.
+- Conditional-abort re-evaluation only probes guard conditions; if a higher-priority branch's guard passes but its action fails, the lower-priority branch is re-preempted on the next tick.
+- `task_finished` reports FAILURE when a running task is aborted (preemption, sibling failure, or `interrupt`); connect `task_aborted` to distinguish aborts from real failures.
+- The file source lists the `.json` files directly inside its folder (no recursion) and works in exported PCK builds.
 
 ## License
 
