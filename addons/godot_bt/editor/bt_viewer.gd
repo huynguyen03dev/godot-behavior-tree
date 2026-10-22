@@ -99,7 +99,8 @@ func _ensure_built() -> void:
 					return
 		# Default to a file source so the panel is usable right after the
 		# plugin is enabled; the folder can be changed with "📁 Source…".
-		_apply_tree_source(BTFileTreeSource.new("res://"))
+		var default_dir: String = "res://behavior_trees" if DirAccess.dir_exists_absolute("res://behavior_trees") else "res://"
+		_apply_tree_source(BTFileTreeSource.new(default_dir))
 
 func _ready() -> void:
 	_ensure_built()
@@ -121,8 +122,19 @@ func set_source_directory(dir_path: String) -> void:
 
 func _apply_tree_source(p_source: BTTreeSourceProvider) -> void:
 	tree_source = p_source
+	current_tree = null
+	current_tree_name = ""
+	selected_node_id = -1
+	_json_draft = ""
+	_json_draft_tree = null
+	_json_draft_modified = false
+	_json_baseline = ""
+	_model_baseline = ""
+	if _json_text_edit != null:
+		_json_text_edit.text = ""
 	if _source_label != null:
 		_source_label.text = "Source: %s" % (tree_source.get_source_name() if tree_source != null else "None")
+	_render_current_tree()
 	_refresh_tree_list()
 
 func load_generic_tree(p_tree: BTTree, p_name: String = "") -> bool:
@@ -430,6 +442,7 @@ func _build_ui() -> void:
 	_confirm_dialog = ConfirmationDialog.new()
 	_confirm_dialog.dialog_text = "Discard unapplied changes?"
 	_confirm_dialog.confirmed.connect(_confirm_pending_action)
+	_confirm_dialog.canceled.connect(_cancel_pending_action)
 	add_child(_confirm_dialog)
 
 func _setup_add_task_menu(popup: PopupMenu) -> void:
@@ -450,15 +463,17 @@ func _refresh_tree_list() -> void:
 	var trees: Array = tree_source.list_trees()
 	for i in trees.size():
 		_tree_option_button.add_item(trees[i], i)
-	if trees.size() > 0:
-		_tree_option_button.select(0)
-		if not load_tree_by_name(trees[0]):
-			# The tree is listed but could not be loaded (corrupt JSON, failed
-			# validation). Keep the previously loaded tree and say why.
-			_stats_label.text = "❌ Failed to load tree '%s'" % trees[0]
-			_select_tree_option(current_tree_name)
-	else:
+	if trees.is_empty():
 		_stats_label.text = "⚠️ No Behavior Trees found in source."
+	else:
+		var loaded := false
+		for i in trees.size():
+			if load_tree_by_name(trees[i]):
+				_tree_option_button.select(i)
+				loaded = true
+				break
+		if not loaded:
+			_stats_label.text = "❌ Failed to load tree '%s'" % trees[0]
 
 func _select_tree_option(name: String) -> void:
 	if _tree_option_button == null:
@@ -500,7 +515,7 @@ func _on_reload_pressed() -> void:
 func _on_save_pressed() -> void:
 	save_current_tree()
 
-## Validates the model and writes it through the provider.
+## Writes the model through the provider.
 ## Returns true when the tree was written.
 func save_current_tree() -> bool:
 	if current_tree == null or tree_source == null:
@@ -508,17 +523,17 @@ func save_current_tree() -> bool:
 	if _json_draft_modified:
 		_stats_label.text = "Unapplied JSON edits; apply JSON before saving."
 		return false
-	var registry: BTTaskRegistry = _registry if _registry != null else _active_registry()
-	var errors: PackedStringArray = BTTree.validate_dict(current_tree.to_dict(), registry)
-	if not errors.is_empty():
-		_stats_label.text = "❌ %s" % errors[0]
-		return false
 	var ok: bool = tree_source.save_tree(current_tree_name, current_tree)
 	if ok:
 		_model_baseline = JSON.stringify(current_tree.to_dict(), "\t")
 		_stats_label.text = "✅ Saved tree '%s' successfully." % current_tree_name
+		_sync_tree_options()
 	else:
-		_stats_label.text = "❌ Failed to save tree '%s'." % current_tree_name
+		var last_err = tree_source.get("last_error")
+		if last_err is String and not last_err.is_empty():
+			_stats_label.text = "❌ %s" % last_err
+		else:
+			_stats_label.text = "❌ Failed to save tree '%s'." % current_tree_name
 	return ok
 
 func _on_tab_changed(tab: int) -> void:
@@ -652,6 +667,17 @@ func _create_new_tree() -> void:
 	tree.tree_name = "new_tree"
 	tree.set_root(root_task)
 	load_generic_tree(tree, "new_tree")
+	if _tree_option_button != null:
+		var found_idx := -1
+		for i in _tree_option_button.item_count:
+			if _tree_option_button.get_item_text(i) == "new_tree":
+				found_idx = i
+				break
+		if found_idx >= 0:
+			_tree_option_button.select(found_idx)
+		else:
+			_tree_option_button.add_item("new_tree")
+			_tree_option_button.select(_tree_option_button.item_count - 1)
 	# Nothing has been written to the source yet, so the tree counts as dirty.
 	_model_baseline = ""
 	_stats_label.text = "🆕 Created 'new_tree'. Save to write it to the source."
@@ -686,13 +712,17 @@ func _on_add_task_menu_item_pressed(id: int) -> void:
 			max_id = t.id
 	new_task.id = max_id + 1
 
-	current_tree.add_node(new_task)
 	# Attach the new task so it is reachable from the root instead of floating
 	# in the graph as an invisible orphan.
 	var parent := _find_attachment_parent()
 	if parent == null:
+		if current_tree.root_task != null:
+			_stats_label.text = "Cannot attach: root '%s' cannot take children; select a node that can take children" % current_tree.root_task.friendly_name
+			return
+		current_tree.add_node(new_task)
 		current_tree.set_root(new_task)
 	else:
+		current_tree.add_node(new_task)
 		current_tree.connect_parent_child(parent, new_task)
 		if new_task.parent != parent:
 			_stats_label.text = "⚠️ Could not attach the new task; it was added as an unattached node."
@@ -728,6 +758,7 @@ func _can_accept_child(task: BTTask) -> bool:
 func _render_current_tree() -> void:
 	_clear_views()
 	if current_tree == null:
+		_update_inspector()
 		return
 
 	_is_rendering = true
@@ -1365,7 +1396,8 @@ func _build_value_control(task: BTTask, key: String, value_type: String, expecte
 			v_edit.text = str(previous) if previous != null else ""
 			v_edit.placeholder_text = "Literal value..."
 			v_edit.text_changed.connect(func(new_val: String):
-				task.parameters[key] = _coerce_param_value(new_val, previous, expected_type)
+				var curr: Variant = task.parameters.get(key, previous)
+				task.parameters[key] = _coerce_param_value(new_val, curr, expected_type)
 			)
 			return v_edit
 
@@ -1384,11 +1416,75 @@ func _coerce_param_value(text: String, previous: Variant, expected_type: int) ->
 				return float(text)
 			return previous
 		TYPE_VECTOR2, TYPE_VECTOR3, TYPE_COLOR:
-			var parsed = str_to_var(text)
-			if typeof(parsed) == expected_type:
+			var parsed = _parse_vector_or_color(text, expected_type)
+			if parsed != null and typeof(parsed) == expected_type:
 				return parsed
 			return previous
 	return text
+
+func _parse_vector_or_color(text: String, expected_type: int) -> Variant:
+	var s := text.strip_edges()
+	var inside := ""
+	match expected_type:
+		TYPE_VECTOR2:
+			if s.to_lower().begins_with("vector2(") and s.ends_with(")"):
+				inside = s.substr(8, s.length() - 9)
+			elif s.begins_with("(") and s.ends_with(")"):
+				inside = s.substr(1, s.length() - 2)
+			else:
+				var v = str_to_var(s)
+				return v if typeof(v) == TYPE_VECTOR2 else null
+			var parts := inside.split(",")
+			if parts.size() != 2:
+				return null
+			var p0 := parts[0].strip_edges()
+			var p1 := parts[1].strip_edges()
+			if (p0.is_valid_float() or p0.is_valid_int()) and (p1.is_valid_float() or p1.is_valid_int()):
+				return Vector2(float(p0), float(p1))
+			return null
+
+		TYPE_VECTOR3:
+			if s.to_lower().begins_with("vector3(") and s.ends_with(")"):
+				inside = s.substr(8, s.length() - 9)
+			elif s.begins_with("(") and s.ends_with(")"):
+				inside = s.substr(1, s.length() - 2)
+			else:
+				var v = str_to_var(s)
+				return v if typeof(v) == TYPE_VECTOR3 else null
+			var parts := inside.split(",")
+			if parts.size() != 3:
+				return null
+			var p0 := parts[0].strip_edges()
+			var p1 := parts[1].strip_edges()
+			var p2 := parts[2].strip_edges()
+			if (p0.is_valid_float() or p0.is_valid_int()) and (p1.is_valid_float() or p1.is_valid_int()) and (p2.is_valid_float() or p2.is_valid_int()):
+				return Vector3(float(p0), float(p1), float(p2))
+			return null
+
+		TYPE_COLOR:
+			if s.to_lower().begins_with("color(") and s.ends_with(")"):
+				inside = s.substr(6, s.length() - 7)
+			elif s.begins_with("(") and s.ends_with(")"):
+				inside = s.substr(1, s.length() - 2)
+			else:
+				var v = str_to_var(s)
+				return v if typeof(v) == TYPE_COLOR else null
+			var parts := inside.split(",")
+			if parts.size() == 4:
+				var p0 := parts[0].strip_edges()
+				var p1 := parts[1].strip_edges()
+				var p2 := parts[2].strip_edges()
+				var p3 := parts[3].strip_edges()
+				if (p0.is_valid_float() or p0.is_valid_int()) and (p1.is_valid_float() or p1.is_valid_int()) and (p2.is_valid_float() or p2.is_valid_int()) and (p3.is_valid_float() or p3.is_valid_int()):
+					return Color(float(p0), float(p1), float(p2), float(p3))
+			elif parts.size() == 3:
+				var p0 := parts[0].strip_edges()
+				var p1 := parts[1].strip_edges()
+				var p2 := parts[2].strip_edges()
+				if (p0.is_valid_float() or p0.is_valid_int()) and (p1.is_valid_float() or p1.is_valid_int()) and (p2.is_valid_float() or p2.is_valid_int()):
+					return Color(float(p0), float(p1), float(p2), 1.0)
+			return null
+	return null
 
 ## Coerces the value of a freshly added parameter: int, then float, then bool,
 ## otherwise the text stays a string.
@@ -1539,7 +1635,12 @@ func _confirm_pending_action() -> void:
 	if _pending_action.is_valid():
 		var action := _pending_action
 		_pending_action = Callable()
+		_confirm_dialog.dialog_text = "Discard unapplied changes?"
 		action.call()
+
+func _cancel_pending_action() -> void:
+	_pending_action = Callable()
+	_confirm_dialog.dialog_text = "Discard unapplied changes?"
 
 func _on_graph_delete_nodes_request(nodes: Array[StringName]) -> void:
 	if current_tree == null:

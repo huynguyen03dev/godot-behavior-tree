@@ -23,8 +23,8 @@ func _enter_tree() -> void:
 func _exit_tree() -> void:
 	if _viewer_instance != null:
 		remove_control_from_bottom_panel(_viewer_instance)
-	_viewer_instance.free()
-	_viewer_instance = null
+		_viewer_instance.free()
+		_viewer_instance = null
 
 ## Godot 4.4+ asks plugins for unsaved state before the editor closes.
 ## Returns a non-empty message while the viewer holds unsaved changes.
