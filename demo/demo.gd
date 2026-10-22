@@ -28,10 +28,22 @@ class DemoCondition extends BTTask:
 		return BTStatus.SUCCESS if value > threshold else BTStatus.FAILURE
 
 class DemoAction extends BTTask:
+	var _updates: int = 0
+
 	func _init() -> void:
 		super._init()
 		type_name = "Action"
 		category = "Action"
+
+	func on_start() -> void:
+		super.on_start()
+		_updates = 0
+
+	func on_update() -> int:
+		_updates += 1
+		if _updates <= 1:
+			return BTStatus.RUNNING
+		return BTStatus.SUCCESS
 
 func _ready() -> void:
 	var provider = BTFileTreeSource.new("res://demo/data", _build_task_registry())
@@ -90,6 +102,8 @@ func _on_step_tick_pressed() -> void:
 	_sync_runner()
 	if _runner == null:
 		return
+	if not _runner.is_running:
+		_runner.start()
 	var status = _runner.tick()
 	var status_str = "RUNNING"
 	match status:
