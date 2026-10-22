@@ -22,6 +22,15 @@ const GRAPH_Y_GAP := 130.0
 var tree_source: BTTreeSourceProvider = null
 var current_tree: BTTree = null
 var current_tree_name: String = ""
+var _json_draft: String = ""
+var _json_draft_tree: BTTree = null
+var _json_draft_modified := false
+var _json_baseline := ""
+var _model_baseline := ""
+var _previous_tab := 0
+var _pending_action: Callable
+var _confirm_dialog: ConfirmationDialog
+var _registry: BTTaskRegistry = null
 var selected_node_id: int = -1
 
 var _search_filter: String = ""
@@ -95,7 +104,23 @@ func set_tree_source(p_source: BTTreeSourceProvider) -> void:
 func load_generic_tree(p_tree: BTTree, p_name: String = "") -> bool:
 	if p_tree == null:
 		return false
+	if _json_draft_tree != null and _json_draft_tree != p_tree:
+		_json_draft = ""
+		_json_draft_tree = null
 	current_tree = p_tree
+	_json_draft_modified = false
+	_json_baseline = JSON.stringify(p_tree.to_dict(), "\t")
+	_model_baseline = _json_baseline
+	_json_draft = _json_baseline
+	_json_draft_tree = p_tree
+	if _json_text_edit != null:
+		_json_text_edit.text = _json_draft
+	if "registry" in p_tree and p_tree.registry is BTTaskRegistry:
+		_registry = p_tree.registry
+	else:
+		_registry = BTTaskRegistry.new()
+	if _add_task_menu_button != null:
+		_setup_add_task_menu(_add_task_menu_button.get_popup())
 	current_tree_name = p_name if p_name != "" else p_tree.tree_name
 	if _tree_option_button != null:
 		for i in _tree_option_button.item_count:
@@ -186,7 +211,7 @@ func _build_ui() -> void:
 	row1.add_child(VSeparator.new())
 
 	_add_task_menu_button = MenuButton.new()
-	_add_task_menu_button.text = "➕ Add Task"
+	_add_task_menu_button.text = "Add Task"
 	_add_task_menu_button.tooltip_text = "Insert a new task into the current behavior tree"
 	_setup_add_task_menu(_add_task_menu_button.get_popup())
 	row1.add_child(_add_task_menu_button)
@@ -295,6 +320,10 @@ func _build_ui() -> void:
 	_json_text_edit = TextEdit.new()
 	_json_text_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_json_text_edit.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_json_text_edit.text_changed.connect(func():
+		if _json_draft_tree == current_tree and current_tree != null:
+			_json_draft_modified = _json_text_edit.text != _json_baseline
+	)
 	_json_editor_container.add_child(_json_text_edit)
 	_view_container.add_child(_json_editor_container)
 
@@ -352,26 +381,20 @@ func _build_ui() -> void:
 	_stats_label.text = "Ready."
 	status_bar.add_child(_stats_label)
 	root_vbox.add_child(status_bar)
+	_confirm_dialog = ConfirmationDialog.new()
+	_confirm_dialog.dialog_text = "Discard unapplied changes?"
+	_confirm_dialog.confirmed.connect(_confirm_pending_action)
+	add_child(_confirm_dialog)
 
 func _setup_add_task_menu(popup: PopupMenu) -> void:
 	popup.clear()
-	popup.add_item("Sequence (Composite)", 101)
-	popup.add_item("Selector (Composite)", 102)
-	popup.add_item("Parallel (Composite)", 103)
-	popup.add_item("RandomSequence (Composite)", 104)
-	popup.add_item("RandomSelector (Composite)", 105)
-	popup.add_separator("Decorators")
-	popup.add_item("Inverter (Decorator)", 201)
-	popup.add_item("Repeater (Decorator)", 202)
-	popup.add_item("ReturnSuccess (Decorator)", 203)
-	popup.add_item("ReturnFailure (Decorator)", 204)
-	popup.add_item("UntilSuccess (Decorator)", 205)
-	popup.add_item("UntilFailure (Decorator)", 206)
-	popup.add_item("Cooldown (Decorator)", 207)
-	popup.add_item("TimeLimit (Decorator)", 208)
-	popup.add_separator("Actions & References")
-	popup.add_item("SubTree (Action)", 301)
-	popup.id_pressed.connect(_on_add_task_menu_item_pressed)
+	if not popup.id_pressed.is_connected(_on_add_task_menu_item_pressed):
+		popup.id_pressed.connect(_on_add_task_menu_item_pressed)
+	var registry := current_tree.registry if current_tree != null and current_tree.registry != null else BTTaskRegistry.new()
+	for type_name in registry.get_registered_types():
+		var category: String = registry.get_category(type_name)
+		popup.add_item("%s (%s)" % [type_name, category], 1000 + popup.item_count)
+		popup.set_item_metadata(popup.item_count - 1, type_name)
 
 # ---------------------------------------------------------------- Tree List & Switching
 func _refresh_tree_list() -> void:
@@ -389,27 +412,48 @@ func _refresh_tree_list() -> void:
 
 func _on_tree_selected(idx: int) -> void:
 	var tname := _tree_option_button.get_item_text(idx)
-	load_tree_by_name(tname)
+	var previous_name := current_tree_name
+	_request_action(func(): load_tree_by_name(tname))
+	if _confirm_dialog.visible:
+		for i in _tree_option_button.item_count:
+			if _tree_option_button.get_item_text(i) == previous_name:
+				_tree_option_button.select(i)
+				break
 
 func _on_reload_pressed() -> void:
 	if current_tree_name != "":
-		load_tree_by_name(current_tree_name)
+		var tree_name := current_tree_name
+		_request_action(func(): load_tree_by_name(tree_name))
 
 func _on_save_pressed() -> void:
 	if current_tree == null or tree_source == null:
 		return
+	if _json_draft_modified:
+		_stats_label.text = "Unapplied JSON edits; apply JSON before saving."
+		return
 	var ok: bool = tree_source.save_tree(current_tree_name, current_tree)
 	if ok:
+		_model_baseline = JSON.stringify(current_tree.to_dict(), "\t")
 		_stats_label.text = "✅ Saved tree '%s' successfully." % current_tree_name
 	else:
 		_stats_label.text = "❌ Failed to save tree '%s'." % current_tree_name
 
 func _on_tab_changed(tab: int) -> void:
+	if _previous_tab == 2 and _json_text_edit != null and current_tree != null:
+		_json_draft = _json_text_edit.text
+		_json_draft_tree = current_tree
+		_json_draft_modified = _json_draft != _json_baseline
 	_graph_edit.visible = (tab == 0)
 	_hierarchy_tree.visible = (tab == 1)
 	_json_editor_container.visible = (tab == 2)
 	if tab == 2 and current_tree != null:
-		_json_text_edit.text = JSON.stringify(current_tree.to_dict(), "\t")
+		var serialized := JSON.stringify(current_tree.to_dict(), "\t")
+		if _json_draft_tree != current_tree or not _json_draft_modified:
+			_json_draft = serialized
+			_json_draft_tree = current_tree
+			_json_baseline = serialized
+		_json_text_edit.text = _json_draft
+	_previous_tab = tab
 
 func _on_apply_json_pressed() -> void:
 	if _json_text_edit.text.strip_edges() == "":
@@ -425,8 +469,28 @@ func _on_apply_json_pressed() -> void:
 		_json_status_label.text = "❌ Root JSON must be an Object/Dictionary."
 		_json_status_label.modulate = COLOR_PLACEHOLDER
 		return
-	var new_tree = BTTree.from_dict(parsed_data)
+	if not parsed_data.has("nodes") or not parsed_data.nodes is Array or parsed_data.nodes.is_empty():
+		_json_status_label.text = "❌ Tree must contain a non-empty 'nodes' array."
+		_json_status_label.modulate = COLOR_PLACEHOLDER
+		return
+	var errors: PackedStringArray = BTTree.validate_dict(parsed_data)
+	if not errors.is_empty():
+		_json_status_label.text = "❌ Invalid tree: %s" % errors[0]
+		_json_status_label.modulate = COLOR_PLACEHOLDER
+		return
+	var new_tree = BTTree.from_dict(parsed_data, _registry)
+	if new_tree == null:
+		_json_status_label.text = "❌ Tree data is invalid; current tree was not changed."
+		_json_status_label.modulate = COLOR_PLACEHOLDER
+		return
+	var persisted_model_baseline := _model_baseline
 	load_generic_tree(new_tree, current_tree_name)
+	_model_baseline = persisted_model_baseline
+	_json_baseline = JSON.stringify(current_tree.to_dict(), "\t")
+	_json_draft = _json_baseline
+	_json_draft_tree = current_tree
+	_json_draft_modified = false
+	_json_text_edit.text = _json_draft
 	_json_status_label.text = "✅ Tree updated successfully from JSON!"
 	_json_status_label.modulate = COLOR_ACTION
 
@@ -451,24 +515,18 @@ func _on_add_task_menu_item_pressed(id: int) -> void:
 		return
 	var type_name := "Sequence"
 	var category := "Composite"
-	match id:
-		101: type_name = "Sequence"; category = "Composite"
-		102: type_name = "Selector"; category = "Composite"
-		103: type_name = "Parallel"; category = "Composite"
-		104: type_name = "RandomSequence"; category = "Composite"
-		105: type_name = "RandomSelector"; category = "Composite"
-		201: type_name = "Inverter"; category = "Decorator"
-		202: type_name = "Repeater"; category = "Decorator"
-		203: type_name = "ReturnSuccess"; category = "Decorator"
-		204: type_name = "ReturnFailure"; category = "Decorator"
-		205: type_name = "UntilSuccess"; category = "Decorator"
-		206: type_name = "UntilFailure"; category = "Decorator"
-		207: type_name = "Cooldown"; category = "Decorator"
-		208: type_name = "TimeLimit"; category = "Decorator"
-		301: type_name = "SubTree"; category = "Action"
+	var popup := _add_task_menu_button.get_popup()
+	for i in popup.item_count:
+		if popup.get_item_id(i) == id:
+			type_name = str(popup.get_item_metadata(i))
+			category = _registry.get_category(type_name) if _registry != null else "Action"
+			break
+	if type_name == "":
+		return
 
-	var reg := BTTaskRegistry.new()
-	var new_task := reg.create_task(type_name)
+	if _registry == null:
+		_registry = BTTaskRegistry.new()
+	var new_task := _registry.create_task(type_name)
 	new_task.friendly_name = type_name
 	new_task.category = category
 
@@ -568,7 +626,8 @@ func _render_graph() -> void:
 			if child != null and "id" in child:
 				var from_name := "Node_%d" % task.id
 				var to_name := "Node_%d" % child.id
-				_graph_edit.connect_node(from_name, 0, to_name, 0)
+				if _graph_nodes_by_id.has(task.id) and _graph_nodes_by_id.has(child.id):
+					_graph_edit.connect_node(from_name, 0, to_name, 0)
 
 func _render_hierarchy() -> void:
 	if current_tree == null or current_tree.node_list.is_empty():
@@ -880,7 +939,9 @@ func _update_inspector() -> void:
 			val_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			var var_capture = v
 			val_edit.text_changed.connect(func(nv: String):
-				var_capture.value = nv
+				var parsed := _parse_editor_value(nv, var_capture.value)
+				if typeof(parsed) == typeof(var_capture.value):
+					current_tree.blackboard.set_var(var_capture.name, parsed, var_capture.type_name)
 			)
 			bb_row.add_child(val_edit)
 			bb_box.add_child(bb_row)
@@ -914,6 +975,8 @@ func _on_graph_node_deselected(node: Node) -> void:
 		_update_inspector()
 
 func _on_graph_connection_request(from_node: StringName, _from_port: int, to_node: StringName, _to_port: int) -> void:
+	if current_tree == null:
+		return
 	var from_str := String(from_node)
 	var to_str := String(to_node)
 	if from_str.begins_with("Node_") and to_str.begins_with("Node_"):
@@ -921,13 +984,13 @@ func _on_graph_connection_request(from_node: StringName, _from_port: int, to_nod
 		var c_id = int(to_str.replace("Node_", ""))
 		var p_task = current_tree.get_node_by_id(p_id)
 		var c_task = current_tree.get_node_by_id(c_id)
-		if p_task != null and c_task != null:
+		if p_task != null and c_task != null and p_task != c_task and (not ("children" in p_task) or not p_task.children.has(c_task)):
 			current_tree.connect_parent_child(p_task, c_task)
-			_graph_edit.connect_node(from_node, 0, to_node, 0)
-			_render_hierarchy()
-			_update_inspector()
+			_render_current_tree()
 
 func _on_graph_disconnection_request(from_node: StringName, _from_port: int, to_node: StringName, _to_port: int) -> void:
+	if current_tree == null:
+		return
 	var from_str := String(from_node)
 	var to_str := String(to_node)
 	if from_str.begins_with("Node_") and to_str.begins_with("Node_"):
@@ -938,8 +1001,37 @@ func _on_graph_disconnection_request(from_node: StringName, _from_port: int, to_
 		if p_task != null and c_task != null:
 			current_tree.disconnect_parent_child(p_task, c_task)
 			_graph_edit.disconnect_node(from_node, 0, to_node, 0)
-			_render_hierarchy()
-			_update_inspector()
+			_render_current_tree()
+
+func _parse_editor_value(text: String, previous: Variant) -> Variant:
+	if previous is bool:
+		if text.to_lower() == "true": return true
+		if text.to_lower() == "false": return false
+		return previous
+	if previous is int and text.is_valid_int():
+		return int(text)
+	if previous is float and text.is_valid_float():
+		return float(text)
+	if previous is int or previous is float:
+		return previous
+	return text
+
+func _has_unsaved_changes() -> bool:
+	if current_tree == null: return false
+	return _json_draft_modified or JSON.stringify(current_tree.to_dict(), "\t") != _model_baseline
+
+func _request_action(action: Callable) -> void:
+	if _has_unsaved_changes():
+		_pending_action = action
+		_confirm_dialog.popup_centered()
+	else:
+		action.call()
+
+func _confirm_pending_action() -> void:
+	if _pending_action.is_valid():
+		var action := _pending_action
+		_pending_action = Callable()
+		action.call()
 
 func _on_graph_delete_nodes_request(nodes: Array[StringName]) -> void:
 	for nname in nodes:

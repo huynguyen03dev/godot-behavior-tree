@@ -12,7 +12,12 @@ var parameters: Dictionary = {}
 
 var blackboard: BTBlackboard = null
 var owner: Node = null
-var parent: BTTask = null
+var _parent_ref: WeakRef = null
+var parent: BTTask:
+	get:
+		return _parent_ref.get_ref() if _parent_ref != null else null
+	set(value):
+		_parent_ref = weakref(value) if value != null else null
 
 # Runtime state
 var last_status: int = BTStatus.INACTIVE
@@ -47,6 +52,16 @@ func on_update() -> int:
 	if has_method("OnUpdate"):
 		return int(call("OnUpdate"))
 	return BTStatus.SUCCESS
+
+## Pure condition probe used by conditional-abort reevaluation. Override in
+## conditions that support abort checks. Pure conditions should override this;
+## legacy Condition tasks continue to use on_update() for backwards compatibility.
+func evaluate_condition(_runner: BTRunner) -> int:
+	if category == "Condition":
+		if has_method("EvaluateCondition"):
+			return int(call("EvaluateCondition"))
+		return on_update()
+	return BTStatus.INACTIVE
 
 func on_end() -> void:
 	if has_method("OnEnd"):

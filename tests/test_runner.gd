@@ -99,11 +99,18 @@ func _test_runner_execution() -> Array:
 	var seq = BTComposite.BTSequence.new()
 	tree.set_root(seq)
 
-	var t1 = BTTask.new() # returns INACTIVE by default
+	var t1 = BTTask.new() # on_update() returns SUCCESS by default
 	tree.connect_parent_child(seq, t1)
 
 	var runner = BTRunner.new(tree)
-	rows.append(["BTRunner instantiates with tree", runner != null, "runner inst"])
+	if runner != null:
+		runner.start()
+		var result := runner.tick()
+		rows.append(["Runner executes the tree to SUCCESS", result == BTStatus.SUCCESS and runner.last_status == BTStatus.SUCCESS, "result=%d last=%d" % [result, runner.last_status]])
+		runner.stop()
+		runner.free()
+	else:
+		rows.append(["Runner executes the tree to SUCCESS", false, "runner construction failed"])
 	return rows
 
 func _test_file_adapter() -> Array:
@@ -217,9 +224,11 @@ func _test_decorators_cooldown_and_timelimit() -> Array:
 	rows.append(["Cooldown tick 1 runs child and succeeds", s1 == BTStatus.SUCCESS, "s1=%d" % s1])
 
 	# Next tick immediate: should fail because of cooldown
-	runner.is_running = true # Keep runner active for next tick
+	runner.start() # A completed run is inactive; start a fresh run for the cooldown check.
 	var s2 = runner.tick()
 	rows.append(["Cooldown tick 2 blocked by cooldown timer", s2 == BTStatus.FAILURE, "s2=%d" % s2])
+	runner.stop()
+	runner.free()
 
 	# TimeLimit test
 	var tl = BTDecorator.BTTimeLimit.new()
@@ -239,6 +248,8 @@ func _test_decorators_cooldown_and_timelimit() -> Array:
 	OS.delay_msec(60)
 	var t_s2 = tl_runner.tick()
 	rows.append(["TimeLimit tick 2 aborted due to timeout", t_s2 == BTStatus.FAILURE and tl_act.abort_called, "ts2=%d, abort=%s" % [t_s2, str(tl_act.abort_called)]])
+	tl_runner.stop()
+	tl_runner.free()
 
 	return rows
 
@@ -278,6 +289,8 @@ func _test_conditional_aborts() -> Array:
 	rows.append(["Tick 2: Low priority action was aborted", low_action.abort_called, "aborted=%s" % str(low_action.abort_called)])
 	rows.append(["Tick 2: High priority action now running", high_action.update_count == 1, "high=%d" % high_action.update_count])
 	rows.append(["Tick 2: Runner status is RUNNING", st2 == BTStatus.RUNNING, "st2=%d" % st2])
+	runner.stop()
+	runner.free()
 
 	# 2. Self Abort on Sequence
 	var tree_seq = BTTree.new()
@@ -304,6 +317,8 @@ func _test_conditional_aborts() -> Array:
 	var s_st2 = seq_runner.tick()
 	rows.append(["Seq Tick 2: Action was aborted on condition failure", seq_action.abort_called, "aborted=%s" % str(seq_action.abort_called)])
 	rows.append(["Seq Tick 2: Sequence failed", s_st2 == BTStatus.FAILURE, "st2=%d" % s_st2])
+	seq_runner.stop()
+	seq_runner.free()
 
 	return rows
 
@@ -322,6 +337,7 @@ func _test_lifecycle_and_events() -> Array:
 
 	runner.interrupt(act)
 	rows.append(["interrupt aborts running task", act.abort_called, "aborted=%s" % str(act.abort_called)])
+	runner.stop()
+	runner.free()
 
 	return rows
-

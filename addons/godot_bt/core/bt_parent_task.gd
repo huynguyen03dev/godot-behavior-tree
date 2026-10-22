@@ -10,9 +10,19 @@ func _init() -> void:
 	category = "Composite"
 
 func add_child_task(child_task: BTTask) -> void:
-	if child_task != null:
-		children.append(child_task)
-		child_task.parent = self
+	if child_task == null or child_task == self or children.has(child_task):
+		return
+	if self is BTDecorator and not children.is_empty():
+		return
+	var ancestor: BTTask = self
+	while ancestor != null:
+		if ancestor == child_task:
+			return
+		ancestor = ancestor.parent
+	if child_task.parent != null and child_task.parent != self:
+		child_task.parent.remove_child_task(child_task)
+	children.append(child_task)
+	child_task.parent = self
 
 func remove_child_task(child_task: BTTask) -> void:
 	if child_task != null and children.has(child_task):
@@ -47,6 +57,10 @@ func get_current_child_index() -> int:
 	if has_method("CurrentChildIndex"):
 		return int(call("CurrentChildIndex"))
 	return current_child_index
+
+## Converts a child index to its position in this parent's execution order.
+func get_execution_order_index(child_index: int) -> int:
+	return child_index
 
 func on_child_executed(child_index: int, child_status: int) -> void:
 	if has_method("OnChildExecuted"):

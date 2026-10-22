@@ -85,6 +85,7 @@ class BTSelector extends BTComposite:
 # ---------------------------------------------------------------- BTParallel
 class BTParallel extends BTComposite:
 	var _children_status: Array = []
+	var _dispatched_this_tick: Array[bool] = []
 
 	func _init() -> void:
 		super._init()
@@ -100,42 +101,46 @@ class BTParallel extends BTComposite:
 			_execution_status = BTStatus.SUCCESS
 
 	func on_tick_start() -> void:
-		if _execution_status == BTStatus.RUNNING:
-			current_child_index = 0
+		_dispatched_this_tick.resize(children.size())
+		_dispatched_this_tick.fill(false)
 
 	func can_run_parallel_children() -> bool:
 		return true
 
 	func can_execute() -> bool:
-		while current_child_index < children.size() and _children_status[current_child_index] != BTStatus.RUNNING:
-			current_child_index += 1
-		return current_child_index < children.size() and _execution_status == BTStatus.RUNNING
+		if _execution_status != BTStatus.RUNNING or children.is_empty():
+			return false
+		for offset in children.size():
+			var index := (current_child_index + offset) % children.size()
+			if not _dispatched_this_tick[index] and _children_status[index] == BTStatus.RUNNING:
+				current_child_index = index
+				return true
+		return false
+
+	func on_child_started(child_index: int) -> void:
+		if child_index >= 0 and child_index < _dispatched_this_tick.size():
+			_dispatched_this_tick[child_index] = true
+
+	func _aggregate_status() -> int:
+		var any_running := false
+		for status in _children_status:
+			if status == BTStatus.INACTIVE:
+				return BTStatus.INACTIVE
+			if status == BTStatus.FAILURE:
+				return BTStatus.FAILURE
+			if status == BTStatus.RUNNING:
+				any_running = true
+		return BTStatus.RUNNING if any_running else BTStatus.SUCCESS
 
 	func on_child_executed(child_index: int, child_status: int) -> void:
 		if child_index < _children_status.size():
 			_children_status[child_index] = child_status
-		current_child_index += 1
-		if current_child_index >= children.size():
-			var any_inactive := false
-			var any_failure := false
-			var any_running := false
-			for s in _children_status:
-				if s == BTStatus.INACTIVE:
-					any_inactive = true
-				elif s == BTStatus.FAILURE:
-					any_failure = true
-				elif s == BTStatus.RUNNING:
-					any_running = true
-			if any_inactive:
-				_execution_status = BTStatus.INACTIVE
-			elif any_failure:
-				_execution_status = BTStatus.FAILURE
-			elif any_running:
-				_execution_status = BTStatus.RUNNING
-			else:
-				_execution_status = BTStatus.SUCCESS
+		if not children.is_empty():
+			current_child_index = (child_index + 1) % children.size()
+		_execution_status = _aggregate_status()
 
 	func override_status(status: int) -> int:
+		_execution_status = _aggregate_status()
 		return _execution_status
 
 # ---------------------------------------------------------------- BTRandomSequence
@@ -159,6 +164,9 @@ class BTRandomSequence extends BTSequence:
 			return _shuffled_order[current_child_index]
 		return current_child_index
 
+	func get_execution_order_index(child_index: int) -> int:
+		return _shuffled_order.find(child_index)
+
 # ---------------------------------------------------------------- BTRandomSelector
 class BTRandomSelector extends BTSelector:
 	var _shuffled_order: Array = []
@@ -179,3 +187,6 @@ class BTRandomSelector extends BTSelector:
 		if current_child_index < _shuffled_order.size():
 			return _shuffled_order[current_child_index]
 		return current_child_index
+
+	func get_execution_order_index(child_index: int) -> int:
+		return _shuffled_order.find(child_index)

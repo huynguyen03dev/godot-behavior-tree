@@ -75,6 +75,12 @@ class BTRepeater extends BTDecorator:
 	func on_start() -> void:
 		super.on_start()
 		_iteration = 0
+		count = int(get_param("count", count))
+		repeat_forever = bool(get_param("repeat_forever", repeat_forever))
+		end_on_failure = bool(get_param("end_on_failure", end_on_failure))
+		if count <= 0 and not repeat_forever:
+			_execution_status = BTStatus.SUCCESS
+			current_child_index = children.size()
 
 	func can_execute() -> bool:
 		if repeat_forever:
@@ -200,8 +206,8 @@ class BTTimeLimit extends BTDecorator:
 			# Exceeded time limit -> abort child and fail
 			if child_index >= 0 and child_index < children.size():
 				var child_task: BTTask = children[child_index]
-				if child_task != null:
-					child_task.on_abort()
+				if owner is BTRunner:
+					(owner as BTRunner).interrupt(child_task)
 			_execution_status = BTStatus.FAILURE
 		else:
 			_execution_status = child_status
