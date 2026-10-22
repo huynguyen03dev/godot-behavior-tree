@@ -106,7 +106,7 @@ func _physics_process(delta: float) -> void:
 Open the **Behavior Tree** tab at the bottom of the editor. With no custom provider configured it scans `res://` for `.json` trees; use **📁 Source…** to pick another folder, or set the project setting `behavior_tree/custom_source_provider` to a script path extending `BTTreeSourceProvider`. **＋ New** starts an unsaved `new_tree` with a Sequence root.
 
 - **Canvas**: Drag and connect nodes — dragging a child to another parent reparents it, and refused connections are explained in the status bar. Node positions persist in the tree's `metadata["node_positions"]` and survive reloads. The root cannot be deleted; select another node and press **⭐ Set as Root** first.
-- **Inspector**: Click any node to inspect and edit its name, abort type, and parameters. Built-in decorators expose typed controls for their configuration (Repeater `count` / `repeat_forever` / `end_on_failure`, Cooldown `cooldown_time`, TimeLimit `time_limit`), and editing never changes a parameter's type.
+- **Inspector**: Click any node to inspect and edit its name, abort type, and parameters. Built-in decorators expose typed controls for their configuration (Repeater `count` / `repeat_forever` / `end_on_failure`, Cooldown `cooldown_time`, TimeLimit `time_limit`), editing never changes a parameter's type, and `Vector2` / `Vector3` / `Color` values accept `(x, y[, z[, w]])`.
 - **Code View**: Switch to the Code View tab to view or edit the raw JSON tree directly. Click **⚡ Apply JSON to Tree** to update the graph; it validates first and warns when the model changed since the JSON was captured.
 
 **Save** validates the tree before writing and reports the first validation error. Unsaved changes prompt before switching or reloading trees, and the Godot editor warns about unsaved behavior trees on close (the plugin's save hooks write the open tree).
@@ -119,7 +119,7 @@ Launch at the demo's intended viewport size with `godot --path . --resolution 11
 
 Optional playtest telemetry: append `-- --playtest-state=/absolute/path.json` after the scene. It prints JSON-line snapshots and overwrites the given file every 0.2 seconds with phase, player position/health/parcels, guard positions/behavior/search state/runner ticks, lifecycle counters, round, live runner count, elapsed time, dash cooldown/time, and invulnerability. Telemetry is observational only.
 
-An interactive demo scene is included under `demo/demo.tscn`. **Step BT Tick** executes exactly one tick and reports the result (the demo registers its own Condition/Action leaf tasks and re-binds the runner automatically when you apply JSON in the embedded viewer).
+An interactive demo scene is included under `demo/demo.tscn`. **Step BT Tick** executes exactly one tick and reports the result: demo actions report RUNNING on their first tick in an activation and complete on the second, and a finished runner restarts on the next press so every press runs a real tick. The demo registers its own Condition/Action leaf tasks and re-binds the runner automatically when you apply JSON in the embedded viewer.
 
 Run the headless suites from the project root. Godot 4.3+ is the target; these suites were verified with Godot 4.7.2.
 
@@ -140,8 +140,12 @@ Roadmap items not yet implemented include full Undo/Redo, incremental graph rend
 - A decorator with no child returns INACTIVE and stops the tree.
 - Repeater/UntilSuccess/UntilFailure run at most one child iteration per tick, so `count = 100` needs at least 100 ticks.
 - Conditional-abort re-evaluation only probes guard conditions; if a higher-priority branch's guard passes but its action fails, the lower-priority branch is re-preempted on the next tick.
-- `task_finished` reports FAILURE when a running task is aborted (preemption, sibling failure, or `interrupt`); connect `task_aborted` to distinguish aborts from real failures.
-- The file source lists the `.json` files directly inside its folder (no recursion) and works in exported PCK builds.
+- `task_finished` reports FAILURE when a running task is aborted (preemption, sibling failure, or `interrupt`); connect `task_aborted` to distinguish aborts from real failures. `stop()` also closes every started task with `task_finished`, whose status is the task's last status (RUNNING for a mid-run stop).
+- The `@@` / `$$` escape is part of the saved format: a literal stored before the escape existed (e.g. `@@x` meant as data) now reads back as `@x`.
+- `BTRunner.time` is monotonic for the runner's lifetime and is not reset by `set_tree()`, so a Cooldown window survives swapping to a different tree on the same runner.
+- A second `interrupt()` on a task that is no longer running is ignored (the first one wins).
+- Saving writes a built-in decorator's effective configuration (count, repeat_forever, end_on_failure, cooldown_time, time_limit) and a composite's `abort_type` (when not NONE) even when those were assigned from code instead of via parameters.
+- The file source lists the `.json` files directly inside its folder (no recursion), works in exported PCK builds, reports save failures through `last_error`, and `refresh()` drops in-folder files that were deleted on disk.
 
 ## License
 
