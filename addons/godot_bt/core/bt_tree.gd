@@ -38,6 +38,8 @@ func set_root(task: BTTask) -> void:
 func connect_parent_child(parent_task: BTTask, child_task: BTTask) -> void:
 	if parent_task == null or child_task == null or parent_task == child_task:
 		return
+	if child_task == root_task:
+		return
 	if not parent_task is BTParentTask and not ("children" in parent_task and parent_task.children is Array):
 		return
 	var ancestor: BTTask = parent_task
@@ -141,6 +143,20 @@ func to_dict() -> Dictionary:
 				if c != null and "id" in c:
 					child_ids.append(c.id)
 
+		var params: Dictionary = task.parameters.duplicate() if task.parameters is Dictionary else {}
+		if task.has_method("get_parameter_schema"):
+			var schema: Variant = task.call("get_parameter_schema")
+			if schema is Dictionary:
+				for k in schema.keys():
+					if not params.has(k):
+						var entry = schema[k]
+						if entry is Dictionary and entry.has("default"):
+							params[k] = entry["default"]
+		if task is BTComposite:
+			var composite := task as BTComposite
+			if not params.has("abort_type") and composite.abort_type != BTComposite.AbortType.NONE:
+				params["abort_type"] = composite.abort_type
+
 		nodes_data.append({
 			"id": task.id,
 			"friendly_name": task.friendly_name,
@@ -149,7 +165,7 @@ func to_dict() -> Dictionary:
 			"is_placeholder": task.is_placeholder,
 			"parent_id": task.parent.id if (task.parent != null and "id" in task.parent) else -1,
 			"children_ids": child_ids,
-			"parameters": _encode_value(task.parameters)
+			"parameters": _encode_value(params)
 		})
 
 	var bb_data := {}
@@ -215,13 +231,20 @@ static func validate_dict(data: Dictionary, registry: BTTaskRegistry = null) -> 
 	var parents := {}
 	var edges := {}
 	for id in by_id: parents[id] = 0; edges[id] = []
+	var shape_cache := {}
 	for id in by_id:
 		var node: Dictionary = by_id[id]
 		if not node.get("children_ids", []) is Array:
 			continue
 		var child_ids: Array = node.get("children_ids", [])
 		if not child_ids.is_empty():
-			var shape := _node_parent_shape(node, registry)
+			var type_name := str(node.get("type_name", ""))
+			var shape: Dictionary
+			if shape_cache.has(type_name):
+				shape = shape_cache[type_name]
+			else:
+				shape = _node_parent_shape(node, registry)
+				shape_cache[type_name] = shape
 			if not shape.can_have_children:
 				errors.append("node %d of type '%s' has children but cannot hold them" % [id, str(node.get("type_name", ""))])
 			elif shape.is_decorator and child_ids.size() > 1:
@@ -262,6 +285,8 @@ static func _node_parent_shape(node: Dictionary, registry: BTTaskRegistry) -> Di
 				"can_have_children": true,
 				"is_decorator": created is BTDecorator or registry.get_category(type_name) == "Decorator"
 			}
+		elif created != null and "children" in created and created.children is Array:
+			return {"can_have_children": true, "is_decorator": false}
 		return {"can_have_children": false, "is_decorator": false}
 	if BUILTIN_DECORATOR_TYPES.has(type_name):
 		return {"can_have_children": true, "is_decorator": true}
@@ -381,6 +406,19 @@ static func from_dict(data: Dictionary, registry: BTTaskRegistry = null) -> BTTr
 		task.parameters = {}
 		for parameter_key in n_dict.get("parameters", {}):
 			task.parameters[parameter_key] = _decode_value(n_dict.parameters[parameter_key])
+		if task.has_method("get_parameter_schema"):
+			var schema: Variant = task.call("get_parameter_schema")
+			if schema is Dictionary:
+				for k in schema.keys():
+					if task.parameters.has(k):
+						var val = task.parameters[k]
+						var entry = schema[k]
+						if entry is Dictionary and entry.has("type"):
+							match entry["type"]:
+								"int": val = int(val)
+								"float": val = float(val)
+								"bool": val = BTTask.coerce_bool(val, bool(entry.get("default", false)))
+						task.set(k, val)
 		if task is BTComposite and task.parameters.has("abort_type"):
 			(task as BTComposite).set_abort_type(int(task.parameters["abort_type"]))
 

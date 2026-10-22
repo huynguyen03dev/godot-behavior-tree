@@ -152,6 +152,7 @@ func stop() -> void:
 			# Mirror natural finish/abort so lifecycle listeners see every
 			# started task closed; stop() is no longer signal-silent.
 			task_finished.emit(task, task.last_status)
+	_ticking = false
 
 func tick(p_delta: float = 0.0) -> int:
 	if _ticking:
