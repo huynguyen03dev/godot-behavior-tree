@@ -19,6 +19,8 @@ const GRAPH_X_GAP := 310.0
 const GRAPH_Y_GAP := 130.0
 
 # State
+var undo_redo: UndoRedo = UndoRedo.new()
+var _is_restoring_undo_redo: bool = false
 var tree_source: BTTreeSourceProvider = null
 var current_tree: BTTree = null
 var current_tree_name: String = ""
@@ -106,9 +108,125 @@ func _ready() -> void:
 	_ensure_built()
 
 # ---------------------------------------------------------------- Public API
+func undo() -> void:
+	if undo_redo.has_undo():
+		undo_redo.undo()
+
+func redo() -> void:
+	if undo_redo.has_redo():
+		undo_redo.redo()
+
+func has_undo() -> bool:
+	return undo_redo.has_undo()
+
+func has_redo() -> bool:
+	return undo_redo.has_redo()
+
+func clear_undo_history() -> void:
+	undo_redo.clear_history()
+
+func _shortcut_input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if not (event is InputEventKey):
+		return
+	var key_event := event as InputEventKey
+	if not key_event.is_pressed() or key_event.is_echo():
+		return
+	var is_ctrl := key_event.ctrl_pressed or key_event.meta_pressed
+	if not is_ctrl:
+		return
+
+	if key_event.keycode == KEY_Z:
+		if key_event.shift_pressed:
+			redo()
+		else:
+			undo()
+		if is_inside_tree():
+			accept_event()
+	elif key_event.keycode == KEY_Y and not key_event.shift_pressed:
+		redo()
+		if is_inside_tree():
+			accept_event()
+
+func _record_mutation(action_name: String, mutation_callable: Callable, keep_inspector: bool = false) -> void:
+	if current_tree == null:
+		return
+	if _is_restoring_undo_redo:
+		mutation_callable.call()
+		return
+
+	var before_snapshot := JSON.stringify(current_tree.to_dict(), "\t")
+	if keep_inspector:
+		_suppress_inspector_rebuild = true
+	mutation_callable.call()
+	if keep_inspector:
+		_suppress_inspector_rebuild = false
+
+	var after_snapshot := JSON.stringify(current_tree.to_dict(), "\t")
+	if after_snapshot == before_snapshot:
+		return
+
+	undo_redo.create_action(action_name)
+	undo_redo.add_do_method(_restore_snapshot.bind(after_snapshot))
+	undo_redo.add_undo_method(_restore_snapshot.bind(before_snapshot))
+	undo_redo.commit_action(false)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		if undo_redo != null and is_instance_valid(undo_redo):
+			undo_redo.free()
+			undo_redo = null
+
+func _restore_snapshot(snapshot: String) -> void:
+	if snapshot == "":
+		return
+	var parsed = JSON.parse_string(snapshot)
+	if not (parsed is Dictionary):
+		return
+	_is_restoring_undo_redo = true
+	var nodes_data: Array = parsed.get("nodes", [])
+	var restored: BTTree
+	if nodes_data.is_empty():
+		restored = BTTree.new()
+		restored.tree_name = str(parsed.get("tree_name", "Untitled Tree"))
+		restored.description = str(parsed.get("description", ""))
+		restored.metadata = parsed.get("metadata", {}).duplicate()
+		restored.registry = _active_registry()
+	else:
+		restored = BTTree.from_dict(parsed, _active_registry())
+	if restored != null:
+		if current_tree_name != "":
+			restored.tree_name = current_tree_name
+		for n_dict in nodes_data:
+			var nid: int = int(n_dict.get("id", -1))
+			var t := restored.get_node_by_id(nid)
+			if t != null:
+				if n_dict.has("category"):
+					t.category = str(n_dict.get("category"))
+				if n_dict.has("is_placeholder"):
+					t.is_placeholder = bool(n_dict.get("is_placeholder"))
+		current_tree = restored
+		_stats = current_tree.get_stats()
+		_update_stats_label()
+		_json_draft_modified = false
+		_json_baseline = snapshot
+		_json_draft = snapshot
+		_json_draft_tree = current_tree
+		if _json_text_edit != null:
+			_json_text_edit.text = snapshot
+		if current_tree.get_node_by_id(selected_node_id) == null:
+			selected_node_id = -1
+		_render_current_tree()
+		_update_inspector()
+	_is_restoring_undo_redo = false
+
 func set_tree_source(p_source: BTTreeSourceProvider) -> void:
 	if _tree_option_button == null:
 		_build_ui()
+	if _source_label != null:
+		_source_label.visible = true
+		_source_label.text = "Source: %s" % (p_source.get_source_name() if p_source != null else "None")
 	# Switching the source discards the tree that is open, so it goes through
 	# the same dirty-check as every other destructive action.
 	if _has_unsaved_changes():
@@ -122,6 +240,8 @@ func set_source_directory(dir_path: String) -> void:
 
 func _apply_tree_source(p_source: BTTreeSourceProvider) -> void:
 	tree_source = p_source
+	clear_undo_history()
+	_clear_views()
 	current_tree = null
 	current_tree_name = ""
 	selected_node_id = -1
@@ -133,17 +253,27 @@ func _apply_tree_source(p_source: BTTreeSourceProvider) -> void:
 	if _json_text_edit != null:
 		_json_text_edit.text = ""
 	if _source_label != null:
+		_source_label.visible = true
 		_source_label.text = "Source: %s" % (tree_source.get_source_name() if tree_source != null else "None")
 	_render_current_tree()
 	_refresh_tree_list()
 
-func load_generic_tree(p_tree: BTTree, p_name: String = "") -> bool:
+func load_generic_tree(p_tree: BTTree, p_name: String = "", clear_undo: bool = true) -> bool:
 	if p_tree == null:
 		return false
+	if clear_undo:
+		clear_undo_history()
+	_clear_views()
 	if _json_draft_tree != null and _json_draft_tree != p_tree:
 		_json_draft = ""
 		_json_draft_tree = null
 	current_tree = p_tree
+	if p_name != "":
+		current_tree_name = p_name
+		if p_tree.tree_name != p_name:
+			p_tree.tree_name = p_name
+	else:
+		current_tree_name = p_tree.tree_name
 	_json_draft_modified = false
 	_json_baseline = JSON.stringify(p_tree.to_dict(), "\t")
 	_model_baseline = _json_baseline
@@ -158,7 +288,6 @@ func load_generic_tree(p_tree: BTTree, p_name: String = "") -> bool:
 	_reset_filters()
 	if _add_task_menu_button != null:
 		_setup_add_task_menu(_add_task_menu_button.get_popup())
-	current_tree_name = p_name if p_name != "" else p_tree.tree_name
 	if _tree_option_button != null:
 		for i in _tree_option_button.item_count:
 			if _tree_option_button.get_item_text(i) == current_tree_name:
@@ -200,10 +329,12 @@ func select_node_by_id(node_id: int) -> void:
 func set_search_filter(query: String) -> void:
 	_search_filter = query.strip_edges().to_lower()
 	_apply_filters()
+	_render_hierarchy()
 
 func set_placeholder_filter(only_placeholders: bool) -> void:
 	_filter_placeholders_only = only_placeholders
 	_apply_filters()
+	_render_hierarchy()
 
 func get_current_tree_stats() -> Dictionary:
 	return _stats.duplicate()
@@ -307,8 +438,8 @@ func _build_ui() -> void:
 	row2.add_child(_tab_bar)
 
 	_source_label = Label.new()
-	_source_label.text = ""
-	_source_label.visible = false
+	_source_label.text = "Source: %s" % (tree_source.get_source_name() if tree_source != null else "None")
+	_source_label.visible = true
 	row2.add_child(_source_label)
 
 	# 2. Central Split Container
@@ -591,16 +722,19 @@ func _on_apply_json_pressed() -> void:
 	_apply_parsed_tree(new_tree)
 
 func _apply_parsed_tree(new_tree: BTTree) -> void:
-	var persisted_model_baseline := _model_baseline
-	load_generic_tree(new_tree, current_tree_name)
-	_model_baseline = persisted_model_baseline
-	_json_baseline = JSON.stringify(current_tree.to_dict(), "\t")
-	_json_draft = _json_baseline
-	_json_draft_tree = current_tree
-	_json_draft_modified = false
-	_json_text_edit.text = _json_draft
-	_json_status_label.text = "✅ Tree updated successfully from JSON!"
-	_json_status_label.modulate = COLOR_ACTION
+	_record_mutation("Apply JSON", func():
+		var persisted_model_baseline := _model_baseline
+		load_generic_tree(new_tree, current_tree_name, false)
+		_model_baseline = persisted_model_baseline
+		_json_baseline = JSON.stringify(current_tree.to_dict(), "\t")
+		_json_draft = _json_baseline
+		_json_draft_tree = current_tree
+		_json_draft_modified = false
+		if _json_text_edit != null:
+			_json_text_edit.text = _json_draft
+		_json_status_label.text = "✅ Tree updated successfully from JSON!"
+		_json_status_label.modulate = COLOR_ACTION
+	)
 
 func _on_search_changed(query: String) -> void:
 	set_search_filter(query)
@@ -714,22 +848,24 @@ func _on_add_task_menu_item_pressed(id: int) -> void:
 
 	# Attach the new task so it is reachable from the root instead of floating
 	# in the graph as an invisible orphan.
-	var parent := _find_attachment_parent()
-	if parent == null:
-		if current_tree.root_task != null:
-			_stats_label.text = "Cannot attach: root '%s' cannot take children; select a node that can take children" % current_tree.root_task.friendly_name
-			return
-		current_tree.add_node(new_task)
-		current_tree.set_root(new_task)
-	else:
-		current_tree.add_node(new_task)
-		current_tree.connect_parent_child(parent, new_task)
-		if new_task.parent != parent:
-			_stats_label.text = "⚠️ Could not attach the new task; it was added as an unattached node."
-	_stats = current_tree.get_stats()
-	_update_stats_label()
-	_render_current_tree()
-	select_node_by_id(new_task.id)
+	_record_mutation("Add Task", func():
+		var parent := _find_attachment_parent()
+		if parent == null:
+			if current_tree.root_task != null:
+				_stats_label.text = "Cannot attach: root '%s' cannot take children; select a node that can take children" % current_tree.root_task.friendly_name
+				return
+			current_tree.add_node(new_task)
+			current_tree.set_root(new_task)
+		else:
+			current_tree.add_node(new_task)
+			current_tree.connect_parent_child(parent, new_task)
+			if new_task.parent != parent:
+				_stats_label.text = "⚠️ Could not attach the new task; it was added as an unattached node."
+		_stats = current_tree.get_stats()
+		_update_stats_label()
+		_render_current_tree()
+		select_node_by_id(new_task.id)
+	)
 
 ## The node a newly added task should be attached to: the selected node when it
 ## can hold children, otherwise the root.
@@ -756,8 +892,8 @@ func _can_accept_child(task: BTTask) -> bool:
 
 # ---------------------------------------------------------------- Rendering
 func _render_current_tree() -> void:
-	_clear_views()
 	if current_tree == null:
+		_clear_views()
 		_update_inspector()
 		return
 
@@ -780,58 +916,110 @@ func _clear_views() -> void:
 
 func _render_graph() -> void:
 	if current_tree == null or current_tree.node_list.is_empty():
+		_graph_edit.clear_connections()
+		for id in _graph_nodes_by_id.keys():
+			var node = _graph_nodes_by_id[id]
+			if is_instance_valid(node):
+				node.free()
+		_graph_nodes_by_id.clear()
 		return
 
 	var positions := _compute_tree_layout()
 	_lay_out_orphans(positions)
 	_apply_saved_positions(positions)
 
+	var current_ids := {}
+	for task in current_tree.node_list:
+		if task != null:
+			current_ids[task.id] = true
+
+	# Free nodes that disappeared
+	var stale_ids: Array = []
+	for old_id in _graph_nodes_by_id.keys():
+		if not current_ids.has(old_id):
+			stale_ids.append(old_id)
+	for old_id in stale_ids:
+		var node = _graph_nodes_by_id[old_id]
+		if is_instance_valid(node):
+			node.free()
+		_graph_nodes_by_id.erase(old_id)
+
+	# Update existing nodes or create new ones
 	for task in current_tree.node_list:
 		if task == null:
 			continue
-		var gnode := GraphNode.new()
-		gnode.name = "Node_%d" % task.id
-		gnode.title = "[%d] %s" % [task.id, task.friendly_name]
-		gnode.resizable = false
-		gnode.draggable = true
-
-		var pos = positions.get(task.id, Vector2(50, 50))
-		gnode.position_offset = pos
-
-		var vbox := VBoxContainer.new()
-		var type_label := Label.new()
-		type_label.text = task.type_name
-		type_label.modulate = Color(0.85, 0.85, 0.85, 1.0)
-		vbox.add_child(type_label)
-
-		var cat_badge := Label.new()
-		cat_badge.text = task.category.to_upper()
-		cat_badge.add_theme_font_size_override("font_size", 10)
-		cat_badge.modulate = _get_category_color(task.category)
-		vbox.add_child(cat_badge)
-
-		if task.is_placeholder:
-			var ph_badge := Label.new()
-			ph_badge.text = "⚠️ PLACEHOLDER"
-			ph_badge.add_theme_font_size_override("font_size", 10)
-			ph_badge.modulate = COLOR_PLACEHOLDER
-			vbox.add_child(ph_badge)
-
-		gnode.add_child(vbox)
-
 		var is_root: bool = (task == current_tree.root_task or task.category == "Root")
 		var is_parent: bool = (task is BTParentTask or ("children" in task and not task.children.is_empty()) or task.category == "Composite" or task.category == "Decorator")
-
 		var has_input: bool = not is_root
 		var has_output: bool = is_parent
-
 		var slot_color: Color = COLOR_ROOT if is_root else _get_category_color(task.category)
-		gnode.set_slot(0, has_input, 0, slot_color, has_output, 0, slot_color)
+		var pos: Vector2 = positions.get(task.id, Vector2(50, 50))
 
-		_graph_edit.add_child(gnode)
-		_graph_nodes_by_id[task.id] = gnode
+		var gnode: GraphNode = _graph_nodes_by_id.get(task.id, null)
+		if gnode != null and is_instance_valid(gnode):
+			gnode.title = "[%d] %s" % [task.id, task.friendly_name]
+			gnode.position_offset = pos
+			gnode.set_slot(0, has_input, 0, slot_color, has_output, 0, slot_color)
+			# Update labels inside vbox
+			var vbox: VBoxContainer = null
+			for child in gnode.get_children():
+				if child is VBoxContainer:
+					vbox = child
+					break
+			if vbox != null:
+				for child in vbox.get_children():
+					child.free()
+				var type_label := Label.new()
+				type_label.text = task.type_name
+				type_label.modulate = Color(0.85, 0.85, 0.85, 1.0)
+				vbox.add_child(type_label)
+
+				var cat_badge := Label.new()
+				cat_badge.text = task.category.to_upper()
+				cat_badge.add_theme_font_size_override("font_size", 10)
+				cat_badge.modulate = _get_category_color(task.category)
+				vbox.add_child(cat_badge)
+
+				if task.is_placeholder:
+					var ph_badge := Label.new()
+					ph_badge.text = "⚠️ PLACEHOLDER"
+					ph_badge.add_theme_font_size_override("font_size", 10)
+					ph_badge.modulate = COLOR_PLACEHOLDER
+					vbox.add_child(ph_badge)
+		else:
+			gnode = GraphNode.new()
+			gnode.name = "Node_%d" % task.id
+			gnode.title = "[%d] %s" % [task.id, task.friendly_name]
+			gnode.resizable = false
+			gnode.draggable = true
+			gnode.position_offset = pos
+
+			var vbox := VBoxContainer.new()
+			var type_label := Label.new()
+			type_label.text = task.type_name
+			type_label.modulate = Color(0.85, 0.85, 0.85, 1.0)
+			vbox.add_child(type_label)
+
+			var cat_badge := Label.new()
+			cat_badge.text = task.category.to_upper()
+			cat_badge.add_theme_font_size_override("font_size", 10)
+			cat_badge.modulate = _get_category_color(task.category)
+			vbox.add_child(cat_badge)
+
+			if task.is_placeholder:
+				var ph_badge := Label.new()
+				ph_badge.text = "⚠️ PLACEHOLDER"
+				ph_badge.add_theme_font_size_override("font_size", 10)
+				ph_badge.modulate = COLOR_PLACEHOLDER
+				vbox.add_child(ph_badge)
+
+			gnode.add_child(vbox)
+			gnode.set_slot(0, has_input, 0, slot_color, has_output, 0, slot_color)
+			_graph_edit.add_child(gnode)
+			_graph_nodes_by_id[task.id] = gnode
 
 	# Connections
+	_graph_edit.clear_connections()
 	for task in current_tree.node_list:
 		if task == null:
 			continue
@@ -846,29 +1034,81 @@ func _render_graph() -> void:
 				if _graph_nodes_by_id.has(task.id) and _graph_nodes_by_id.has(child.id):
 					_graph_edit.connect_node(from_name, 0, to_name, 0)
 
+func _is_task_matching_filter(task: BTTask) -> bool:
+	if task == null:
+		return false
+	var match_search := true
+	if _search_filter != "":
+		var text_content: String = (str(task.friendly_name) + " " + str(task.type_name) + " " + str(task.category)).to_lower()
+		match_search = text_content.contains(_search_filter)
+
+	var match_ph := true
+	if _filter_placeholders_only:
+		match_ph = task.is_placeholder
+	return match_search and match_ph
+
+func _collect_filtered_tree_info() -> Dictionary:
+	var matching_ids := {}
+	var ancestor_ids := {}
+	var has_filter := (_search_filter != "" or _filter_placeholders_only)
+	if not has_filter or current_tree == null:
+		return {"has_filter": has_filter, "matching": matching_ids, "ancestors": ancestor_ids}
+
+	# Identify matching nodes
+	for task in current_tree.node_list:
+		if task != null and _is_task_matching_filter(task):
+			matching_ids[task.id] = true
+			var curr: BTTask = task.parent
+			while curr != null:
+				ancestor_ids[curr.id] = true
+				curr = curr.parent
+
+	return {"has_filter": has_filter, "matching": matching_ids, "ancestors": ancestor_ids}
+
 func _render_hierarchy() -> void:
+	_hierarchy_tree.clear()
+	_hierarchy_items.clear()
 	if current_tree == null or current_tree.node_list.is_empty():
 		return
 
+	var filter_info := _collect_filtered_tree_info()
 	var root_task := current_tree.root_task
 	if root_task == null:
 		root_task = current_tree.node_list[0]
 
-	_add_hierarchy_item_recursive(null, root_task)
+	_add_hierarchy_item_recursive(null, root_task, filter_info)
 
 	# Nodes that are not reachable from the root are listed separately so they
 	# are not invisible in the hierarchy.
 	var orphans := _collect_orphan_tasks()
 	if not orphans.is_empty():
-		var group := _hierarchy_tree.create_item()
-		group.set_text(0, "(unattached)")
-		group.set_custom_color(0, COLOR_PLACEHOLDER)
+		var group: TreeItem = null
 		for orphan in orphans:
-			_add_hierarchy_item_recursive(group, orphan)
+			if not filter_info.has_filter or filter_info.matching.has(orphan.id) or filter_info.ancestors.has(orphan.id):
+				if group == null:
+					group = _hierarchy_tree.create_item()
+					group.set_text(0, "(unattached)")
+					group.set_custom_color(0, COLOR_PLACEHOLDER)
+				_add_hierarchy_item_recursive(group, orphan, filter_info)
 
-func _add_hierarchy_item_recursive(parent_item: TreeItem, task: BTTask) -> void:
+func _add_hierarchy_item_recursive(parent_item: TreeItem, task: BTTask, filter_info: Dictionary = {}) -> void:
 	if task == null:
 		return
+
+	var has_filter: bool = filter_info.get("has_filter", false)
+	var is_match: bool = true
+	var is_ancestor_only: bool = false
+	if has_filter:
+		var matching: Dictionary = filter_info.get("matching", {})
+		var ancestors: Dictionary = filter_info.get("ancestors", {})
+		var in_matching := matching.has(task.id)
+		var in_ancestors := ancestors.has(task.id)
+		if not in_matching and not in_ancestors:
+			return
+		if in_matching:
+			is_match = true
+		else:
+			is_ancestor_only = true
 
 	var item := _hierarchy_tree.create_item(parent_item)
 	item.set_metadata(0, task.id)
@@ -878,9 +1118,17 @@ func _add_hierarchy_item_recursive(parent_item: TreeItem, task: BTTask) -> void:
 	item.set_text(3, "⚠️ Placeholder" if task.is_placeholder else "Ready")
 	item.set_text(4, str(task.id))
 
-	var color := COLOR_ROOT if task == current_tree.root_task else _get_category_color(task.category)
-	item.set_custom_color(0, color)
-	item.set_custom_color(3, COLOR_PLACEHOLDER if task.is_placeholder else COLOR_ACTION)
+	if is_ancestor_only:
+		var dim_color := Color(0.6, 0.6, 0.6, 0.5)
+		item.set_custom_color(0, dim_color)
+		item.set_custom_color(1, dim_color)
+		item.set_custom_color(2, dim_color)
+		item.set_custom_color(3, dim_color)
+		item.set_custom_color(4, dim_color)
+	else:
+		var color := COLOR_ROOT if task == current_tree.root_task else _get_category_color(task.category)
+		item.set_custom_color(0, color)
+		item.set_custom_color(3, COLOR_PLACEHOLDER if task.is_placeholder else COLOR_ACTION)
 
 	_hierarchy_items[task.id] = item
 
@@ -890,7 +1138,7 @@ func _add_hierarchy_item_recursive(parent_item: TreeItem, task: BTTask) -> void:
 
 	for child in kids:
 		if child != null:
-			_add_hierarchy_item_recursive(item, child)
+			_add_hierarchy_item_recursive(item, child, filter_info)
 
 # ---------------------------------------------------------------- Layout Calculation
 func _compute_tree_layout() -> Dictionary:
@@ -1050,19 +1298,10 @@ func _apply_filters() -> void:
 	for task in current_tree.node_list:
 		if task == null:
 			continue
-		var match_search := true
-		if _search_filter != "":
-			var text_content: String = (str(task.friendly_name) + " " + str(task.type_name) + " " + str(task.category)).to_lower()
-			match_search = text_content.contains(_search_filter)
-
-		var match_ph := true
-		if _filter_placeholders_only:
-			match_ph = task.is_placeholder
-
-		var visible_state := (match_search and match_ph)
+		var visible_state := _is_task_matching_filter(task)
 		if _graph_nodes_by_id.has(task.id):
 			var gn: GraphNode = _graph_nodes_by_id[task.id]
-			gn.modulate = Color.WHITE if visible_state else Color(1.0, 1.0, 1.0, 0.2)
+			gn.visible = visible_state
 
 # ---------------------------------------------------------------- Inspector
 func _update_inspector() -> void:
@@ -1122,13 +1361,15 @@ func _update_inspector() -> void:
 	name_edit.text = task.friendly_name
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_edit.text_changed.connect(func(new_text: String):
-		task.friendly_name = new_text
-		if _graph_nodes_by_id.has(task.id):
-			_graph_nodes_by_id[task.id].title = "[%d] %s" % [task.id, new_text]
-		_inspector_title.text = "[%d] %s" % [task.id, new_text]
-		if _hierarchy_items.has(task.id):
-			var item: TreeItem = _hierarchy_items[task.id]
-			item.set_text(0, new_text)
+		_record_mutation("Rename Task", func():
+			task.friendly_name = new_text
+			if _graph_nodes_by_id.has(task.id):
+				_graph_nodes_by_id[task.id].title = "[%d] %s" % [task.id, new_text]
+			_inspector_title.text = "[%d] %s" % [task.id, new_text]
+			if _hierarchy_items.has(task.id):
+				var item: TreeItem = _hierarchy_items[task.id]
+				item.set_text(0, new_text)
+		, true)
 	)
 	name_row.add_child(name_edit)
 	_inspector_form_container.add_child(name_row)
@@ -1149,7 +1390,9 @@ func _update_inspector() -> void:
 		abort_opt.select((task as BTComposite).abort_type)
 		abort_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		abort_opt.item_selected.connect(func(idx: int):
-			(task as BTComposite).set_abort_type(idx)
+			_record_mutation("Change Abort Type", func():
+				(task as BTComposite).set_abort_type(idx)
+			)
 		)
 		abort_row.add_child(abort_opt)
 		_inspector_form_container.add_child(abort_row)
@@ -1186,8 +1429,10 @@ func _update_inspector() -> void:
 	add_p_btn.pressed.connect(func():
 		var pk = new_p_key.text.strip_edges()
 		if pk != "":
-			task.parameters[pk] = _coerce_new_param_value(new_p_val.text.strip_edges())
-			_update_inspector()
+			_record_mutation("Add Parameter", func():
+				task.parameters[pk] = _coerce_new_param_value(new_p_val.text.strip_edges())
+				_update_inspector()
+			)
 	)
 	add_param_row.add_child(add_p_btn)
 	_inspector_form_container.add_child(add_param_row)
@@ -1221,10 +1466,49 @@ func _update_inspector() -> void:
 			val_edit.text_changed.connect(func(nv: String):
 				var parsed := _parse_editor_value(nv, var_capture.value)
 				if typeof(parsed) == typeof(var_capture.value):
-					current_tree.blackboard.set_var(var_capture.name, parsed, var_capture.type_name)
+					_record_mutation("Edit Blackboard Variable", func():
+						current_tree.blackboard.set_var(var_capture.name, parsed, var_capture.type_name)
+					, true)
 			)
 			bb_row.add_child(val_edit)
+
+			var del_v_btn := Button.new()
+			del_v_btn.text = "✕"
+			del_v_btn.pressed.connect(func():
+				_record_mutation("Delete Blackboard Variable", func():
+					current_tree.blackboard.remove_var(var_capture.name)
+					_update_inspector()
+				)
+			)
+			bb_row.add_child(del_v_btn)
+
 			bb_box.add_child(bb_row)
+
+		# Add Blackboard Variable Row
+		var add_bb_row := HBoxContainer.new()
+		var new_v_name := LineEdit.new()
+		new_v_name.placeholder_text = "New var name..."
+		new_v_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		add_bb_row.add_child(new_v_name)
+
+		var new_v_val := LineEdit.new()
+		new_v_val.placeholder_text = "Value..."
+		new_v_val.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		add_bb_row.add_child(new_v_val)
+
+		var add_v_btn := Button.new()
+		add_v_btn.text = "+ Add"
+		add_v_btn.pressed.connect(func():
+			var vn = new_v_name.text.strip_edges()
+			if vn != "":
+				_record_mutation("Add Blackboard Variable", func():
+					var val_parsed = _coerce_new_param_value(new_v_val.text.strip_edges())
+					current_tree.blackboard.set_var(vn, val_parsed)
+					_update_inspector()
+				)
+		)
+		add_bb_row.add_child(add_v_btn)
+		_inspector_form_container.add_child(add_bb_row)
 
 	_inspector_form_container.add_child(HSeparator.new())
 
@@ -1329,13 +1613,15 @@ func _build_parameter_row(task: BTTask, key: String) -> Control:
 	bb_toggle_btn.tooltip_text = "Toggle literal value vs Blackboard variable binding"
 	bb_toggle_btn.custom_minimum_size = Vector2(45, 0)
 	bb_toggle_btn.pressed.connect(func():
-		if is_bb:
-			var cur_key = task.get_param_blackboard_key(key_capture)
-			task.set_param(key_capture, cur_key, false)
-		else:
-			var cur_val = str(task.parameters.get(key_capture, ""))
-			task.set_param(key_capture, cur_val if cur_val != "" else key_capture, true)
-		_update_inspector()
+		_record_mutation("Toggle Parameter Blackboard", func():
+			if is_bb:
+				var cur_key = task.get_param_blackboard_key(key_capture)
+				task.set_param(key_capture, cur_key, false)
+			else:
+				var cur_val = str(task.parameters.get(key_capture, ""))
+				task.set_param(key_capture, cur_val if cur_val != "" else key_capture, true)
+			_update_inspector()
+		)
 	)
 	p_row.add_child(bb_toggle_btn)
 
@@ -1345,7 +1631,9 @@ func _build_parameter_row(task: BTTask, key: String) -> Control:
 		bb_edit.text = task.get_param_blackboard_key(key_capture)
 		bb_edit.placeholder_text = "Blackboard key..."
 		bb_edit.text_changed.connect(func(new_key: String):
-			task.set_param(key_capture, new_key.strip_edges(), true)
+			_record_mutation("Edit Parameter Blackboard Key", func():
+				task.set_param(key_capture, new_key.strip_edges(), true)
+			, true)
 		)
 		p_row.add_child(bb_edit)
 	else:
@@ -1354,8 +1642,10 @@ func _build_parameter_row(task: BTTask, key: String) -> Control:
 	var del_p_btn := Button.new()
 	del_p_btn.text = "✕"
 	del_p_btn.pressed.connect(func():
-		task.parameters.erase(key_capture)
-		_update_inspector()
+		_record_mutation("Delete Parameter", func():
+			task.parameters.erase(key_capture)
+			_update_inspector()
+		)
 	)
 	p_row.add_child(del_p_btn)
 	return p_row
@@ -1367,7 +1657,9 @@ func _build_value_control(task: BTTask, key: String, value_type: String, expecte
 			var cb := CheckBox.new()
 			cb.button_pressed = BTTask.coerce_bool(previous, false)
 			cb.toggled.connect(func(pressed: bool):
-				task.parameters[key] = pressed
+				_record_mutation("Edit Parameter", func():
+					task.parameters[key] = pressed
+				, true)
 			)
 			return cb
 		"int":
@@ -1377,7 +1669,9 @@ func _build_value_control(task: BTTask, key: String, value_type: String, expecte
 			int_spin.step = 1.0
 			int_spin.value = float(int(previous)) if previous != null else 0.0
 			int_spin.value_changed.connect(func(v: float):
-				task.parameters[key] = int(round(v))
+				_record_mutation("Edit Parameter", func():
+					task.parameters[key] = int(round(v))
+				, true)
 			)
 			return int_spin
 		"float":
@@ -1387,7 +1681,9 @@ func _build_value_control(task: BTTask, key: String, value_type: String, expecte
 			float_spin.step = 0.1
 			float_spin.value = float(previous) if previous != null else 0.0
 			float_spin.value_changed.connect(func(v: float):
-				task.parameters[key] = v
+				_record_mutation("Edit Parameter", func():
+					task.parameters[key] = v
+				, true)
 			)
 			return float_spin
 		_:
@@ -1397,7 +1693,10 @@ func _build_value_control(task: BTTask, key: String, value_type: String, expecte
 			v_edit.placeholder_text = "Literal value..."
 			v_edit.text_changed.connect(func(new_val: String):
 				var curr: Variant = task.parameters.get(key, previous)
-				task.parameters[key] = _coerce_param_value(new_val, curr, expected_type)
+				var coerced := _coerce_param_value(new_val, curr, expected_type)
+				_record_mutation("Edit Parameter", func():
+					task.parameters[key] = coerced
+				, true)
 			)
 			return v_edit
 
@@ -1501,25 +1800,42 @@ func _coerce_new_param_value(text: String) -> Variant:
 	return text
 
 # ---------------------------------------------------------------- Tree Editing
-## Removes a task. The root can never be deleted: the tree would have no root
-## and could not be saved or loaded again.
+## Removes a task and its whole subtree. The root can never be deleted: the
+## tree would have no root and could not be saved or loaded again.
 func _delete_task(task: BTTask) -> bool:
 	if current_tree == null or task == null:
 		return false
 	if task == current_tree.root_task:
 		_stats_label.text = "❌ Cannot delete the root node '%s'. Use 'Set as Root' on another node first." % task.friendly_name
 		return false
-	current_tree.remove_node(task)
+	_record_mutation("Delete Task", func(): _delete_task_with_descendants(task))
+	return true
+
+func _delete_task_with_descendants(task: BTTask) -> void:
+	for node in _collect_subtree_nodes(task):
+		current_tree.remove_node(node)
 	_prune_node_positions()
 	_stats = current_tree.get_stats()
 	_update_stats_label()
+	if current_tree.get_node_by_id(selected_node_id) == null:
+		selected_node_id = -1
 	_render_current_tree()
-	return true
+
+func _collect_subtree_nodes(task: BTTask) -> Array:
+	var collected: Array = [task]
+	if "children" in task and task.children is Array:
+		for child in task.children:
+			if child != null:
+				collected.append_array(_collect_subtree_nodes(child))
+	return collected
 
 ## Promotes a task to the root of the tree.
 func _set_as_root(task: BTTask) -> void:
 	if current_tree == null or task == null or task == current_tree.root_task:
 		return
+	_record_mutation("Set as Root", func(): _set_as_root_now(task))
+
+func _set_as_root_now(task: BTTask) -> void:
 	var previous_root := current_tree.root_task
 	if task.parent != null:
 		current_tree.disconnect_parent_child(task.parent, task)
@@ -1584,12 +1900,14 @@ func _on_graph_connection_request(from_node: StringName, _from_port: int, to_nod
 		var p_task = current_tree.get_node_by_id(p_id)
 		var c_task = current_tree.get_node_by_id(c_id)
 		if p_task != null and c_task != null and p_task != c_task and (not ("children" in p_task) or not p_task.children.has(c_task)):
-			current_tree.connect_parent_child(p_task, c_task)
-			if c_task.parent != p_task:
-				# The model refused the connection: say why instead of letting
-				# the node silently jump back to its old parent.
-				_stats_label.text = "❌ Cannot connect: %s" % _describe_connect_failure(p_task, c_task)
-			_render_current_tree()
+			_record_mutation("Connect", func():
+				current_tree.connect_parent_child(p_task, c_task)
+				if c_task.parent != p_task:
+					# The model refused the connection: say why instead of
+					# letting the node silently jump back to its old parent.
+					_stats_label.text = "❌ Cannot connect: %s" % _describe_connect_failure(p_task, c_task)
+				_render_current_tree()
+			)
 
 func _on_graph_disconnection_request(from_node: StringName, _from_port: int, to_node: StringName, _to_port: int) -> void:
 	if current_tree == null:
@@ -1602,9 +1920,10 @@ func _on_graph_disconnection_request(from_node: StringName, _from_port: int, to_
 		var p_task = current_tree.get_node_by_id(p_id)
 		var c_task = current_tree.get_node_by_id(c_id)
 		if p_task != null and c_task != null:
-			current_tree.disconnect_parent_child(p_task, c_task)
-			_graph_edit.disconnect_node(from_node, 0, to_node, 0)
-			_render_current_tree()
+			_record_mutation("Disconnect", func():
+				current_tree.disconnect_parent_child(p_task, c_task)
+				_render_current_tree()
+			)
 
 func _parse_editor_value(text: String, previous: Variant) -> Variant:
 	if previous is bool:
@@ -1645,7 +1964,7 @@ func _cancel_pending_action() -> void:
 func _on_graph_delete_nodes_request(nodes: Array[StringName]) -> void:
 	if current_tree == null:
 		return
-	var deleted := false
+	var targets: Array = []
 	var blocked_root := ""
 	for nname in nodes:
 		var s := String(nname)
@@ -1658,13 +1977,16 @@ func _on_graph_delete_nodes_request(nodes: Array[StringName]) -> void:
 					# loaded again; the user has to pick a new root first.
 					blocked_root = task.friendly_name
 					continue
-				current_tree.remove_node(task)
-				deleted = true
-	if deleted:
-		_prune_node_positions()
-		_stats = current_tree.get_stats()
-		_update_stats_label()
-		_render_current_tree()
+				targets.append(task)
+	if targets.is_empty():
+		if blocked_root != "":
+			_stats_label.text = "❌ Cannot delete the root node '%s'. Use 'Set as Root' on another node first." % blocked_root
+		return
+	_record_mutation("Delete Tasks", func():
+		for task in targets:
+			if current_tree.get_node_by_id(task.id) == task:
+				_delete_task_with_descendants(task)
+	)
 	if blocked_root != "":
 		_stats_label.text = "❌ Cannot delete the root node '%s'. Use 'Set as Root' on another node first." % blocked_root
 
