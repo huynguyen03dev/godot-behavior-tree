@@ -218,7 +218,8 @@ func _test_validate_from_dict_agreement() -> void:
 	]}
 	_check(not BTTree.validate_dict(fake, registry).is_empty(), "custom leaf 'Decorator' with children fails registry validation")
 	_check(BTTree.from_dict(fake, registry) == null, "custom leaf 'Decorator' with children rejected by from_dict")
-	_check(BTTree.validate_dict(fake).is_empty(), "validate_dict without registry stays permissive for unknown types")
+	_check(not BTTree.validate_dict(fake).is_empty(), "validate_dict without registry rejects a leaf task holding children (no permissive fallback)")
+	_check((not BTTree.validate_dict(fake).is_empty()) and (BTTree.from_dict(fake) == null), "validate_dict and from_dict share identical rejection verdict without registry")
 
 	# Builtin Inverter with two children: both functions reject.
 	var two_kids := {"root_id": 1, "nodes": [

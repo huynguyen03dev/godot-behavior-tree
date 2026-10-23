@@ -2,7 +2,6 @@ class_name BTRunner
 extends BTRunnerNative
 
 enum UpdateInterval { EVERY_FRAME = 0, SPECIFIED_SECONDS = 1 }
-enum ExecutionsPerTick { NO_LIMIT = 0, COUNT = 1 }
 
 func _init(p_tree: BTTree = null) -> void:
 	if p_tree != null:

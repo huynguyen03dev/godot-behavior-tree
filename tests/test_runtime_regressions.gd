@@ -156,7 +156,7 @@ func _initialize() -> void:
 	var leaf := Probe.new(); leaf.results = [BTStatus.SUCCESS]
 	var deep_tree := BTTree.new(); deep_tree.set_root(seq0)
 	deep_tree.connect_parent_child(seq0, seq1); deep_tree.connect_parent_child(seq1, seq2); deep_tree.connect_parent_child(seq2, leaf)
-	r = _runner(deep_tree); r.executions_per_tick = BTRunner.ExecutionsPerTick.COUNT; r.max_task_executions_per_tick = 1; r.start()
+	r = _runner(deep_tree); r.max_task_executions_per_tick = 1; r.start()
 	for i in 4:
 		if r.is_running: r.tick()
 		_check(r.task_executions <= 1, "Nested depth-three sequence respects budget at tick %d" % (i + 1))
@@ -164,7 +164,7 @@ func _initialize() -> void:
 	_finish(r)
 
 	parallel = BTComposite.BTParallel.new(); var p1 := Probe.new(); var p2 := Probe.new()
-	r = _runner(_pair_tree(parallel, p1, p2)); r.executions_per_tick = BTRunner.ExecutionsPerTick.COUNT; r.max_task_executions_per_tick = 1; r.start()
+	r = _runner(_pair_tree(parallel, p1, p2)); r.max_task_executions_per_tick = 1; r.start()
 	for _i in 4: r.tick()
 	_check(p1.calls > 0 and p2.calls > 0, "Parallel budget dispatch is fair to both running children within four ticks")
 	_finish(r)
@@ -198,7 +198,7 @@ func _initialize() -> void:
 
 	var repeater := BTDecorator.BTRepeater.new(); repeater.parameters["count"] = 3; leaf = Probe.new(); leaf.results = [BTStatus.SUCCESS]
 	var repeat_tree := BTTree.new(); repeat_tree.set_root(repeater); repeat_tree.connect_parent_child(repeater, leaf)
-	r = _runner(repeat_tree); r.executions_per_tick = BTRunner.ExecutionsPerTick.COUNT; r.max_task_executions_per_tick = 1; r.start()
+	r = _runner(repeat_tree); r.max_task_executions_per_tick = 1; r.start()
 	for _i in 8:
 		if r.is_running: r.tick()
 	_check(leaf.calls == 3 and not r.is_running, "Count-three repeater performs exactly three executions across ticks")
@@ -206,9 +206,9 @@ func _initialize() -> void:
 
 	repeater = BTDecorator.BTRepeater.new(); repeater.count = 0; repeater.repeat_forever = true; leaf = Probe.new(); leaf.results = [BTStatus.SUCCESS]
 	repeat_tree = BTTree.new(); repeat_tree.set_root(repeater); repeat_tree.connect_parent_child(repeater, leaf); r = _runner(repeat_tree)
-	r.executions_per_tick = BTRunner.ExecutionsPerTick.COUNT; r.max_task_executions_per_tick = 0; r.start()
+	r.max_task_executions_per_tick = 0; r.start()
 	for _i in 3: r.tick()
-	_check(leaf.calls == 3 and r.is_running, "COUNT-mode forever repeater yields once per tick")
+	_check(leaf.calls == 3 and r.is_running, "forever repeater yields once per tick")
 	_finish(r)
 
 	leaf = Probe.new(); leaf.results = [BTStatus.SUCCESS]; run_tree = BTTree.new(); run_tree.set_root(leaf); r = _runner(run_tree); r.start(); r.tick(); r.pause(false)

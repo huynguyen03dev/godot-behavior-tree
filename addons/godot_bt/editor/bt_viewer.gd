@@ -133,6 +133,8 @@ func has_redo() -> bool:
 	return undo_redo.has_redo()
 
 func clear_undo_history() -> void:
+	_is_dragging_nodes = false
+	_drag_start_positions.clear()
 	undo_redo.clear_history()
 
 func _shortcut_input(event: InputEvent) -> void:
@@ -156,6 +158,10 @@ func _shortcut_input(event: InputEvent) -> void:
 			accept_event()
 	elif key_event.keycode == KEY_Y and not key_event.shift_pressed:
 		redo()
+		if is_inside_tree():
+			accept_event()
+	elif key_event.keycode == KEY_S and not key_event.shift_pressed:
+		save_current_tree()
 		if is_inside_tree():
 			accept_event()
 
@@ -529,9 +535,11 @@ func _build_ui() -> void:
 	_graph_edit.connection_request.connect(_on_graph_connection_request)
 	_graph_edit.disconnection_request.connect(_on_graph_disconnection_request)
 	_graph_edit.delete_nodes_request.connect(_on_graph_delete_nodes_request)
+	if ClassDB.class_has_signal("GraphEdit", "begin_node_move"):
+		_graph_edit.begin_node_move.connect(_on_graph_begin_node_move)
 	if ClassDB.class_has_signal("GraphEdit", "end_node_move"):
 		_graph_edit.end_node_move.connect(_on_graph_end_node_move)
-	else:
+	elif ClassDB.class_has_signal("GraphEdit", "node_added"):
 		_graph_edit.node_added.connect(_on_graph_node_added)
 	_view_container.add_child(_graph_edit)
 
@@ -821,6 +829,39 @@ func _on_save_as_overwrite_confirmed() -> void:
 		_pending_save_as_path = ""
 		save_tree_as(path)
 
+## Commits any in-flight edits in inspector controls (LineEdit, SpinBox, TextEdit) before saving.
+func _flush_inspector_focus() -> void:
+	if _json_draft_modified:
+		return
+	if _inspector_form_container != null:
+		_apply_spinboxes(_inspector_form_container)
+	var focus_owner: Control = null
+	if is_inside_tree() and get_viewport() != null:
+		focus_owner = get_viewport().gui_get_focus_owner()
+		if focus_owner != null:
+			if (_inspector_form_container != null and _inspector_form_container.is_ancestor_of(focus_owner)) or \
+			   (_inspector_panel != null and _inspector_panel.is_ancestor_of(focus_owner)):
+				focus_owner.release_focus()
+	if _inspector_form_container != null:
+		_flush_container_inputs(_inspector_form_container, focus_owner)
+
+func _apply_spinboxes(node: Node) -> void:
+	for child in node.get_children():
+		if is_instance_valid(child):
+			if child is SpinBox:
+				child.apply()
+			_apply_spinboxes(child)
+
+func _flush_container_inputs(node: Node, exclude: Control = null) -> void:
+	for child in node.get_children():
+		if child != exclude and is_instance_valid(child):
+			if child is SpinBox:
+				child.apply()
+				child.focus_exited.emit()
+			elif child is LineEdit or child is TextEdit:
+				child.focus_exited.emit()
+		_flush_container_inputs(child, exclude)
+
 func save_tree_as(target_path: String) -> bool:
 	if current_tree == null:
 		return false
@@ -828,6 +869,7 @@ func save_tree_as(target_path: String) -> bool:
 		if _stats_label != null:
 			_stats_label.text = "Unapplied JSON edits; apply JSON before saving."
 		return false
+	_flush_inspector_focus()
 	var new_name := target_path.get_file().get_basename()
 	if new_name == "":
 		new_name = target_path
@@ -891,6 +933,7 @@ func save_current_tree() -> bool:
 	if _json_draft_modified:
 		_stats_label.text = "Unapplied JSON edits; apply JSON before saving."
 		return false
+	_flush_inspector_focus()
 	var ok: bool = tree_source.save_tree(current_tree_name, current_tree)
 	if ok:
 		_is_persisted_to_source = true
@@ -1516,6 +1559,17 @@ func _are_positions_equal(a: Variant, b: Variant) -> bool:
 			return false
 	return true
 
+var _is_dragging_nodes: bool = false
+var _drag_start_positions: Dictionary = {}
+
+func _on_graph_begin_node_move() -> void:
+	if current_tree == null:
+		return
+	if not _is_dragging_nodes:
+		_is_dragging_nodes = true
+		var saved = current_tree.metadata.get("node_positions", {})
+		_drag_start_positions = saved.duplicate(true) if saved is Dictionary else {}
+
 ## Stores the current graph positions in the tree metadata. Ids of deleted
 ## nodes disappear because only the nodes currently in the graph are written.
 func _save_node_positions(record_undo: bool = false) -> void:
@@ -1527,9 +1581,25 @@ func _save_node_positions(record_undo: bool = false) -> void:
 		if is_instance_valid(gn):
 			new_positions[str(id)] = [gn.position_offset.x, gn.position_offset.y]
 
-	var old_positions = current_tree.metadata.get("node_positions", {})
+	var old_positions: Dictionary
+	if record_undo:
+		if _is_dragging_nodes:
+			old_positions = _drag_start_positions.duplicate(true)
+		else:
+			var saved = current_tree.metadata.get("node_positions", {})
+			old_positions = saved.duplicate(true) if saved is Dictionary else {}
+		_is_dragging_nodes = false
+		_drag_start_positions.clear()
+	else:
+		if not _is_dragging_nodes:
+			_is_dragging_nodes = true
+			var saved = current_tree.metadata.get("node_positions", {})
+			_drag_start_positions = saved.duplicate(true) if saved is Dictionary else {}
+		old_positions = current_tree.metadata.get("node_positions", {})
+
 	if record_undo and undo_redo != null and not _is_restoring_undo_redo:
 		if not _are_positions_equal(old_positions, new_positions):
+			current_tree.metadata["node_positions"] = old_positions.duplicate(true)
 			_record_mutation("Move Nodes", func():
 				current_tree.metadata["node_positions"] = new_positions.duplicate(true)
 			, true)
@@ -1560,7 +1630,7 @@ func _on_graph_node_added(node: Node) -> void:
 		(node as GraphNode).position_offset_changed.connect(_on_node_position_changed)
 
 func _on_node_position_changed() -> void:
-	_save_node_positions()
+	_save_node_positions(false)
 
 # ---------------------------------------------------------------- Orphans
 ## Tasks that cannot be reached from the root through the child links.

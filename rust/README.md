@@ -24,7 +24,7 @@ The engine operates on a **Native Core + GDScript Facade** model:
 ```
 
 ### 1. Registered Native Classes
-- `BTTreeNative`: Owns the tree hierarchy, node lookup maps, and tree-level operations (`from_dict`, `to_dict`, `validate_dict`).
+- `BTTreeNative`: Owns the tree hierarchy, node lookup maps, and tree-level operations (`from_dict`, `to_dict`, `validate_dict`). Trees must be loaded with the registry that defines their custom types; there is no permissive fallback.
 - `BTTaskNative`: Base class for tree nodes. Encapsulates status lifecycle, child management, blackboard integration, and execution logic.
 - `BTRunnerNative`: Driving engine for tree evaluation, ticking, execution budgets, pause/resume, and signal dispatch.
 - `BTBlackboardNative`: Fast variant dictionary for scoped blackboard data sharing and fallback chaining.
@@ -34,7 +34,7 @@ The engine operates on a **Native Core + GDScript Facade** model:
 ### 2. GDScript Facade & Overridable Lifecycle Hooks
 To allow GDScript code to define custom actions/conditions/decorators seamlessly, the GDScript classes inherit from the native classes. Public GDScript hook methods wrap their native `bt_*` dispatch counterparts:
 
-- `on_update()`: Wraps `bt_on_update()`. Custom tasks override `on_update()` or implement `OnUpdate()`. If not overridden, native dispatch executes internal logic (e.g. built-in composites/decorators).
+- `on_update()`: Wraps `bt_on_update()`. Custom tasks override `on_update()`. If not overridden, native dispatch executes internal logic (e.g. built-in composites/decorators).
 - `evaluate_condition(runner)`: Wraps `bt_evaluate_condition(runner)`. Used for pure condition probing and reactive conditional aborts.
 - `on_start()`, `on_end()`, `on_abort()`: Wrap `bt_on_start()`, `bt_on_end()`, `bt_on_abort()`.
 - `can_execute()`: Wraps `bt_can_execute()` for parent task execution flow.

@@ -128,8 +128,6 @@ pub struct BTRunnerNative {
     #[var]
     pub update_interval_seconds: f64,
     #[var]
-    pub executions_per_tick: i64,
-    #[var]
     pub max_task_executions_per_tick: i64,
     #[var]
     pub auto_start: bool,

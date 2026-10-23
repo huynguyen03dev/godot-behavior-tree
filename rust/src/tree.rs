@@ -20,17 +20,6 @@ pub const BUILTIN_COMPOSITE_TYPES: [&str; 5] = [
     "RandomSelector",
 ];
 
-pub const BUILTIN_DECORATOR_TYPES: [&str; 8] = [
-    "Inverter",
-    "ReturnSuccess",
-    "ReturnFailure",
-    "Repeater",
-    "UntilSuccess",
-    "UntilFailure",
-    "Cooldown",
-    "TimeLimit",
-];
-
 impl BTTreeNative {
     pub fn data(&self) -> std::cell::Ref<'_, TreeData> {
         self.d.borrow()
@@ -471,7 +460,8 @@ impl BTTreeNative {
         let registry = registry
             .try_to::<Gd<BTTaskRegistryNative>>()
             .ok()
-            .filter(|r| is_valid(&r));
+            .filter(|r| is_valid(&r))
+            .or_else(facade::new_registry);
         let mut errors = VarArray::new();
         validate_tree_data(&data, registry.as_ref(), &mut errors);
         let mut out = PackedStringArray::new();
@@ -509,7 +499,7 @@ pub fn build_tree(
         return None;
     }
 
-    let mut tree = facade::new_tree().unwrap_or_else(|| {
+    let tree = facade::new_tree().unwrap_or_else(|| {
         let t = BTTreeNative::new_gd();
         t
     });
@@ -685,8 +675,8 @@ pub fn build_tree(
         if let Some(bb) = blackboard {
             for (key, serialized) in bb_data.iter_shared() {
                 if let Ok(entry) = serialized.try_to::<VarDictionary>() {
-                    if entry.contains_key("value") {
-                        let value = decode_value(&entry.get("value").unwrap());
+                    if let Some(val_var) = entry.get("value") {
+                        let value = decode_value(&val_var);
                         let type_name = entry
                             .get("type_name")
                             .map(|v| v.to::<GString>())
@@ -703,10 +693,8 @@ pub fn build_tree(
                                 .map(|v| v.to::<GString>())
                                 .unwrap_or_default();
                         }
-                        continue;
                     }
                 }
-                bb.bind().set_var(key.to::<GString>(), serialized, GString::new());
             }
         }
     }
@@ -721,6 +709,13 @@ pub fn validate_tree_data(
     registry: Option<&Gd<BTTaskRegistryNative>>,
     errors: &mut VarArray,
 ) {
+    let fallback_reg = if registry.is_none() {
+        facade::new_registry()
+    } else {
+        None
+    };
+    let registry = registry.or(fallback_reg.as_ref());
+
     let Some(nodes) = data.get("nodes").and_then(|v| v.try_to::<VarArray>().ok()) else {
         errors.push("nodes must be an array");
         return;
@@ -735,11 +730,26 @@ pub fn validate_tree_data(
             Err(_) => errors.push("blackboard must be a dictionary"),
             Ok(bb) => {
                 for (key, entry) in bb.iter_shared() {
-                    let encoded = entry
-                        .try_to::<VarDictionary>()
-                        .ok()
-                        .and_then(|d| d.get("value"))
-                        .unwrap_or(entry.clone());
+                    let Ok(entry_dict) = entry.try_to::<VarDictionary>() else {
+                        errors.push(
+                            format!(
+                                "blackboard variable {} must be an object with a 'value' field",
+                                key
+                            )
+                            .as_str(),
+                        );
+                        continue;
+                    };
+                    let Some(encoded) = entry_dict.get("value") else {
+                        errors.push(
+                            format!(
+                                "blackboard variable {} must be an object with a 'value' field",
+                                key
+                            )
+                            .as_str(),
+                        );
+                        continue;
+                    };
                     if !valid_encoded(&encoded) {
                         errors.push(
                             format!(
@@ -913,13 +923,7 @@ fn node_parent_shape(
                 == "Decorator";
         return (td.kind.has_children(), is_decorator);
     }
-    if BUILTIN_DECORATOR_TYPES.contains(&type_name) {
-        return (true, true);
-    }
-    if BUILTIN_COMPOSITE_TYPES.contains(&type_name) {
-        return (true, false);
-    }
-    (true, false)
+    (false, false)
 }
 
 fn has_cycle(id: i64, edges: &HashMap<i64, Vec<i64>>, colors: &mut HashMap<i64, i32>) -> bool {
