@@ -111,6 +111,8 @@ func _run() -> void:
 	_test_file_source_paths()
 	_test_reparent()
 	_test_round2_fixes()
+	_test_extended_encodings_and_whitelist()
+	_test_id_alloc_perf()
 	await _test_subtree_end_to_end()
 	await _test_subtree_caching()
 	print("Model regression suite: %d checks, %d failures" % [_checks, _failures])
@@ -131,6 +133,10 @@ func _test_subtree_end_to_end() -> void:
 	var child_root := SubTreeProbeTask.new()
 	child_root.type_name = "ReviewSubTreeProbe"
 	child_tree.set_root(child_root)
+	child_tree.blackboard.set_var("actor_seen", false)
+	child_tree.blackboard.set_var("delta_seen", 0.0)
+	child_tree.blackboard.set_var("calls", 0)
+	child_tree.blackboard.set_var("runtime_task_ref", null)
 	_write_tree_fixture(child_path, child_tree.to_dict())
 	var parent_tree := BTTree.new()
 	parent_tree.registry = registry
@@ -406,8 +412,21 @@ func _test_subtree_caching() -> void:
 	var registry := BTTaskRegistry.new()
 	registry.register_task("CacheProbeA", func(): return CacheProbeA.new(), "Action")
 	registry.register_task("CacheProbeB", func(): return CacheProbeB.new(), "Action")
-	var dict_a := {"root_id": 1, "nodes": [{"id": 1, "type_name": "CacheProbeA", "children_ids": [], "parameters": {}}]}
-	var dict_b := {"root_id": 1, "nodes": [{"id": 1, "type_name": "CacheProbeB", "children_ids": [], "parameters": {}}]}
+	var dict_a := {
+		"root_id": 1,
+		"nodes": [{"id": 1, "type_name": "CacheProbeA", "children_ids": [], "parameters": {}}],
+		"blackboard": {
+			"cache_calls": {"type_name": "int", "value": 0, "is_shared": true}
+		}
+	}
+	var dict_b := {
+		"root_id": 1,
+		"nodes": [{"id": 1, "type_name": "CacheProbeB", "children_ids": [], "parameters": {}}],
+		"blackboard": {
+			"cache_calls": {"type_name": "int", "value": 0, "is_shared": true},
+			"cache_version_b": {"type_name": "bool", "value": false, "is_shared": true}
+		}
+	}
 	_write_tree_fixture(path_a, dict_a)
 	_write_tree_fixture(path_b, dict_b)
 
@@ -578,10 +597,13 @@ func _test_round2_fixes() -> void:
 	_check(fsource.get_tree_path("shared") == path_a_shared, "M2 basename mapping 'shared' still points to dir_a path")
 
 	# L5: save_tree pushes error and sets last_error when file cannot be opened
-	var uncreatable_path := "user://bt_nonexistent_dir_98765/sub/cannot_create.json"
+	var obstacle_file := "user://bt_obstacle_file.tmp"
+	_write_tree_fixture(obstacle_file, {})
+	var uncreatable_path := obstacle_file + "/cannot_create.json"
 	var l5_saved := fsource.save_tree(uncreatable_path, tree_a)
 	_check(not l5_saved, "L5 save_tree into uncreatable path returns false")
 	_check(fsource.last_error.contains("failed to open file for writing"), "L5 last_error contains open error: %s" % fsource.last_error)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(obstacle_file))
 
 	# N9: refresh drops deleted in-directory files, preserves external mappings
 	var temp_in_dir := dir_a + "/deleteme.json"
@@ -596,6 +618,103 @@ func _test_round2_fixes() -> void:
 	# Clean up scratch dirs
 	_delete_recursive(dir_a)
 	_delete_recursive(dir_b)
+
+# ------------------------------------------------------------- Fix 5: Extended math types & strict whitelist
+func _test_extended_encodings_and_whitelist() -> void:
+	var tree := BTTree.new()
+	var root := BTTask.new()
+	tree.set_root(root)
+
+	var v2i := Vector2i(10, 20)
+	var v3i := Vector3i(1, 2, 3)
+	var v4 := Vector4(1.0, 2.0, 3.0, 4.0)
+	var v4i := Vector4i(10, 20, 30, 40)
+	var r2 := Rect2(1.0, 2.0, 3.0, 4.0)
+	var r2i := Rect2i(10, 20, 30, 40)
+	var quat := Quaternion(0.0, 0.7071, 0.0, 0.7071)
+	var plane := Plane(0.0, 1.0, 0.0, 5.0)
+	var aabb := AABB(Vector3(1, 2, 3), Vector3(4, 5, 6))
+	var t2d := Transform2D(0.5, Vector2(10, 20))
+	var basis := Basis.IDENTITY
+	var t3d := Transform3D.IDENTITY
+
+	root.set_param("p_v2i", v2i)
+	root.set_param("p_v3i", v3i)
+	root.set_param("p_v4", v4)
+	root.set_param("p_v4i", v4i)
+	root.set_param("p_r2", r2)
+	root.set_param("p_r2i", r2i)
+	root.set_param("p_quat", quat)
+	root.set_param("p_plane", plane)
+	root.set_param("p_aabb", aabb)
+	root.set_param("p_t2d", t2d)
+	root.set_param("p_basis", basis)
+	root.set_param("p_t3d", t3d)
+
+	tree.blackboard.set_var("bb_v2i", v2i)
+	tree.blackboard.set_var("bb_v4i", v4i)
+
+	var d := tree.to_dict()
+	var errs := BTTree.validate_dict(d)
+	_check(errs.is_empty(), "extended math types pass validate_dict: %s" % str(errs))
+
+	var json_str := JSON.stringify(d)
+	var parsed = JSON.parse_string(json_str)
+	var loaded_tree := BTTree.from_dict(parsed)
+	_check(loaded_tree != null, "tree with extended math types loads from JSON")
+
+	var loaded_root := loaded_tree.root_task
+	_check(loaded_root.get_param("p_v2i") == v2i and typeof(loaded_root.get_param("p_v2i")) == TYPE_VECTOR2I, "Vector2i roundtrips with exact type")
+	_check(loaded_root.get_param("p_v3i") == v3i and typeof(loaded_root.get_param("p_v3i")) == TYPE_VECTOR3I, "Vector3i roundtrips with exact type")
+	_check(loaded_root.get_param("p_v4") == v4 and typeof(loaded_root.get_param("p_v4")) == TYPE_VECTOR4, "Vector4 roundtrips with exact type")
+	_check(loaded_root.get_param("p_v4i") == v4i and typeof(loaded_root.get_param("p_v4i")) == TYPE_VECTOR4I, "Vector4i roundtrips with exact type")
+	_check(loaded_root.get_param("p_r2") == r2 and typeof(loaded_root.get_param("p_r2")) == TYPE_RECT2, "Rect2 roundtrips with exact type")
+	_check(loaded_root.get_param("p_r2i") == r2i and typeof(loaded_root.get_param("p_r2i")) == TYPE_RECT2I, "Rect2i roundtrips with exact type")
+	_check(loaded_root.get_param("p_quat").is_equal_approx(quat) and typeof(loaded_root.get_param("p_quat")) == TYPE_QUATERNION, "Quaternion roundtrips with exact type")
+	_check(loaded_root.get_param("p_plane").is_equal_approx(plane) and typeof(loaded_root.get_param("p_plane")) == TYPE_PLANE, "Plane roundtrips with exact type")
+	_check(loaded_root.get_param("p_aabb").is_equal_approx(aabb) and typeof(loaded_root.get_param("p_aabb")) == TYPE_AABB, "AABB roundtrips with exact type")
+	_check(loaded_root.get_param("p_t2d").is_equal_approx(t2d) and typeof(loaded_root.get_param("p_t2d")) == TYPE_TRANSFORM2D, "Transform2D roundtrips with exact type")
+	_check(loaded_root.get_param("p_basis").is_equal_approx(basis) and typeof(loaded_root.get_param("p_basis")) == TYPE_BASIS, "Basis roundtrips with exact type")
+	_check(loaded_root.get_param("p_t3d").is_equal_approx(t3d) and typeof(loaded_root.get_param("p_t3d")) == TYPE_TRANSFORM3D, "Transform3D roundtrips with exact type")
+	_check(loaded_tree.blackboard.get_var("bb_v2i") == v2i, "Blackboard Vector2i roundtrips")
+	_check(loaded_tree.blackboard.get_var("bb_v4i") == v4i, "Blackboard Vector4i roundtrips")
+
+	# Strict whitelist tests:
+	_check(not BTTree.validate_dict({"root_id": 1, "nodes": [{"id": 1, "children_ids": [], "parameters": {"bad": {"__bt_type": "UnknownCustom", "value": [1, 2]}}}]}).is_empty(), "unknown __bt_type rejected by whitelist")
+	_check(not BTTree.validate_dict({"root_id": 1, "nodes": [{"id": 1, "children_ids": [], "parameters": {"bad": {"__bt_type": "Vector2i", "value": [1]}}}]}).is_empty(), "Vector2i with missing component rejected")
+	_check(not BTTree.validate_dict({"root_id": 1, "nodes": [{"id": 1, "children_ids": [], "parameters": {"bad": {"__bt_type": "Vector2i", "value": [1.5, 2]}}}]}).is_empty(), "Vector2i with non-integer component rejected")
+	_check(not BTTree.validate_dict({"root_id": 1, "nodes": [{"id": 1, "children_ids": [], "parameters": {"bad": {"__bt_type": "Vector4", "value": [1, 2, 3]}}}]}).is_empty(), "Vector4 with wrong component count rejected")
+
+# ------------------------------------------------------------- Fix 7: Fast ID allocation & collision prevention
+func _test_id_alloc_perf() -> void:
+	var tree := BTTree.new()
+	var root := BTTask.new()
+	tree.set_root(root)
+	_check(root.id == 1, "root task assigned id 1")
+
+	for i in range(200):
+		var leaf := BTTask.new()
+		tree.add_node(leaf)
+
+	_check(tree.node_list.size() == 201, "200 nodes added to tree")
+	var id_set := {}
+	var has_duplicate := false
+	for node in tree.node_list:
+		if id_set.has(node.id):
+			has_duplicate = true
+			break
+		id_set[node.id] = true
+	_check(not has_duplicate, "all allocated IDs are unique")
+
+	# Test explicit ID jumps
+	var explicit_node := BTTask.new()
+	explicit_node.id = 500
+	tree.add_node(explicit_node)
+	_check(tree.get_node_by_id(500) == explicit_node, "explicit node id 500 added and retrievable via get_node_by_id")
+
+	var next_node := BTTask.new()
+	tree.add_node(next_node)
+	_check(next_node.id == 501, "next auto-allocated id advances past explicit high id")
 
 func _read_file_text(path: String) -> String:
 	var file := FileAccess.open(path, FileAccess.READ)

@@ -43,6 +43,11 @@ var tick_log: Array = []
 var stopped_at_placeholder: String = ""
 var subtree_path_stack: Array[String] = []
 
+class TaskBudget extends RefCounted:
+	var max_executions: int = 0
+	var executions: int = 0
+
+var _shared_budget: TaskBudget = null
 var _started: Dictionary = {} # task -> true
 var _last_status: Dictionary = {} # task -> status
 var _prepared_for_tick: Dictionary = {} # parent task -> true
@@ -90,6 +95,10 @@ func set_tree(p_tree: BTTree) -> void:
 	_execution_generation += 1
 	if is_running or not _started.is_empty() or _paused:
 		stop()
+	elif tree != null:
+		for task in tree.node_list:
+			if task != null and task.owner == self:
+				task.owner = null
 	tree = p_tree
 	_reset_state()
 
@@ -152,7 +161,34 @@ func stop() -> void:
 			# Mirror natural finish/abort so lifecycle listeners see every
 			# started task closed; stop() is no longer signal-silent.
 			task_finished.emit(task, task.last_status)
+	if tree != null:
+		for task in tree.node_list:
+			if task != null and task.owner == self:
+				task.owner = null
 	_ticking = false
+
+## Aborts the currently running task branch, emitting on_abort and task_aborted
+## on all started inner tasks, and stops the runner.
+func abort_running() -> void:
+	if not is_running and _started.is_empty():
+		return
+	_execution_generation += 1
+	if tree != null and tree.root_task != null:
+		_abort_task_branch(tree.root_task)
+	# Also abort any remaining started tasks not reachable from root (if any)
+	for task in _started.keys().duplicate():
+		if task != null and _started.has(task):
+			_abort_task_branch(task)
+	is_running = false
+	_paused = false
+	_prepared_for_tick.clear()
+	_pending_terminal.clear()
+	_ticking = false
+	last_status = BTStatus.FAILURE
+	if tree != null:
+		for task in tree.node_list:
+			if task != null and task.owner == self:
+				task.owner = null
 
 func tick(p_delta: float = 0.0) -> int:
 	if _ticking:
@@ -175,11 +211,23 @@ func _tick_internal(p_delta: float = 0.0) -> int:
 	delta = p_delta
 	time += p_delta
 	ticks += 1
-	task_executions = 0
+	var was_root_budget := false
+	if _shared_budget == null:
+		task_executions = 0
+		if max_task_executions_per_tick > 0:
+			_shared_budget = TaskBudget.new()
+			_shared_budget.max_executions = max_task_executions_per_tick
+			_shared_budget.executions = 0
+			was_root_budget = true
+
 	_prepared_for_tick.clear()
 	var generation := _execution_generation
 	_activation_interrupts.clear()
 	var status := _run_task(tree.root_task)
+	if was_root_budget:
+		if _shared_budget != null:
+			task_executions = _shared_budget.executions
+		_shared_budget = null
 	if generation != _execution_generation:
 		return last_status
 	# A root interrupt completes synchronously; do not emit a second completion
@@ -204,12 +252,18 @@ func _run_task(task: BTTask) -> int:
 		_last_status[task] = pending_status
 		task.last_status = pending_status
 		return pending_status
-	if max_task_executions_per_tick > 0 \
-			and task_executions >= max_task_executions_per_tick and not task is BTParentTask:
+	var max_exec := _shared_budget.max_executions if _shared_budget != null else max_task_executions_per_tick
+	var cur_exec := _shared_budget.executions if _shared_budget != null else task_executions
+	var is_container := task is BTParentTask or task is BTSubTree
+	if max_exec > 0 and cur_exec >= max_exec and not is_container:
 		return BTStatus.RUNNING
 
-	if not task is BTParentTask:
-		task_executions += 1
+	if not is_container:
+		if _shared_budget != null:
+			_shared_budget.executions += 1
+			task_executions = _shared_budget.executions
+		else:
+			task_executions += 1
 
 	# Handle placeholder tasks
 	if task.is_placeholder:
@@ -279,8 +333,8 @@ func _run_task(task: BTTask) -> int:
 			result = child_status
 			if child_status == BTStatus.RUNNING and not parent_task.can_run_parallel_children():
 				break
-			if max_task_executions_per_tick > 0 \
-					and task_executions >= max_task_executions_per_tick:
+			cur_exec = _shared_budget.executions if _shared_budget != null else task_executions
+			if max_exec > 0 and cur_exec >= max_exec:
 				break
 		if not executed_child:
 			result = int(_last_status.get(task, BTStatus.INACTIVE))

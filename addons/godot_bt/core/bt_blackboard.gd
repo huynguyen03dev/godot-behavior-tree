@@ -16,31 +16,75 @@ class Variable extends RefCounted:
 		value = p_val
 		type_name = p_type
 
+var parent_scope: BTBlackboard = null
 var _variables: Dictionary = {} # name -> Variable
 
-func set_var(p_name: String, p_value: Variant, p_type: String = "") -> void:
+func set_var_local(p_name: String, p_value: Variant, p_type: String = "", p_is_shared: bool = false, p_description: String = "") -> void:
 	var old_val: Variant = null
 	if _variables.has(p_name):
+		var existing: Variable = _variables[p_name]
+		old_val = existing.value
+		existing.value = p_value
+		if p_type != "":
+			existing.type_name = p_type
+		existing.is_shared = p_is_shared
+		if p_description != "":
+			existing.description = p_description
+		variable_changed.emit(p_name, p_value, old_val)
+		return
+
+	var type_str := p_type
+	if type_str == "":
+		type_str = _type_to_string(typeof(p_value))
+	var v := Variable.new(p_name, p_value, type_str)
+	v.is_shared = p_is_shared
+	v.description = p_description
+	_variables[p_name] = v
+	variable_changed.emit(p_name, p_value, old_val)
+
+func set_var(p_name: String, p_value: Variant, p_type: String = "") -> void:
+	if _variables.has(p_name):
 		var v: Variable = _variables[p_name]
-		old_val = v.value
+		var old_val: Variant = v.value
 		v.value = p_value
 		if p_type != "":
 			v.type_name = p_type
-	else:
-		var type_str := p_type
-		if type_str == "":
-			type_str = _type_to_string(typeof(p_value))
-		var v := Variable.new(p_name, p_value, type_str)
-		_variables[p_name] = v
+		variable_changed.emit(p_name, p_value, old_val)
+		return
+
+	# If variable exists in ancestor chain and is shared -> write to ancestor
+	var ancestor := parent_scope
+	while ancestor != null:
+		if ancestor._variables.has(p_name):
+			var v: Variable = ancestor._variables[p_name]
+			if v.is_shared:
+				ancestor.set_var(p_name, p_value, p_type)
+				return
+			break
+		ancestor = ancestor.parent_scope
+
+	# Otherwise create locally
+	var old_val: Variant = null
+	var type_str := p_type
+	if type_str == "":
+		type_str = _type_to_string(typeof(p_value))
+	var v := Variable.new(p_name, p_value, type_str)
+	_variables[p_name] = v
 	variable_changed.emit(p_name, p_value, old_val)
 
 func get_var(p_name: String, default_value: Variant = null) -> Variant:
 	if _variables.has(p_name):
 		return _variables[p_name].value
+	if parent_scope != null:
+		return parent_scope.get_var(p_name, default_value)
 	return default_value
 
 func has_var(p_name: String) -> bool:
-	return _variables.has(p_name)
+	if _variables.has(p_name):
+		return true
+	if parent_scope != null:
+		return parent_scope.has_var(p_name)
+	return false
 
 func remove_var(p_name: String) -> bool:
 	if _variables.has(p_name):
@@ -51,10 +95,16 @@ func remove_var(p_name: String) -> bool:
 	return false
 
 func get_variable_obj(p_name: String) -> Variable:
-	return _variables.get(p_name, null)
+	if _variables.has(p_name):
+		return _variables[p_name]
+	if parent_scope != null:
+		return parent_scope.get_variable_obj(p_name)
+	return null
 
 func get_all_vars() -> Dictionary:
 	var res := {}
+	if parent_scope != null:
+		res = parent_scope.get_all_vars()
 	for k in _variables.keys():
 		res[k] = _variables[k].value
 	return res

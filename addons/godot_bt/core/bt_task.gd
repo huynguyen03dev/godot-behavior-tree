@@ -21,6 +21,7 @@ var parent: BTTask:
 
 # Runtime state
 var last_status: int = BTStatus.INACTIVE
+var _warned_bindings: Dictionary = {}
 
 func _init() -> void:
 	if friendly_name == "":
@@ -94,15 +95,25 @@ func get_param(name: String, default_val: Variant = null) -> Variant:
 	var raw = parameters[name]
 	if raw is Dictionary and raw.get("is_blackboard", false):
 		var bb_key: String = str(raw.get("key", ""))
-		return get_blackboard_var(bb_key, default_val)
+		if blackboard != null and blackboard.has_var(bb_key):
+			return blackboard.get_var(bb_key, default_val)
+		if not _warned_bindings.has(name):
+			_warned_bindings[name] = true
+			var t_name: String = friendly_name if friendly_name != "" else type_name
+			push_warning("BTTask '%s': blackboard binding '@%s' for parameter '%s' not found; using default" % [t_name, bb_key, name])
+		return default_val
 	elif raw is String:
 		if raw.begins_with("@@") or raw.begins_with("$$"):
-			# Escaped literal: "@@foo" -> "@foo", "$$foo" -> "$foo"
+			# Escaped literal: "@@foo" -> "@foo", "$$foo" -> "$$foo"
 			return raw.substr(1)
 		if raw.begins_with("@") or raw.begins_with("$"):
 			var bb_key: String = raw.substr(1)
 			if blackboard != null and blackboard.has_var(bb_key):
 				return blackboard.get_var(bb_key, default_val)
+			if not _warned_bindings.has(name):
+				_warned_bindings[name] = true
+				var t_name: String = friendly_name if friendly_name != "" else type_name
+				push_warning("BTTask '%s': blackboard binding '@%s' for parameter '%s' not found; using default" % [t_name, bb_key, name])
 			return default_val
 	return raw
 

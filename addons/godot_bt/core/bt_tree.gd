@@ -10,6 +10,8 @@ var node_list: Array = [] # Array[BTTask]
 var blackboard: BTBlackboard = null
 var metadata: Dictionary = {}
 var registry: BTTaskRegistry = null
+var _next_id_hint: int = 1
+var _nodes_by_id: Dictionary = {} # int -> BTTask
 
 func _init() -> void:
 	blackboard = BTBlackboard.new()
@@ -20,12 +22,16 @@ func add_node(task: BTTask) -> BTTask:
 	if task == null:
 		return null
 	if not node_list.has(task):
-		if task.id < 0 or get_node_by_id(task.id) != null:
-			var next_id := 1
-			while get_node_by_id(next_id) != null:
-				next_id += 1
-			task.id = next_id
+		if task.id >= 0 and not _nodes_by_id.has(task.id):
+			if task.id >= _next_id_hint:
+				_next_id_hint = task.id + 1
+		else:
+			while _nodes_by_id.has(_next_id_hint):
+				_next_id_hint += 1
+			task.id = _next_id_hint
+			_next_id_hint += 1
 		task.blackboard = blackboard
+		_nodes_by_id[task.id] = task
 		node_list.append(task)
 	return task
 
@@ -81,13 +87,11 @@ func remove_node(task: BTTask) -> void:
 				disconnect_parent_child(task, c)
 	if task == root_task:
 		root_task = null
+	_nodes_by_id.erase(task.id)
 	node_list.erase(task)
 
 func get_node_by_id(id: int) -> BTTask:
-	for n in node_list:
-		if n != null and n.id == id:
-			return n
-	return null
+	return _nodes_by_id.get(id, null)
 
 func get_node_count() -> int:
 	return node_list.size()
@@ -302,30 +306,66 @@ static func _has_cycle(id: int, edges: Dictionary, colors: Dictionary) -> bool:
 	colors[id] = 2
 	return false
 
+const TAGGED_TYPE_SIZES := {
+	"Vector2": 2,
+	"Vector2i": 2,
+	"Vector3": 3,
+	"Vector3i": 3,
+	"Vector4": 4,
+	"Vector4i": 4,
+	"Color": 4,
+	"Rect2": 4,
+	"Rect2i": 4,
+	"Quaternion": 4,
+	"Plane": 4,
+	"AABB": 6,
+	"Transform2D": 6,
+	"Basis": 9,
+	"Transform3D": 12,
+	"Projection": 16,
+}
+
+const INTEGER_TAGGED_TYPES := ["Vector2i", "Vector3i", "Vector4i", "Rect2i"]
+
 static func _valid_encoded(value: Variant) -> bool:
-	# Objects, Callables and RIDs cannot be represented in JSON; accepting them
-	# here would let save write files that silently corrupt on reload.
-	if value is Object or value is Callable or value is RID:
-		return false
-	if value is float and not is_finite(value): return false
+	if value == null or value is bool or value is int or value is String:
+		return true
+	if value is float:
+		return is_finite(value)
 	if value is Array:
 		for item in value:
-			if not _valid_encoded(item): return false
-	elif value is Dictionary:
-		if value.has("__bt_type") and value["__bt_type"] == "float":
-			var tag_value: Variant = value.get("value", null)
-			return value.size() == 2 and tag_value is String and ["inf", "-inf", "nan"].has(tag_value)
-		if value.has("__bt_type") and value["__bt_type"] in ["Vector2", "Vector3", "Color"]:
-			if value.size() != 2 or not value.has("value") or not value.value is Array:
+			if not _valid_encoded(item):
 				return false
-			var expected := {"Vector2": 2, "Vector3": 3, "Color": 4}.get(value["__bt_type"], -1)
-			if expected < 0 or value.value.size() != expected: return false
-			for component in value.value:
-				if not (component is int or component is float) or (component is float and not is_finite(component)): return false
-		else:
-			for key in value:
-				if not _valid_encoded(value[key]): return false
-	return true
+		return true
+	if value is Dictionary:
+		if value.has("__bt_type"):
+			if value.size() != 2 or not value.has("value"):
+				return false
+			var type_tag: Variant = value["__bt_type"]
+			if type_tag == "float":
+				var tag_val: Variant = value["value"]
+				return tag_val is String and ["inf", "-inf", "nan"].has(tag_val)
+			if type_tag is String and TAGGED_TYPE_SIZES.has(type_tag):
+				if not (value.value is Array):
+					return false
+				var arr: Array = value.value
+				if arr.size() != TAGGED_TYPE_SIZES[type_tag]:
+					return false
+				var is_int_type: bool = INTEGER_TAGGED_TYPES.has(type_tag)
+				for comp in arr:
+					if is_int_type:
+						if not (comp is int or (comp is float and is_finite(comp) and floor(comp) == comp)):
+							return false
+					else:
+						if not (comp is int or comp is float) or (comp is float and not is_finite(comp)):
+							return false
+				return true
+			return false
+		for key in value:
+			if not _valid_encoded(value[key]):
+				return false
+		return true
+	return false
 
 static func _encode_value(value: Variant) -> Variant:
 	if value is float and not is_finite(value):
@@ -335,9 +375,22 @@ static func _encode_value(value: Variant) -> Variant:
 		if value < 0.0:
 			return {"__bt_type": "float", "value": "-inf"}
 		return {"__bt_type": "float", "value": "nan"}
-	if value is Vector2: return {"__bt_type":"Vector2", "value":[value.x, value.y]}
-	if value is Vector3: return {"__bt_type":"Vector3", "value":[value.x, value.y, value.z]}
-	if value is Color: return {"__bt_type":"Color", "value":[value.r, value.g, value.b, value.a]}
+	if value is Vector2: return {"__bt_type": "Vector2", "value": [value.x, value.y]}
+	if value is Vector2i: return {"__bt_type": "Vector2i", "value": [value.x, value.y]}
+	if value is Vector3: return {"__bt_type": "Vector3", "value": [value.x, value.y, value.z]}
+	if value is Vector3i: return {"__bt_type": "Vector3i", "value": [value.x, value.y, value.z]}
+	if value is Vector4: return {"__bt_type": "Vector4", "value": [value.x, value.y, value.z, value.w]}
+	if value is Vector4i: return {"__bt_type": "Vector4i", "value": [value.x, value.y, value.z, value.w]}
+	if value is Color: return {"__bt_type": "Color", "value": [value.r, value.g, value.b, value.a]}
+	if value is Rect2: return {"__bt_type": "Rect2", "value": [value.position.x, value.position.y, value.size.x, value.size.y]}
+	if value is Rect2i: return {"__bt_type": "Rect2i", "value": [value.position.x, value.position.y, value.size.x, value.size.y]}
+	if value is Quaternion: return {"__bt_type": "Quaternion", "value": [value.x, value.y, value.z, value.w]}
+	if value is Plane: return {"__bt_type": "Plane", "value": [value.normal.x, value.normal.y, value.normal.z, value.d]}
+	if value is AABB: return {"__bt_type": "AABB", "value": [value.position.x, value.position.y, value.position.z, value.size.x, value.size.y, value.size.z]}
+	if value is Transform2D: return {"__bt_type": "Transform2D", "value": [value.x.x, value.x.y, value.y.x, value.y.y, value.origin.x, value.origin.y]}
+	if value is Basis: return {"__bt_type": "Basis", "value": [value.x.x, value.x.y, value.x.z, value.y.x, value.y.y, value.y.z, value.z.x, value.z.y, value.z.z]}
+	if value is Transform3D: return {"__bt_type": "Transform3D", "value": [value.basis.x.x, value.basis.x.y, value.basis.x.z, value.basis.y.x, value.basis.y.y, value.basis.y.z, value.basis.z.x, value.basis.z.y, value.basis.z.z, value.origin.x, value.origin.y, value.origin.z]}
+	if value is Projection: return {"__bt_type": "Projection", "value": [value.x.x, value.x.y, value.x.z, value.x.w, value.y.x, value.y.y, value.y.z, value.y.w, value.z.x, value.z.y, value.z.z, value.z.w, value.w.x, value.w.y, value.w.z, value.w.w]}
 	if value is Array:
 		var result := []
 		for v in value: result.append(_encode_value(v))
@@ -349,17 +402,31 @@ static func _encode_value(value: Variant) -> Variant:
 	return value
 
 static func _decode_value(value: Variant) -> Variant:
-	if value is Dictionary and value.size() == 2 and value.has("__bt_type") and value.has("value") and value["__bt_type"] == "float" and _valid_encoded(value):
-		match str(value.value):
-			"inf": return INF
-			"-inf": return -INF
-			"nan": return NAN
-	if value is Dictionary and value.size() == 2 and value.has("__bt_type") and value.has("value") and value["__bt_type"] in ["Vector2", "Vector3", "Color"] and _valid_encoded(value):
-		var v: Array = value.value
-		match value.__bt_type:
+	if value is Dictionary and value.size() == 2 and value.has("__bt_type") and value.has("value") and _valid_encoded(value):
+		var tag: String = str(value["__bt_type"])
+		if tag == "float":
+			match str(value.value):
+				"inf": return INF
+				"-inf": return -INF
+				"nan": return NAN
+		var v: Array = value.value if value.value is Array else []
+		match tag:
 			"Vector2": return Vector2(v[0], v[1])
+			"Vector2i": return Vector2i(int(v[0]), int(v[1]))
 			"Vector3": return Vector3(v[0], v[1], v[2])
+			"Vector3i": return Vector3i(int(v[0]), int(v[1]), int(v[2]))
+			"Vector4": return Vector4(v[0], v[1], v[2], v[3])
+			"Vector4i": return Vector4i(int(v[0]), int(v[1]), int(v[2]), int(v[3]))
 			"Color": return Color(v[0], v[1], v[2], v[3])
+			"Rect2": return Rect2(v[0], v[1], v[2], v[3])
+			"Rect2i": return Rect2i(int(v[0]), int(v[1]), int(v[2]), int(v[3]))
+			"Quaternion": return Quaternion(v[0], v[1], v[2], v[3])
+			"Plane": return Plane(v[0], v[1], v[2], v[3])
+			"AABB": return AABB(Vector3(v[0], v[1], v[2]), Vector3(v[3], v[4], v[5]))
+			"Transform2D": return Transform2D(Vector2(v[0], v[1]), Vector2(v[2], v[3]), Vector2(v[4], v[5]))
+			"Basis": return Basis(Vector3(v[0], v[1], v[2]), Vector3(v[3], v[4], v[5]), Vector3(v[6], v[7], v[8]))
+			"Transform3D": return Transform3D(Basis(Vector3(v[0], v[1], v[2]), Vector3(v[3], v[4], v[5]), Vector3(v[6], v[7], v[8])), Vector3(v[9], v[10], v[11]))
+			"Projection": return Projection(Vector4(v[0], v[1], v[2], v[3]), Vector4(v[4], v[5], v[6], v[7]), Vector4(v[8], v[9], v[10], v[11]), Vector4(v[12], v[13], v[14], v[15]))
 	if value is Array:
 		var result := []
 		for v in value: result.append(_decode_value(v))

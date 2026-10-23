@@ -9,6 +9,8 @@ var _sub_runner: BTRunner = null
 var _subtree_loading: bool = false
 var _loaded_path: String = ""
 var _load_failure_warned: bool = false
+var _sub_blackboard: BTBlackboard = null
+var _declared_variables: Array = [] # Array[BTBlackboard.Variable]
 
 func _init(p_path: String = "") -> void:
 	super._init()
@@ -58,7 +60,7 @@ func _load_subtree(normalized_path: String = "") -> void:
 	_loaded_path = normalized_path
 
 	_cleanup_runner()
-	var parent_runner: BTRunner = owner as BTRunner if owner is BTRunner else null
+	var parent_runner: BTRunner = owner as BTRunner if (is_instance_valid(owner) and owner is BTRunner) else null
 	if parent_runner != null and parent_runner.subtree_path_stack.has(normalized_path):
 		_log_load_failure("BTSubTree: recursive subtree detected at '%s'" % normalized_path)
 		_subtree_loading = false
@@ -86,27 +88,65 @@ func _load_subtree(normalized_path: String = "") -> void:
 		_subtree_loading = false
 		return
 
-	var task_registry: BTTaskRegistry = owner.tree.registry if owner is BTRunner and owner.tree != null else null
+	var task_registry: BTTaskRegistry = parent_runner.tree.registry if (parent_runner != null and parent_runner.tree != null) else null
 	_sub_tree = BTTree.from_dict(json.data, task_registry)
 	if _sub_tree == null:
 		_log_load_failure("BTSubTree: failed to build tree from '%s'" % normalized_path)
 		_subtree_loading = false
 		return
 
-	# Share parent blackboard with subtree
-	if blackboard != null:
-		_sub_tree.blackboard = blackboard
-		for node in _sub_tree.node_list:
-			if node != null:
-				node.blackboard = blackboard
+	# Cache declared variables from parsed subtree
+	_declared_variables.clear()
+	if _sub_tree.blackboard != null:
+		for var_name in _sub_tree.blackboard.get_all_variables().keys():
+			var v: BTBlackboard.Variable = _sub_tree.blackboard.get_variable_obj(var_name)
+			if v != null:
+				var copy_v := BTBlackboard.Variable.new(v.name, v.value, v.type_name)
+				copy_v.is_shared = v.is_shared
+				copy_v.description = v.description
+				_declared_variables.append(copy_v)
+
+	_setup_subtree_blackboard()
 
 	_sub_runner = BTRunner.new(_sub_tree)
-	_sub_runner.actor = owner.actor if owner is BTRunner else null
+	_sub_runner.actor = parent_runner.actor if parent_runner != null else null
 	if parent_runner != null:
 		_sub_runner.subtree_path_stack = parent_runner.subtree_path_stack.duplicate()
 		_sub_runner.subtree_path_stack.append(normalized_path)
 	_load_failure_warned = false
 	_subtree_loading = false
+
+func _setup_subtree_blackboard() -> void:
+	if _sub_tree == null:
+		return
+	var child_scope := BTBlackboard.new()
+	child_scope.parent_scope = blackboard
+
+	for v in _declared_variables:
+		if v.is_shared:
+			# is_shared=true -> variable LIVES in the parent scope (create with subtree's default only if missing there)
+			if blackboard != null:
+				if not blackboard.has_var(v.name):
+					blackboard.set_var(v.name, v.value, v.type_name)
+					var pv: BTBlackboard.Variable = blackboard.get_variable_obj(v.name)
+					if pv != null:
+						pv.is_shared = true
+						pv.description = v.description
+			else:
+				child_scope.set_var(v.name, v.value, v.type_name)
+				var lv: BTBlackboard.Variable = child_scope.get_variable_obj(v.name)
+				if lv != null:
+					lv.is_shared = true
+					lv.description = v.description
+		else:
+			# is_shared=false -> lives in child scope seeded with its default, private even if parent has same name
+			child_scope.set_var_local(v.name, v.value, v.type_name, false, v.description)
+
+	_sub_blackboard = child_scope
+	_sub_tree.blackboard = child_scope
+	for node in _sub_tree.node_list:
+		if node != null:
+			node.blackboard = child_scope
 
 func _log_load_failure(msg: String) -> void:
 	if not _load_failure_warned:
@@ -125,19 +165,24 @@ func on_start() -> void:
 	super.on_start()
 	_ensure_subtree_loaded()
 	if _sub_runner != null:
-		# Sync blackboard and owner
-		_sub_tree.blackboard = blackboard
-		for node in _sub_tree.node_list:
-			if node != null:
-				node.blackboard = blackboard
-		_sub_runner.actor = owner.actor if owner is BTRunner else null
+		_setup_subtree_blackboard()
+		var parent_runner: BTRunner = owner as BTRunner if (is_instance_valid(owner) and owner is BTRunner) else null
+		_sub_runner.actor = parent_runner.actor if parent_runner != null else null
 		_sub_runner.start()
 
 func on_update() -> int:
 	if _sub_runner == null or _sub_tree == null or _sub_tree.root_task == null:
 		return BTStatus.FAILURE
-	_sub_runner.delta = owner.delta if owner is BTRunner else 0.0
+	var parent_runner: BTRunner = owner as BTRunner if (is_instance_valid(owner) and owner is BTRunner) else null
+	if parent_runner != null and parent_runner._shared_budget != null:
+		_sub_runner._shared_budget = parent_runner._shared_budget
+		_sub_runner.max_task_executions_per_tick = parent_runner._shared_budget.max_executions
+	else:
+		_sub_runner._shared_budget = null
+	_sub_runner.delta = parent_runner.delta if parent_runner != null else 0.0
 	var status = _sub_runner.tick(_sub_runner.delta)
+	if parent_runner != null and parent_runner._shared_budget != null:
+		parent_runner.task_executions = parent_runner._shared_budget.executions
 	return status
 
 func on_end() -> void:
@@ -147,7 +192,7 @@ func on_end() -> void:
 
 func on_abort() -> void:
 	if _sub_runner != null:
-		_sub_runner.stop()
+		_sub_runner.abort_running()
 	super.on_abort()
 
 func on_reset() -> void:

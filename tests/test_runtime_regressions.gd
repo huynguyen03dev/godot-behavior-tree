@@ -74,6 +74,21 @@ class NestedTickProbe extends BTTask:
 			(owner as BTRunner).tick()
 		return BTStatus.SUCCESS
 
+class ScopeProbeTask extends BTTask:
+	func _init() -> void:
+		type_name = "ScopeProbeTask"
+	func on_update() -> int:
+		var local_val = blackboard.get_var("local_var", -1)
+		var shared_val = blackboard.get_var("shared_var", -1)
+		var parent_only_val = blackboard.get_var("parent_var", -1)
+		blackboard.set_var("local_var", 99)
+		blackboard.set_var("shared_var", 88)
+		blackboard.set_var("new_created_var", 77)
+		blackboard.set_var("recorded_local", local_val)
+		blackboard.set_var("recorded_shared", shared_val)
+		blackboard.set_var("recorded_parent_only", parent_only_val)
+		return BTStatus.SUCCESS
+
 ## Legacy-style condition (category "Condition", no evaluate_condition override)
 ## that can stop the runner from its on_update, used to probe abort reevaluation.
 class LegacyStopCondition extends BTTask:
@@ -601,6 +616,198 @@ func _initialize() -> void:
 	r.start()
 	var fx_l8_status := r.tick(0.1)
 	_check(fx_l8_leaf.calls == 1 and fx_l8_status == BTStatus.SUCCESS, "L8 stop() resets _ticking backstop so wedged runner can tick again")
+	_finish(r)
+
+	# ---- Core Fix 1: Subtree blackboard scope chain ----
+	var reg_scope := BTTaskRegistry.new()
+	reg_scope.register_task("ScopeProbeTask", func(): return ScopeProbeTask.new(), "Action")
+	var sub_scope_path := "user://bt_reg_scope_sub.json"
+	var sub_scope_dict := {
+		"root_id": 1,
+		"nodes": [{"id": 1, "type_name": "ScopeProbeTask", "children_ids": [], "parameters": {}}],
+		"blackboard": {
+			"local_var": {"type_name": "int", "value": 10, "is_shared": false},
+			"shared_var": {"type_name": "int", "value": 20, "is_shared": true}
+		}
+	}
+	var f_scope := FileAccess.open(sub_scope_path, FileAccess.WRITE)
+	f_scope.store_string(JSON.stringify(sub_scope_dict))
+	f_scope.close()
+
+	var parent_scope_tree := BTTree.new()
+	parent_scope_tree.registry = reg_scope
+	parent_scope_tree.blackboard.set_var("parent_var", 30)
+	parent_scope_tree.blackboard.set_var("local_var", 999) # Parent also has local_var, but subtree is_shared=false must shadow it
+	var sub_scope_task := BTSubTree.new(sub_scope_path)
+	parent_scope_tree.set_root(sub_scope_task)
+
+	r = _runner(parent_scope_tree)
+	r.start()
+	r.tick(0.1)
+	_check(parent_scope_tree.blackboard.get_var("local_var") == 999, "is_shared=false local variable write does not overwrite parent variable with same name")
+	_check(parent_scope_tree.blackboard.get_var("shared_var") == 88, "is_shared=true variable writes through to parent scope")
+	_check(not parent_scope_tree.blackboard.has_var("new_created_var"), "write to undeclared variable remains local to subtree scope")
+	_check(sub_scope_task._sub_blackboard.get_var("local_var") == 99, "child scope retains its private variable value")
+	_check(sub_scope_task._sub_blackboard.get_var("new_created_var") == 77, "child scope holds locally created variable")
+	_check(sub_scope_task._sub_blackboard.get_var("recorded_local") == 10, "child scope read its default local seed initially")
+	_check(sub_scope_task._sub_blackboard.get_var("recorded_parent_only") == 30, "child scope reads parent variable via fallback")
+	_finish(r)
+	if FileAccess.file_exists(sub_scope_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(sub_scope_path))
+
+	# Subtree with no blackboard section fallback test
+	var sub_nobb_path := "user://bt_reg_scope_nobb.json"
+	var sub_nobb_dict := {
+		"root_id": 1,
+		"nodes": [{"id": 1, "type_name": "ScopeProbeTask", "children_ids": [], "parameters": {}}]
+	}
+	var f_nobb := FileAccess.open(sub_nobb_path, FileAccess.WRITE)
+	f_nobb.store_string(JSON.stringify(sub_nobb_dict))
+	f_nobb.close()
+	var parent_nobb_tree := BTTree.new()
+	parent_nobb_tree.registry = reg_scope
+	parent_nobb_tree.blackboard.set_var("parent_var", 111)
+	parent_nobb_tree.blackboard.set_var("shared_var", 222)
+	var sub_nobb_task := BTSubTree.new(sub_nobb_path)
+	parent_nobb_tree.set_root(sub_nobb_task)
+	r = _runner(parent_nobb_tree)
+	r.start()
+	r.tick(0.1)
+	_check(parent_nobb_tree.blackboard.get_var("shared_var") == 88, "subtree with no blackboard section writes through to existing shared parent variable")
+	_check(sub_nobb_task._sub_blackboard.get_var("recorded_parent_only") == 111, "subtree with no blackboard section reads parent variable via fallback")
+	_finish(r)
+	if FileAccess.file_exists(sub_nobb_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(sub_nobb_path))
+
+	# ---- Core Fix 2: Dangling task.owner ----
+	var dangling_tree := BTTree.new()
+	var dangling_deco := BTDecorator.BTTimeLimit.new()
+	dangling_deco.time_limit = 1.0
+	var dangling_leaf := Probe.new()
+	dangling_tree.set_root(dangling_deco)
+	dangling_tree.connect_parent_child(dangling_deco, dangling_leaf)
+	var dangling_runner := BTRunner.new(dangling_tree)
+	dangling_runner.start()
+	dangling_runner.tick(0.1)
+	dangling_runner.stop()
+	_check(dangling_deco.owner == null and dangling_leaf.owner == null, "stop() clears task.owner on all tree tasks")
+	dangling_runner.free()
+	_check(dangling_deco._runner_time() == 0.0, "dangling decorator _runner_time() returns 0.0 safely without crash")
+
+	# ---- Core Fix 3: BTSubTree.on_abort() propagation ----
+	var reg_abort := BTTaskRegistry.new()
+	var sub_abort_leaf := Probe.new()
+	sub_abort_leaf.results = [BTStatus.RUNNING]
+	reg_abort.register_task("SubAbortLeaf", func(): return sub_abort_leaf, "Action")
+	var sub_abort_tree := BTTree.new()
+	sub_abort_tree.set_root(sub_abort_leaf)
+	var sub_abort_path := "user://bt_reg_sub_abort.json"
+	var sub_abort_dict := {
+		"root_id": 1,
+		"nodes": [{"id": 1, "type_name": "SubAbortLeaf", "children_ids": [], "parameters": {}}]
+	}
+	var f_sub_abort := FileAccess.open(sub_abort_path, FileAccess.WRITE)
+	f_sub_abort.store_string(JSON.stringify(sub_abort_dict))
+	f_sub_abort.close()
+
+	var parent_abort_sel := BTComposite.BTSelector.new()
+	parent_abort_sel.set_abort_type(BTComposite.AbortType.LOWER_PRIORITY)
+	var parent_abort_seq := BTComposite.BTSequence.new()
+	var parent_abort_cond := ProbeCondition.new()
+	parent_abort_cond.condition = false
+	var parent_abort_act := Probe.new()
+	var parent_abort_tree := BTTree.new()
+	parent_abort_tree.registry = reg_abort
+	parent_abort_tree.set_root(parent_abort_sel)
+	parent_abort_tree.connect_parent_child(parent_abort_sel, parent_abort_seq)
+	parent_abort_tree.connect_parent_child(parent_abort_seq, parent_abort_cond)
+	parent_abort_tree.connect_parent_child(parent_abort_seq, parent_abort_act)
+	var sub_abort_node := BTSubTree.new(sub_abort_path)
+	parent_abort_tree.connect_parent_child(parent_abort_sel, sub_abort_node)
+
+	r = _runner(parent_abort_tree)
+	r.start()
+	r.tick(0.1)
+	_check(sub_abort_leaf.calls == 1 and sub_abort_leaf.aborts == 0, "subtree inner leaf started and running")
+	parent_abort_cond.condition = true
+	r.tick(0.1)
+	_check(sub_abort_leaf.aborts == 1, "subtree inner leaf received on_abort() when subtree branch was aborted")
+	_finish(r)
+	if FileAccess.file_exists(sub_abort_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(sub_abort_path))
+
+	# ---- Core Fix 4: SubTree execution budget propagation ----
+	var reg_budget := BTTaskRegistry.new()
+	var budget_t1 := Probe.new(); budget_t1.results = [BTStatus.SUCCESS]
+	var budget_t2 := Probe.new(); budget_t2.results = [BTStatus.SUCCESS]
+	var budget_t3 := Probe.new(); budget_t3.results = [BTStatus.SUCCESS]
+	reg_budget.register_task("BudgetT1", func(): return budget_t1, "Action")
+	reg_budget.register_task("BudgetT2", func(): return budget_t2, "Action")
+	reg_budget.register_task("BudgetT3", func(): return budget_t3, "Action")
+	var sub_budget_path := "user://bt_reg_sub_budget.json"
+	var sub_budget_dict := {
+		"root_id": 1,
+		"nodes": [
+			{"id": 1, "type_name": "Sequence", "children_ids": [2, 3, 4], "parameters": {}},
+			{"id": 2, "type_name": "BudgetT1", "children_ids": [], "parameters": {}},
+			{"id": 3, "type_name": "BudgetT2", "children_ids": [], "parameters": {}},
+			{"id": 4, "type_name": "BudgetT3", "children_ids": [], "parameters": {}}
+		]
+	}
+	var f_sub_budget := FileAccess.open(sub_budget_path, FileAccess.WRITE)
+	f_sub_budget.store_string(JSON.stringify(sub_budget_dict))
+	f_sub_budget.close()
+
+	var parent_budget_seq := BTComposite.BTSequence.new()
+	var parent_budget_pre := Probe.new(); parent_budget_pre.results = [BTStatus.SUCCESS]
+	var parent_budget_sub := BTSubTree.new(sub_budget_path)
+	var parent_budget_tree := BTTree.new()
+	parent_budget_tree.registry = reg_budget
+	parent_budget_tree.set_root(parent_budget_seq)
+	parent_budget_tree.connect_parent_child(parent_budget_seq, parent_budget_pre)
+	parent_budget_tree.connect_parent_child(parent_budget_seq, parent_budget_sub)
+
+	r = _runner(parent_budget_tree)
+	r.max_task_executions_per_tick = 2
+	r.start()
+	r.tick(0.1)
+	_check(parent_budget_pre.calls == 1 and budget_t1.calls == 1 and budget_t2.calls == 0 and budget_t3.calls == 0, "shared budget limits combined parent+subtree executions to max_task_executions_per_tick")
+	_finish(r)
+	if FileAccess.file_exists(sub_budget_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(sub_budget_path))
+
+	# ---- Core Fix 6: Blackboard binding warn-once ----
+	var warn_task := BTTask.new()
+	warn_task.type_name = "WarnTask"
+	warn_task.parameters["bound_param"] = "@missing_reg_key"
+	_check(warn_task._warned_bindings.is_empty(), "binding warning dictionary starts empty")
+	var w_val1 = warn_task.get_param("bound_param", 123)
+	_check(w_val1 == 123, "missing blackboard binding returns default value")
+	_check(warn_task._warned_bindings.get("bound_param") == true, "binding warning recorded in _warned_bindings")
+	var w_val2 = warn_task.get_param("bound_param", 456)
+	_check(w_val2 == 456, "repeated get_param returns default without redundant entries in _warned_bindings")
+
+	# ---- Core Fix 8: Cooldown on_reset and abort semantics ----
+	var cd_tree := BTTree.new()
+	var cd_deco := BTDecorator.BTCooldown.new()
+	cd_deco.cooldown_time = 5.0
+	var cd_leaf := Probe.new()
+	cd_leaf.results = [BTStatus.RUNNING]
+	cd_tree.set_root(cd_deco)
+	cd_tree.connect_parent_child(cd_deco, cd_leaf)
+	r = _runner(cd_tree)
+	r.start()
+	r.tick(0.0)
+	_check(cd_deco._last_execution_time < -900000.0, "cooldown not consumed while child is RUNNING")
+	r.interrupt(cd_leaf)
+	_check(cd_deco._last_execution_time < -900000.0, "cooldown not consumed when child was aborted")
+	cd_leaf.results = [BTStatus.SUCCESS]
+	r.start()
+	r.tick(1.0)
+	_check(cd_deco._last_execution_time == 1.0, "cooldown consumed when child completes")
+	r.time = 0.0
+	cd_deco.on_reset()
+	_check(cd_deco._last_execution_time < -900000.0, "on_reset clears stale cooldown when simulated time rewinds")
 	_finish(r)
 
 	print("Runtime regression suite: %d checks, %d failures" % [checks, failures])

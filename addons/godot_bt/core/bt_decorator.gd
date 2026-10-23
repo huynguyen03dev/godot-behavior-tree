@@ -27,7 +27,7 @@ func on_end() -> void:
 ## ticking, and Engine.time_scale behave predictably. Falls back to 0.0 when
 ## the decorator is not driven by a BTRunner.
 func _runner_time() -> float:
-	return (owner as BTRunner).time if owner is BTRunner else 0.0
+	return (owner as BTRunner).time if (is_instance_valid(owner) and owner is BTRunner) else 0.0
 
 # ---------------------------------------------------------------- BTInverter
 class BTInverter extends BTDecorator:
@@ -182,6 +182,14 @@ class BTCooldown extends BTDecorator:
 		type_name = "Cooldown"
 		friendly_name = "Cooldown"
 
+	func on_reset() -> void:
+		super.on_reset()
+		# Reset cooldown when simulated time rewinds (e.g. pooled actor restarted with
+		# fresh time) or when task is detached from runner. During normal active cycles
+		# on the same runner, preserve cooldown across runner.start() restarts.
+		if owner == null or _runner_time() < _last_execution_time:
+			_last_execution_time = -999999.0
+
 	func on_start() -> void:
 		cooldown_time = float(get_param("cooldown_time", cooldown_time))
 		if _runner_time() - _last_execution_time < cooldown_time:
@@ -193,6 +201,9 @@ class BTCooldown extends BTDecorator:
 
 	func on_child_executed(child_index: int, child_status: int) -> void:
 		super.on_child_executed(child_index, child_status)
+		# Cooldown is consumed ONLY on child completion (SUCCESS or FAILURE).
+		# Abort does not trigger on_child_executed, so interrupted actions
+		# (e.g. an attack interrupted before completion) do not consume the cooldown.
 		if child_status != BTStatus.RUNNING:
 			_last_execution_time = _runner_time()
 			_execution_status = child_status
@@ -230,7 +241,7 @@ class BTTimeLimit extends BTDecorator:
 			# Exceeded time limit -> abort child and fail
 			if child_index >= 0 and child_index < children.size():
 				var child_task: BTTask = children[child_index]
-				if owner is BTRunner:
+				if is_instance_valid(owner) and owner is BTRunner:
 					(owner as BTRunner).interrupt(child_task)
 			_execution_status = BTStatus.FAILURE
 		else:
