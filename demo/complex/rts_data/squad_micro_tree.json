@@ -1,0 +1,158 @@
+{
+	"blackboard": {},
+	"description": "",
+	"metadata": {},
+	"nodes": [
+		{
+			"category": "Composite",
+			"children_ids": [
+				2,
+				5,
+				8,
+				11,
+				13
+			],
+			"friendly_name": "Selector",
+			"id": 1,
+			"is_placeholder": false,
+			"parameters": {
+				"abort_type": 2
+			},
+			"parent_id": -1,
+			"type_name": "Selector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				3,
+				4
+			],
+			"friendly_name": "RetreatHealSeq",
+			"id": 2,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CondHealthLow",
+			"id": 3,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 2,
+			"type_name": "CondMicroHealthLow"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "ActRetreatHeal",
+			"id": 4,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 2,
+			"type_name": "ActionMicroRetreatHeal"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				6,
+				7
+			],
+			"friendly_name": "KiteSeq",
+			"id": 5,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CondOutnumbered",
+			"id": 6,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 5,
+			"type_name": "CondMicroOutnumbered"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "ActKite",
+			"id": 7,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 5,
+			"type_name": "ActionMicroKite"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				9,
+				10
+			],
+			"friendly_name": "FocusFireSeq",
+			"id": 8,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CondHasTarget",
+			"id": 9,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 8,
+			"type_name": "CondMicroHasTarget"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "ActFocusFire",
+			"id": 10,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 8,
+			"type_name": "ActionMicroFocusFire"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				12
+			],
+			"friendly_name": "EngageSeq",
+			"id": 11,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "ActEngage",
+			"id": 12,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 11,
+			"type_name": "ActionMicroEngage"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "ActHoldFormation",
+			"id": 13,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "ActionMicroHoldFormation"
+		}
+	],
+	"root_id": 1,
+	"tree_name": "SquadMicroTree"
+}

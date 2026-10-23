@@ -1,0 +1,9654 @@
+{
+	"blackboard": {},
+	"description": "",
+	"metadata": {},
+	"nodes": [
+		{
+			"category": "Decorator",
+			"children_ids": [
+				2
+			],
+			"friendly_name": "Repeater",
+			"id": 1,
+			"is_placeholder": false,
+			"parameters": {
+				"count": 1,
+				"end_on_failure": false,
+				"repeat_forever": true
+			},
+			"parent_id": -1,
+			"type_name": "Repeater"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				3,
+				34,
+				125,
+				156
+			],
+			"friendly_name": "CommanderMasterSelector",
+			"id": 2,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "RandomSelector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				4,
+				7,
+				10,
+				13,
+				16,
+				19,
+				22,
+				25,
+				28,
+				31
+			],
+			"friendly_name": "EmergencyCrisisSelector",
+			"id": 3,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 2,
+			"type_name": "RandomSelector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				5,
+				6
+			],
+			"friendly_name": "CrisisProtocol_0",
+			"id": 4,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 3,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CrisisCond_0",
+			"id": 5,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 4,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CrisisAct_0",
+			"id": 6,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 4,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				8,
+				9
+			],
+			"friendly_name": "CrisisProtocol_1",
+			"id": 7,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 3,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CrisisCond_1",
+			"id": 8,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 7,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CrisisAct_1",
+			"id": 9,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 7,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				11,
+				12
+			],
+			"friendly_name": "CrisisProtocol_2",
+			"id": 10,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 3,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CrisisCond_2",
+			"id": 11,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 10,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CrisisAct_2",
+			"id": 12,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 10,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				14,
+				15
+			],
+			"friendly_name": "CrisisProtocol_3",
+			"id": 13,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 3,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CrisisCond_3",
+			"id": 14,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 13,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CrisisAct_3",
+			"id": 15,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 13,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				17,
+				18
+			],
+			"friendly_name": "CrisisProtocol_4",
+			"id": 16,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 3,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CrisisCond_4",
+			"id": 17,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 16,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CrisisAct_4",
+			"id": 18,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 16,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				20,
+				21
+			],
+			"friendly_name": "CrisisProtocol_5",
+			"id": 19,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 3,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CrisisCond_5",
+			"id": 20,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 19,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CrisisAct_5",
+			"id": 21,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 19,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				23,
+				24
+			],
+			"friendly_name": "CrisisProtocol_6",
+			"id": 22,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 3,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CrisisCond_6",
+			"id": 23,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 22,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CrisisAct_6",
+			"id": 24,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 22,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				26,
+				27
+			],
+			"friendly_name": "CrisisProtocol_7",
+			"id": 25,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 3,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CrisisCond_7",
+			"id": 26,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 25,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CrisisAct_7",
+			"id": 27,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 25,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				29,
+				30
+			],
+			"friendly_name": "CrisisProtocol_8",
+			"id": 28,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 3,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CrisisCond_8",
+			"id": 29,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 28,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CrisisAct_8",
+			"id": 30,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 28,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				32,
+				33
+			],
+			"friendly_name": "CrisisProtocol_9",
+			"id": 31,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 3,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CrisisCond_9",
+			"id": 32,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 31,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "CrisisAct_9",
+			"id": 33,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 31,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				35,
+				53,
+				71,
+				89,
+				107
+			],
+			"friendly_name": "PlaybookSelector",
+			"id": 34,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 2,
+			"type_name": "Selector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				36,
+				37
+			],
+			"friendly_name": "Stance_Retreat_Seq",
+			"id": 35,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 34,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CondStanceIs_Retreat",
+			"id": 36,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 35,
+			"type_name": "CondStrategicStance"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				38,
+				41,
+				44,
+				47,
+				50
+			],
+			"friendly_name": "Retreat_TacticalRand",
+			"id": 37,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 35,
+			"type_name": "RandomSelector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				39,
+				40
+			],
+			"friendly_name": "Retreat_TacticalStep_0",
+			"id": 38,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 37,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Retreat_Cond_0",
+			"id": 39,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 38,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Retreat_Act_0",
+			"id": 40,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 38,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				42,
+				43
+			],
+			"friendly_name": "Retreat_TacticalStep_1",
+			"id": 41,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 37,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Retreat_Cond_1",
+			"id": 42,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 41,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Retreat_Act_1",
+			"id": 43,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 41,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				45,
+				46
+			],
+			"friendly_name": "Retreat_TacticalStep_2",
+			"id": 44,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 37,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Retreat_Cond_2",
+			"id": 45,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 44,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Retreat_Act_2",
+			"id": 46,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 44,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				48,
+				49
+			],
+			"friendly_name": "Retreat_TacticalStep_3",
+			"id": 47,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 37,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Retreat_Cond_3",
+			"id": 48,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 47,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Retreat_Act_3",
+			"id": 49,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 47,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				51,
+				52
+			],
+			"friendly_name": "Retreat_TacticalStep_4",
+			"id": 50,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 37,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Retreat_Cond_4",
+			"id": 51,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 50,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Retreat_Act_4",
+			"id": 52,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 50,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				54,
+				55
+			],
+			"friendly_name": "Stance_Defend_Seq",
+			"id": 53,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 34,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CondStanceIs_Defend",
+			"id": 54,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 53,
+			"type_name": "CondStrategicStance"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				56,
+				59,
+				62,
+				65,
+				68
+			],
+			"friendly_name": "Defend_TacticalRand",
+			"id": 55,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 53,
+			"type_name": "RandomSelector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				57,
+				58
+			],
+			"friendly_name": "Defend_TacticalStep_0",
+			"id": 56,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 55,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Defend_Cond_0",
+			"id": 57,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 56,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Defend_Act_0",
+			"id": 58,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 56,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				60,
+				61
+			],
+			"friendly_name": "Defend_TacticalStep_1",
+			"id": 59,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 55,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Defend_Cond_1",
+			"id": 60,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 59,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Defend_Act_1",
+			"id": 61,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 59,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				63,
+				64
+			],
+			"friendly_name": "Defend_TacticalStep_2",
+			"id": 62,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 55,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Defend_Cond_2",
+			"id": 63,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 62,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Defend_Act_2",
+			"id": 64,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 62,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				66,
+				67
+			],
+			"friendly_name": "Defend_TacticalStep_3",
+			"id": 65,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 55,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Defend_Cond_3",
+			"id": 66,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 65,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Defend_Act_3",
+			"id": 67,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 65,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				69,
+				70
+			],
+			"friendly_name": "Defend_TacticalStep_4",
+			"id": 68,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 55,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Defend_Cond_4",
+			"id": 69,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 68,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Defend_Act_4",
+			"id": 70,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 68,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				72,
+				73
+			],
+			"friendly_name": "Stance_Harass_Seq",
+			"id": 71,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 34,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CondStanceIs_Harass",
+			"id": 72,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 71,
+			"type_name": "CondStrategicStance"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				74,
+				77,
+				80,
+				83,
+				86
+			],
+			"friendly_name": "Harass_TacticalRand",
+			"id": 73,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 71,
+			"type_name": "RandomSelector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				75,
+				76
+			],
+			"friendly_name": "Harass_TacticalStep_0",
+			"id": 74,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 73,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Harass_Cond_0",
+			"id": 75,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 74,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Harass_Act_0",
+			"id": 76,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 74,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				78,
+				79
+			],
+			"friendly_name": "Harass_TacticalStep_1",
+			"id": 77,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 73,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Harass_Cond_1",
+			"id": 78,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 77,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Harass_Act_1",
+			"id": 79,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 77,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				81,
+				82
+			],
+			"friendly_name": "Harass_TacticalStep_2",
+			"id": 80,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 73,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Harass_Cond_2",
+			"id": 81,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 80,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Harass_Act_2",
+			"id": 82,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 80,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				84,
+				85
+			],
+			"friendly_name": "Harass_TacticalStep_3",
+			"id": 83,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 73,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Harass_Cond_3",
+			"id": 84,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 83,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Harass_Act_3",
+			"id": 85,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 83,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				87,
+				88
+			],
+			"friendly_name": "Harass_TacticalStep_4",
+			"id": 86,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 73,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Harass_Cond_4",
+			"id": 87,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 86,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Harass_Act_4",
+			"id": 88,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 86,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				90,
+				91
+			],
+			"friendly_name": "Stance_Expand_Seq",
+			"id": 89,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 34,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CondStanceIs_Expand",
+			"id": 90,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 89,
+			"type_name": "CondStrategicStance"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				92,
+				95,
+				98,
+				101,
+				104
+			],
+			"friendly_name": "Expand_TacticalRand",
+			"id": 91,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 89,
+			"type_name": "RandomSelector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				93,
+				94
+			],
+			"friendly_name": "Expand_TacticalStep_0",
+			"id": 92,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 91,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Expand_Cond_0",
+			"id": 93,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 92,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Expand_Act_0",
+			"id": 94,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 92,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				96,
+				97
+			],
+			"friendly_name": "Expand_TacticalStep_1",
+			"id": 95,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 91,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Expand_Cond_1",
+			"id": 96,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 95,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Expand_Act_1",
+			"id": 97,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 95,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				99,
+				100
+			],
+			"friendly_name": "Expand_TacticalStep_2",
+			"id": 98,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 91,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Expand_Cond_2",
+			"id": 99,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 98,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Expand_Act_2",
+			"id": 100,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 98,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				102,
+				103
+			],
+			"friendly_name": "Expand_TacticalStep_3",
+			"id": 101,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 91,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Expand_Cond_3",
+			"id": 102,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 101,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Expand_Act_3",
+			"id": 103,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 101,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				105,
+				106
+			],
+			"friendly_name": "Expand_TacticalStep_4",
+			"id": 104,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 91,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Expand_Cond_4",
+			"id": 105,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 104,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Expand_Act_4",
+			"id": 106,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 104,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				108,
+				109
+			],
+			"friendly_name": "Stance_Push_Seq",
+			"id": 107,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 34,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "CondStanceIs_Push",
+			"id": 108,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 107,
+			"type_name": "CondStrategicStance"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				110,
+				113,
+				116,
+				119,
+				122
+			],
+			"friendly_name": "Push_TacticalRand",
+			"id": 109,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 107,
+			"type_name": "RandomSelector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				111,
+				112
+			],
+			"friendly_name": "Push_TacticalStep_0",
+			"id": 110,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 109,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Push_Cond_0",
+			"id": 111,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 110,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Push_Act_0",
+			"id": 112,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 110,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				114,
+				115
+			],
+			"friendly_name": "Push_TacticalStep_1",
+			"id": 113,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 109,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Push_Cond_1",
+			"id": 114,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 113,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Push_Act_1",
+			"id": 115,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 113,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				117,
+				118
+			],
+			"friendly_name": "Push_TacticalStep_2",
+			"id": 116,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 109,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Push_Cond_2",
+			"id": 117,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 116,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Push_Act_2",
+			"id": 118,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 116,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				120,
+				121
+			],
+			"friendly_name": "Push_TacticalStep_3",
+			"id": 119,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 109,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Push_Cond_3",
+			"id": 120,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 119,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Push_Act_3",
+			"id": 121,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 119,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				123,
+				124
+			],
+			"friendly_name": "Push_TacticalStep_4",
+			"id": 122,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 109,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Push_Cond_4",
+			"id": 123,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 122,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Push_Act_4",
+			"id": 124,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 122,
+			"type_name": "ActionExecuteStrategicOrder"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				126,
+				129,
+				132,
+				135,
+				138,
+				141,
+				144,
+				147,
+				150,
+				153
+			],
+			"friendly_name": "TechTreeSelector",
+			"id": 125,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 2,
+			"type_name": "RandomSelector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				127,
+				128
+			],
+			"friendly_name": "TechSeq_0",
+			"id": 126,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 125,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "TechCond_0",
+			"id": 127,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 126,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "TechAct_0",
+			"id": 128,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 126,
+			"type_name": "ActionTechUpgrade"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				130,
+				131
+			],
+			"friendly_name": "TechSeq_1",
+			"id": 129,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 125,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "TechCond_1",
+			"id": 130,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 129,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "TechAct_1",
+			"id": 131,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 129,
+			"type_name": "ActionTechUpgrade"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				133,
+				134
+			],
+			"friendly_name": "TechSeq_2",
+			"id": 132,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 125,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "TechCond_2",
+			"id": 133,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 132,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "TechAct_2",
+			"id": 134,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 132,
+			"type_name": "ActionTechUpgrade"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				136,
+				137
+			],
+			"friendly_name": "TechSeq_3",
+			"id": 135,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 125,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "TechCond_3",
+			"id": 136,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 135,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "TechAct_3",
+			"id": 137,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 135,
+			"type_name": "ActionTechUpgrade"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				139,
+				140
+			],
+			"friendly_name": "TechSeq_4",
+			"id": 138,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 125,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "TechCond_4",
+			"id": 139,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 138,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "TechAct_4",
+			"id": 140,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 138,
+			"type_name": "ActionTechUpgrade"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				142,
+				143
+			],
+			"friendly_name": "TechSeq_5",
+			"id": 141,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 125,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "TechCond_5",
+			"id": 142,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 141,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "TechAct_5",
+			"id": 143,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 141,
+			"type_name": "ActionTechUpgrade"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				145,
+				146
+			],
+			"friendly_name": "TechSeq_6",
+			"id": 144,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 125,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "TechCond_6",
+			"id": 145,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 144,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "TechAct_6",
+			"id": 146,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 144,
+			"type_name": "ActionTechUpgrade"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				148,
+				149
+			],
+			"friendly_name": "TechSeq_7",
+			"id": 147,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 125,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "TechCond_7",
+			"id": 148,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 147,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "TechAct_7",
+			"id": 149,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 147,
+			"type_name": "ActionTechUpgrade"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				151,
+				152
+			],
+			"friendly_name": "TechSeq_8",
+			"id": 150,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 125,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "TechCond_8",
+			"id": 151,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 150,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "TechAct_8",
+			"id": 152,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 150,
+			"type_name": "ActionTechUpgrade"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				154,
+				155
+			],
+			"friendly_name": "TechSeq_9",
+			"id": 153,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 125,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "TechCond_9",
+			"id": 154,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 153,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "TechAct_9",
+			"id": 155,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 153,
+			"type_name": "ActionTechUpgrade"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				157,
+				160,
+				163,
+				166,
+				169,
+				172,
+				175,
+				178,
+				181,
+				184,
+				187,
+				190,
+				193,
+				196,
+				199,
+				202,
+				205,
+				208,
+				211,
+				214,
+				217,
+				220,
+				223,
+				226,
+				229,
+				232,
+				235,
+				238,
+				241,
+				244,
+				247,
+				250,
+				253,
+				256,
+				259,
+				262,
+				265,
+				268,
+				271,
+				274,
+				277,
+				280,
+				283,
+				286,
+				289,
+				292,
+				295,
+				298,
+				301,
+				304,
+				307,
+				310,
+				313,
+				316,
+				319,
+				322,
+				325,
+				328,
+				331,
+				334,
+				337,
+				340,
+				343,
+				346,
+				349,
+				352,
+				355,
+				358,
+				361,
+				364,
+				367,
+				370,
+				373,
+				376,
+				379,
+				382,
+				385,
+				388,
+				391,
+				394,
+				397,
+				400,
+				403,
+				406,
+				409,
+				412,
+				415,
+				418,
+				421,
+				424,
+				427,
+				430,
+				433,
+				436,
+				439,
+				442,
+				445,
+				448,
+				451,
+				454,
+				457,
+				460,
+				463,
+				466,
+				469,
+				472,
+				475,
+				478,
+				481,
+				484,
+				487,
+				490,
+				493,
+				496,
+				499,
+				502,
+				505,
+				508,
+				511,
+				514,
+				517,
+				520,
+				523,
+				526,
+				529,
+				532,
+				535,
+				538,
+				541,
+				544,
+				547,
+				550,
+				553,
+				556,
+				559,
+				562,
+				565,
+				568,
+				571,
+				574,
+				577,
+				580,
+				583,
+				586,
+				589,
+				592,
+				595,
+				598,
+				601,
+				604,
+				607,
+				610,
+				613,
+				616,
+				619,
+				622,
+				625,
+				628,
+				631,
+				634,
+				637,
+				640,
+				643,
+				646,
+				649,
+				652,
+				655,
+				658,
+				661,
+				664,
+				667,
+				670,
+				673,
+				676,
+				679,
+				682,
+				685,
+				688,
+				691,
+				694,
+				697,
+				700,
+				703,
+				706,
+				709,
+				712,
+				715,
+				718,
+				721,
+				724,
+				727,
+				730,
+				733,
+				736,
+				739,
+				742,
+				745,
+				748,
+				751,
+				754,
+				757,
+				760,
+				763,
+				766,
+				769,
+				772,
+				775,
+				778,
+				781,
+				784,
+				787,
+				790,
+				793,
+				796,
+				799,
+				802,
+				805,
+				808,
+				811,
+				814,
+				817,
+				820,
+				823,
+				826,
+				829,
+				832,
+				835,
+				838,
+				841,
+				844,
+				847,
+				850
+			],
+			"friendly_name": "ProductionGridSelector",
+			"id": 156,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 2,
+			"type_name": "RandomSelector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				158,
+				159
+			],
+			"friendly_name": "BuildSeq_0",
+			"id": 157,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_0",
+			"id": 158,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 157,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_0",
+			"id": 159,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 157,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				161,
+				162
+			],
+			"friendly_name": "BuildSeq_1",
+			"id": 160,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_1",
+			"id": 161,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 160,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_1",
+			"id": 162,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 160,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				164,
+				165
+			],
+			"friendly_name": "BuildSeq_2",
+			"id": 163,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_2",
+			"id": 164,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 163,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_2",
+			"id": 165,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 163,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				167,
+				168
+			],
+			"friendly_name": "BuildSeq_3",
+			"id": 166,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_3",
+			"id": 167,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 166,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_3",
+			"id": 168,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 166,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				170,
+				171
+			],
+			"friendly_name": "BuildSeq_4",
+			"id": 169,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_4",
+			"id": 170,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 169,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_4",
+			"id": 171,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 169,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				173,
+				174
+			],
+			"friendly_name": "BuildSeq_5",
+			"id": 172,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_5",
+			"id": 173,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 172,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_5",
+			"id": 174,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 172,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				176,
+				177
+			],
+			"friendly_name": "BuildSeq_6",
+			"id": 175,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_6",
+			"id": 176,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 175,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_6",
+			"id": 177,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 175,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				179,
+				180
+			],
+			"friendly_name": "BuildSeq_7",
+			"id": 178,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_7",
+			"id": 179,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 178,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_7",
+			"id": 180,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 178,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				182,
+				183
+			],
+			"friendly_name": "BuildSeq_8",
+			"id": 181,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_8",
+			"id": 182,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 181,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_8",
+			"id": 183,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 181,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				185,
+				186
+			],
+			"friendly_name": "BuildSeq_9",
+			"id": 184,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_9",
+			"id": 185,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 184,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_9",
+			"id": 186,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 184,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				188,
+				189
+			],
+			"friendly_name": "BuildSeq_10",
+			"id": 187,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_10",
+			"id": 188,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 187,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_10",
+			"id": 189,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 187,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				191,
+				192
+			],
+			"friendly_name": "BuildSeq_11",
+			"id": 190,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_11",
+			"id": 191,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 190,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_11",
+			"id": 192,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 190,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				194,
+				195
+			],
+			"friendly_name": "BuildSeq_12",
+			"id": 193,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_12",
+			"id": 194,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 193,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_12",
+			"id": 195,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 193,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				197,
+				198
+			],
+			"friendly_name": "BuildSeq_13",
+			"id": 196,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_13",
+			"id": 197,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 196,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_13",
+			"id": 198,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 196,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				200,
+				201
+			],
+			"friendly_name": "BuildSeq_14",
+			"id": 199,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_14",
+			"id": 200,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 199,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_14",
+			"id": 201,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 199,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				203,
+				204
+			],
+			"friendly_name": "BuildSeq_15",
+			"id": 202,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_15",
+			"id": 203,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 202,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_15",
+			"id": 204,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 202,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				206,
+				207
+			],
+			"friendly_name": "BuildSeq_16",
+			"id": 205,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_16",
+			"id": 206,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 205,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_16",
+			"id": 207,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 205,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				209,
+				210
+			],
+			"friendly_name": "BuildSeq_17",
+			"id": 208,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_17",
+			"id": 209,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 208,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_17",
+			"id": 210,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 208,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				212,
+				213
+			],
+			"friendly_name": "BuildSeq_18",
+			"id": 211,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_18",
+			"id": 212,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 211,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_18",
+			"id": 213,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 211,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				215,
+				216
+			],
+			"friendly_name": "BuildSeq_19",
+			"id": 214,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_19",
+			"id": 215,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 214,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_19",
+			"id": 216,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 214,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				218,
+				219
+			],
+			"friendly_name": "BuildSeq_20",
+			"id": 217,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_20",
+			"id": 218,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 217,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_20",
+			"id": 219,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 217,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				221,
+				222
+			],
+			"friendly_name": "BuildSeq_21",
+			"id": 220,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_21",
+			"id": 221,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 220,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_21",
+			"id": 222,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 220,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				224,
+				225
+			],
+			"friendly_name": "BuildSeq_22",
+			"id": 223,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_22",
+			"id": 224,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 223,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_22",
+			"id": 225,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 223,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				227,
+				228
+			],
+			"friendly_name": "BuildSeq_23",
+			"id": 226,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_23",
+			"id": 227,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 226,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_23",
+			"id": 228,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 226,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				230,
+				231
+			],
+			"friendly_name": "BuildSeq_24",
+			"id": 229,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_24",
+			"id": 230,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 229,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_24",
+			"id": 231,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 229,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				233,
+				234
+			],
+			"friendly_name": "BuildSeq_25",
+			"id": 232,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_25",
+			"id": 233,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 232,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_25",
+			"id": 234,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 232,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				236,
+				237
+			],
+			"friendly_name": "BuildSeq_26",
+			"id": 235,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_26",
+			"id": 236,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 235,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_26",
+			"id": 237,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 235,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				239,
+				240
+			],
+			"friendly_name": "BuildSeq_27",
+			"id": 238,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_27",
+			"id": 239,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 238,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_27",
+			"id": 240,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 238,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				242,
+				243
+			],
+			"friendly_name": "BuildSeq_28",
+			"id": 241,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_28",
+			"id": 242,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 241,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_28",
+			"id": 243,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 241,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				245,
+				246
+			],
+			"friendly_name": "BuildSeq_29",
+			"id": 244,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_29",
+			"id": 245,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 244,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_29",
+			"id": 246,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 244,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				248,
+				249
+			],
+			"friendly_name": "BuildSeq_30",
+			"id": 247,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_30",
+			"id": 248,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 247,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_30",
+			"id": 249,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 247,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				251,
+				252
+			],
+			"friendly_name": "BuildSeq_31",
+			"id": 250,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_31",
+			"id": 251,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 250,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_31",
+			"id": 252,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 250,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				254,
+				255
+			],
+			"friendly_name": "BuildSeq_32",
+			"id": 253,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_32",
+			"id": 254,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 253,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_32",
+			"id": 255,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 253,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				257,
+				258
+			],
+			"friendly_name": "BuildSeq_33",
+			"id": 256,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_33",
+			"id": 257,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 256,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_33",
+			"id": 258,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 256,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				260,
+				261
+			],
+			"friendly_name": "BuildSeq_34",
+			"id": 259,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_34",
+			"id": 260,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 259,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_34",
+			"id": 261,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 259,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				263,
+				264
+			],
+			"friendly_name": "BuildSeq_35",
+			"id": 262,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_35",
+			"id": 263,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 262,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_35",
+			"id": 264,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 262,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				266,
+				267
+			],
+			"friendly_name": "BuildSeq_36",
+			"id": 265,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_36",
+			"id": 266,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 265,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_36",
+			"id": 267,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 265,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				269,
+				270
+			],
+			"friendly_name": "BuildSeq_37",
+			"id": 268,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_37",
+			"id": 269,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 268,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_37",
+			"id": 270,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 268,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				272,
+				273
+			],
+			"friendly_name": "BuildSeq_38",
+			"id": 271,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_38",
+			"id": 272,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 271,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_38",
+			"id": 273,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 271,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				275,
+				276
+			],
+			"friendly_name": "BuildSeq_39",
+			"id": 274,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_39",
+			"id": 275,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 274,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_39",
+			"id": 276,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 274,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				278,
+				279
+			],
+			"friendly_name": "BuildSeq_40",
+			"id": 277,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_40",
+			"id": 278,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 277,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_40",
+			"id": 279,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 277,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				281,
+				282
+			],
+			"friendly_name": "BuildSeq_41",
+			"id": 280,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_41",
+			"id": 281,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 280,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_41",
+			"id": 282,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 280,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				284,
+				285
+			],
+			"friendly_name": "BuildSeq_42",
+			"id": 283,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_42",
+			"id": 284,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 283,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_42",
+			"id": 285,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 283,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				287,
+				288
+			],
+			"friendly_name": "BuildSeq_43",
+			"id": 286,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_43",
+			"id": 287,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 286,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_43",
+			"id": 288,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 286,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				290,
+				291
+			],
+			"friendly_name": "BuildSeq_44",
+			"id": 289,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_44",
+			"id": 290,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 289,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_44",
+			"id": 291,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 289,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				293,
+				294
+			],
+			"friendly_name": "BuildSeq_45",
+			"id": 292,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_45",
+			"id": 293,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 292,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_45",
+			"id": 294,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 292,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				296,
+				297
+			],
+			"friendly_name": "BuildSeq_46",
+			"id": 295,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_46",
+			"id": 296,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 295,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_46",
+			"id": 297,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 295,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				299,
+				300
+			],
+			"friendly_name": "BuildSeq_47",
+			"id": 298,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_47",
+			"id": 299,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 298,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_47",
+			"id": 300,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 298,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				302,
+				303
+			],
+			"friendly_name": "BuildSeq_48",
+			"id": 301,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_48",
+			"id": 302,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 301,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_48",
+			"id": 303,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 301,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				305,
+				306
+			],
+			"friendly_name": "BuildSeq_49",
+			"id": 304,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_49",
+			"id": 305,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 304,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_49",
+			"id": 306,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 304,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				308,
+				309
+			],
+			"friendly_name": "BuildSeq_50",
+			"id": 307,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_50",
+			"id": 308,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 307,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_50",
+			"id": 309,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 307,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				311,
+				312
+			],
+			"friendly_name": "BuildSeq_51",
+			"id": 310,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_51",
+			"id": 311,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 310,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_51",
+			"id": 312,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 310,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				314,
+				315
+			],
+			"friendly_name": "BuildSeq_52",
+			"id": 313,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_52",
+			"id": 314,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 313,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_52",
+			"id": 315,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 313,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				317,
+				318
+			],
+			"friendly_name": "BuildSeq_53",
+			"id": 316,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_53",
+			"id": 317,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 316,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_53",
+			"id": 318,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 316,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				320,
+				321
+			],
+			"friendly_name": "BuildSeq_54",
+			"id": 319,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_54",
+			"id": 320,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 319,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_54",
+			"id": 321,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 319,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				323,
+				324
+			],
+			"friendly_name": "BuildSeq_55",
+			"id": 322,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_55",
+			"id": 323,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 322,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_55",
+			"id": 324,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 322,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				326,
+				327
+			],
+			"friendly_name": "BuildSeq_56",
+			"id": 325,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_56",
+			"id": 326,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 325,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_56",
+			"id": 327,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 325,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				329,
+				330
+			],
+			"friendly_name": "BuildSeq_57",
+			"id": 328,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_57",
+			"id": 329,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 328,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_57",
+			"id": 330,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 328,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				332,
+				333
+			],
+			"friendly_name": "BuildSeq_58",
+			"id": 331,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_58",
+			"id": 332,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 331,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_58",
+			"id": 333,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 331,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				335,
+				336
+			],
+			"friendly_name": "BuildSeq_59",
+			"id": 334,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_59",
+			"id": 335,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 334,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_59",
+			"id": 336,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 334,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				338,
+				339
+			],
+			"friendly_name": "BuildSeq_60",
+			"id": 337,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_60",
+			"id": 338,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 337,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_60",
+			"id": 339,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 337,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				341,
+				342
+			],
+			"friendly_name": "BuildSeq_61",
+			"id": 340,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_61",
+			"id": 341,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 340,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_61",
+			"id": 342,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 340,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				344,
+				345
+			],
+			"friendly_name": "BuildSeq_62",
+			"id": 343,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_62",
+			"id": 344,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 343,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_62",
+			"id": 345,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 343,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				347,
+				348
+			],
+			"friendly_name": "BuildSeq_63",
+			"id": 346,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_63",
+			"id": 347,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 346,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_63",
+			"id": 348,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 346,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				350,
+				351
+			],
+			"friendly_name": "BuildSeq_64",
+			"id": 349,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_64",
+			"id": 350,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 349,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_64",
+			"id": 351,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 349,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				353,
+				354
+			],
+			"friendly_name": "BuildSeq_65",
+			"id": 352,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_65",
+			"id": 353,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 352,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_65",
+			"id": 354,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 352,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				356,
+				357
+			],
+			"friendly_name": "BuildSeq_66",
+			"id": 355,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_66",
+			"id": 356,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 355,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_66",
+			"id": 357,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 355,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				359,
+				360
+			],
+			"friendly_name": "BuildSeq_67",
+			"id": 358,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_67",
+			"id": 359,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 358,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_67",
+			"id": 360,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 358,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				362,
+				363
+			],
+			"friendly_name": "BuildSeq_68",
+			"id": 361,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_68",
+			"id": 362,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 361,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_68",
+			"id": 363,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 361,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				365,
+				366
+			],
+			"friendly_name": "BuildSeq_69",
+			"id": 364,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_69",
+			"id": 365,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 364,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_69",
+			"id": 366,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 364,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				368,
+				369
+			],
+			"friendly_name": "BuildSeq_70",
+			"id": 367,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_70",
+			"id": 368,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 367,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_70",
+			"id": 369,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 367,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				371,
+				372
+			],
+			"friendly_name": "BuildSeq_71",
+			"id": 370,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_71",
+			"id": 371,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 370,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_71",
+			"id": 372,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 370,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				374,
+				375
+			],
+			"friendly_name": "BuildSeq_72",
+			"id": 373,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_72",
+			"id": 374,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 373,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_72",
+			"id": 375,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 373,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				377,
+				378
+			],
+			"friendly_name": "BuildSeq_73",
+			"id": 376,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_73",
+			"id": 377,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 376,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_73",
+			"id": 378,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 376,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				380,
+				381
+			],
+			"friendly_name": "BuildSeq_74",
+			"id": 379,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_74",
+			"id": 380,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 379,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_74",
+			"id": 381,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 379,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				383,
+				384
+			],
+			"friendly_name": "BuildSeq_75",
+			"id": 382,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_75",
+			"id": 383,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 382,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_75",
+			"id": 384,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 382,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				386,
+				387
+			],
+			"friendly_name": "BuildSeq_76",
+			"id": 385,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_76",
+			"id": 386,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 385,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_76",
+			"id": 387,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 385,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				389,
+				390
+			],
+			"friendly_name": "BuildSeq_77",
+			"id": 388,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_77",
+			"id": 389,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 388,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_77",
+			"id": 390,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 388,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				392,
+				393
+			],
+			"friendly_name": "BuildSeq_78",
+			"id": 391,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_78",
+			"id": 392,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 391,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_78",
+			"id": 393,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 391,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				395,
+				396
+			],
+			"friendly_name": "BuildSeq_79",
+			"id": 394,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_79",
+			"id": 395,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 394,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_79",
+			"id": 396,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 394,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				398,
+				399
+			],
+			"friendly_name": "BuildSeq_80",
+			"id": 397,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_80",
+			"id": 398,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 397,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_80",
+			"id": 399,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 397,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				401,
+				402
+			],
+			"friendly_name": "BuildSeq_81",
+			"id": 400,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_81",
+			"id": 401,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 400,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_81",
+			"id": 402,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 400,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				404,
+				405
+			],
+			"friendly_name": "BuildSeq_82",
+			"id": 403,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_82",
+			"id": 404,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 403,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_82",
+			"id": 405,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 403,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				407,
+				408
+			],
+			"friendly_name": "BuildSeq_83",
+			"id": 406,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_83",
+			"id": 407,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 406,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_83",
+			"id": 408,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 406,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				410,
+				411
+			],
+			"friendly_name": "BuildSeq_84",
+			"id": 409,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_84",
+			"id": 410,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 409,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_84",
+			"id": 411,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 409,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				413,
+				414
+			],
+			"friendly_name": "BuildSeq_85",
+			"id": 412,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_85",
+			"id": 413,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 412,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_85",
+			"id": 414,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 412,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				416,
+				417
+			],
+			"friendly_name": "BuildSeq_86",
+			"id": 415,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_86",
+			"id": 416,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 415,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_86",
+			"id": 417,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 415,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				419,
+				420
+			],
+			"friendly_name": "BuildSeq_87",
+			"id": 418,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_87",
+			"id": 419,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 418,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_87",
+			"id": 420,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 418,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				422,
+				423
+			],
+			"friendly_name": "BuildSeq_88",
+			"id": 421,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_88",
+			"id": 422,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 421,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_88",
+			"id": 423,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 421,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				425,
+				426
+			],
+			"friendly_name": "BuildSeq_89",
+			"id": 424,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_89",
+			"id": 425,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 424,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_89",
+			"id": 426,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 424,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				428,
+				429
+			],
+			"friendly_name": "BuildSeq_90",
+			"id": 427,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_90",
+			"id": 428,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 427,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_90",
+			"id": 429,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 427,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				431,
+				432
+			],
+			"friendly_name": "BuildSeq_91",
+			"id": 430,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_91",
+			"id": 431,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 430,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_91",
+			"id": 432,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 430,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				434,
+				435
+			],
+			"friendly_name": "BuildSeq_92",
+			"id": 433,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_92",
+			"id": 434,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 433,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_92",
+			"id": 435,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 433,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				437,
+				438
+			],
+			"friendly_name": "BuildSeq_93",
+			"id": 436,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_93",
+			"id": 437,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 436,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_93",
+			"id": 438,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 436,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				440,
+				441
+			],
+			"friendly_name": "BuildSeq_94",
+			"id": 439,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_94",
+			"id": 440,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 439,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_94",
+			"id": 441,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 439,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				443,
+				444
+			],
+			"friendly_name": "BuildSeq_95",
+			"id": 442,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_95",
+			"id": 443,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 442,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_95",
+			"id": 444,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 442,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				446,
+				447
+			],
+			"friendly_name": "BuildSeq_96",
+			"id": 445,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_96",
+			"id": 446,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 445,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_96",
+			"id": 447,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 445,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				449,
+				450
+			],
+			"friendly_name": "BuildSeq_97",
+			"id": 448,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_97",
+			"id": 449,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 448,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_97",
+			"id": 450,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 448,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				452,
+				453
+			],
+			"friendly_name": "BuildSeq_98",
+			"id": 451,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_98",
+			"id": 452,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 451,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_98",
+			"id": 453,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 451,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				455,
+				456
+			],
+			"friendly_name": "BuildSeq_99",
+			"id": 454,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_99",
+			"id": 455,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 454,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_99",
+			"id": 456,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 454,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				458,
+				459
+			],
+			"friendly_name": "BuildSeq_100",
+			"id": 457,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_100",
+			"id": 458,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 457,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_100",
+			"id": 459,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 457,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				461,
+				462
+			],
+			"friendly_name": "BuildSeq_101",
+			"id": 460,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_101",
+			"id": 461,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 460,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_101",
+			"id": 462,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 460,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				464,
+				465
+			],
+			"friendly_name": "BuildSeq_102",
+			"id": 463,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_102",
+			"id": 464,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 463,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_102",
+			"id": 465,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 463,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				467,
+				468
+			],
+			"friendly_name": "BuildSeq_103",
+			"id": 466,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_103",
+			"id": 467,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 466,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_103",
+			"id": 468,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 466,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				470,
+				471
+			],
+			"friendly_name": "BuildSeq_104",
+			"id": 469,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_104",
+			"id": 470,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 469,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_104",
+			"id": 471,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 469,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				473,
+				474
+			],
+			"friendly_name": "BuildSeq_105",
+			"id": 472,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_105",
+			"id": 473,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 472,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_105",
+			"id": 474,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 472,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				476,
+				477
+			],
+			"friendly_name": "BuildSeq_106",
+			"id": 475,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_106",
+			"id": 476,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 475,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_106",
+			"id": 477,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 475,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				479,
+				480
+			],
+			"friendly_name": "BuildSeq_107",
+			"id": 478,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_107",
+			"id": 479,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 478,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_107",
+			"id": 480,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 478,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				482,
+				483
+			],
+			"friendly_name": "BuildSeq_108",
+			"id": 481,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_108",
+			"id": 482,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 481,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_108",
+			"id": 483,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 481,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				485,
+				486
+			],
+			"friendly_name": "BuildSeq_109",
+			"id": 484,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_109",
+			"id": 485,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 484,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_109",
+			"id": 486,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 484,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				488,
+				489
+			],
+			"friendly_name": "BuildSeq_110",
+			"id": 487,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_110",
+			"id": 488,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 487,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_110",
+			"id": 489,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 487,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				491,
+				492
+			],
+			"friendly_name": "BuildSeq_111",
+			"id": 490,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_111",
+			"id": 491,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 490,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_111",
+			"id": 492,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 490,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				494,
+				495
+			],
+			"friendly_name": "BuildSeq_112",
+			"id": 493,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_112",
+			"id": 494,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 493,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_112",
+			"id": 495,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 493,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				497,
+				498
+			],
+			"friendly_name": "BuildSeq_113",
+			"id": 496,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_113",
+			"id": 497,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 496,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_113",
+			"id": 498,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 496,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				500,
+				501
+			],
+			"friendly_name": "BuildSeq_114",
+			"id": 499,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_114",
+			"id": 500,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 499,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_114",
+			"id": 501,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 499,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				503,
+				504
+			],
+			"friendly_name": "BuildSeq_115",
+			"id": 502,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_115",
+			"id": 503,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 502,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_115",
+			"id": 504,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 502,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				506,
+				507
+			],
+			"friendly_name": "BuildSeq_116",
+			"id": 505,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_116",
+			"id": 506,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 505,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_116",
+			"id": 507,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 505,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				509,
+				510
+			],
+			"friendly_name": "BuildSeq_117",
+			"id": 508,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_117",
+			"id": 509,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 508,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_117",
+			"id": 510,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 508,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				512,
+				513
+			],
+			"friendly_name": "BuildSeq_118",
+			"id": 511,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_118",
+			"id": 512,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 511,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_118",
+			"id": 513,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 511,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				515,
+				516
+			],
+			"friendly_name": "BuildSeq_119",
+			"id": 514,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_119",
+			"id": 515,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 514,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_119",
+			"id": 516,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 514,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				518,
+				519
+			],
+			"friendly_name": "BuildSeq_120",
+			"id": 517,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_120",
+			"id": 518,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 517,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_120",
+			"id": 519,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 517,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				521,
+				522
+			],
+			"friendly_name": "BuildSeq_121",
+			"id": 520,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_121",
+			"id": 521,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 520,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_121",
+			"id": 522,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 520,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				524,
+				525
+			],
+			"friendly_name": "BuildSeq_122",
+			"id": 523,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_122",
+			"id": 524,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 523,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_122",
+			"id": 525,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 523,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				527,
+				528
+			],
+			"friendly_name": "BuildSeq_123",
+			"id": 526,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_123",
+			"id": 527,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 526,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_123",
+			"id": 528,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 526,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				530,
+				531
+			],
+			"friendly_name": "BuildSeq_124",
+			"id": 529,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_124",
+			"id": 530,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 529,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_124",
+			"id": 531,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 529,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				533,
+				534
+			],
+			"friendly_name": "BuildSeq_125",
+			"id": 532,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_125",
+			"id": 533,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 532,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_125",
+			"id": 534,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 532,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				536,
+				537
+			],
+			"friendly_name": "BuildSeq_126",
+			"id": 535,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_126",
+			"id": 536,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 535,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_126",
+			"id": 537,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 535,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				539,
+				540
+			],
+			"friendly_name": "BuildSeq_127",
+			"id": 538,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_127",
+			"id": 539,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 538,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_127",
+			"id": 540,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 538,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				542,
+				543
+			],
+			"friendly_name": "BuildSeq_128",
+			"id": 541,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_128",
+			"id": 542,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 541,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_128",
+			"id": 543,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 541,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				545,
+				546
+			],
+			"friendly_name": "BuildSeq_129",
+			"id": 544,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_129",
+			"id": 545,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 544,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_129",
+			"id": 546,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 544,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				548,
+				549
+			],
+			"friendly_name": "BuildSeq_130",
+			"id": 547,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_130",
+			"id": 548,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 547,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_130",
+			"id": 549,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 547,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				551,
+				552
+			],
+			"friendly_name": "BuildSeq_131",
+			"id": 550,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_131",
+			"id": 551,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 550,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_131",
+			"id": 552,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 550,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				554,
+				555
+			],
+			"friendly_name": "BuildSeq_132",
+			"id": 553,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_132",
+			"id": 554,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 553,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_132",
+			"id": 555,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 553,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				557,
+				558
+			],
+			"friendly_name": "BuildSeq_133",
+			"id": 556,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_133",
+			"id": 557,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 556,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_133",
+			"id": 558,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 556,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				560,
+				561
+			],
+			"friendly_name": "BuildSeq_134",
+			"id": 559,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_134",
+			"id": 560,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 559,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_134",
+			"id": 561,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 559,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				563,
+				564
+			],
+			"friendly_name": "BuildSeq_135",
+			"id": 562,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_135",
+			"id": 563,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 562,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_135",
+			"id": 564,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 562,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				566,
+				567
+			],
+			"friendly_name": "BuildSeq_136",
+			"id": 565,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_136",
+			"id": 566,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 565,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_136",
+			"id": 567,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 565,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				569,
+				570
+			],
+			"friendly_name": "BuildSeq_137",
+			"id": 568,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_137",
+			"id": 569,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 568,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_137",
+			"id": 570,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 568,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				572,
+				573
+			],
+			"friendly_name": "BuildSeq_138",
+			"id": 571,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_138",
+			"id": 572,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 571,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_138",
+			"id": 573,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 571,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				575,
+				576
+			],
+			"friendly_name": "BuildSeq_139",
+			"id": 574,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_139",
+			"id": 575,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 574,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_139",
+			"id": 576,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 574,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				578,
+				579
+			],
+			"friendly_name": "BuildSeq_140",
+			"id": 577,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_140",
+			"id": 578,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 577,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_140",
+			"id": 579,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 577,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				581,
+				582
+			],
+			"friendly_name": "BuildSeq_141",
+			"id": 580,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_141",
+			"id": 581,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 580,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_141",
+			"id": 582,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 580,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				584,
+				585
+			],
+			"friendly_name": "BuildSeq_142",
+			"id": 583,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_142",
+			"id": 584,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 583,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_142",
+			"id": 585,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 583,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				587,
+				588
+			],
+			"friendly_name": "BuildSeq_143",
+			"id": 586,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_143",
+			"id": 587,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 586,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_143",
+			"id": 588,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 586,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				590,
+				591
+			],
+			"friendly_name": "BuildSeq_144",
+			"id": 589,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_144",
+			"id": 590,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 589,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_144",
+			"id": 591,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 589,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				593,
+				594
+			],
+			"friendly_name": "BuildSeq_145",
+			"id": 592,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_145",
+			"id": 593,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 592,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_145",
+			"id": 594,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 592,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				596,
+				597
+			],
+			"friendly_name": "BuildSeq_146",
+			"id": 595,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_146",
+			"id": 596,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 595,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_146",
+			"id": 597,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 595,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				599,
+				600
+			],
+			"friendly_name": "BuildSeq_147",
+			"id": 598,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_147",
+			"id": 599,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 598,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_147",
+			"id": 600,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 598,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				602,
+				603
+			],
+			"friendly_name": "BuildSeq_148",
+			"id": 601,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_148",
+			"id": 602,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 601,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_148",
+			"id": 603,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 601,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				605,
+				606
+			],
+			"friendly_name": "BuildSeq_149",
+			"id": 604,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_149",
+			"id": 605,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 604,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_149",
+			"id": 606,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 604,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				608,
+				609
+			],
+			"friendly_name": "BuildSeq_150",
+			"id": 607,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_150",
+			"id": 608,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 607,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_150",
+			"id": 609,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 607,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				611,
+				612
+			],
+			"friendly_name": "BuildSeq_151",
+			"id": 610,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_151",
+			"id": 611,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 610,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_151",
+			"id": 612,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 610,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				614,
+				615
+			],
+			"friendly_name": "BuildSeq_152",
+			"id": 613,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_152",
+			"id": 614,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 613,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_152",
+			"id": 615,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 613,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				617,
+				618
+			],
+			"friendly_name": "BuildSeq_153",
+			"id": 616,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_153",
+			"id": 617,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 616,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_153",
+			"id": 618,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 616,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				620,
+				621
+			],
+			"friendly_name": "BuildSeq_154",
+			"id": 619,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_154",
+			"id": 620,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 619,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_154",
+			"id": 621,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 619,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				623,
+				624
+			],
+			"friendly_name": "BuildSeq_155",
+			"id": 622,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_155",
+			"id": 623,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 622,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_155",
+			"id": 624,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 622,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				626,
+				627
+			],
+			"friendly_name": "BuildSeq_156",
+			"id": 625,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_156",
+			"id": 626,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 625,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_156",
+			"id": 627,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 625,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				629,
+				630
+			],
+			"friendly_name": "BuildSeq_157",
+			"id": 628,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_157",
+			"id": 629,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 628,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_157",
+			"id": 630,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 628,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				632,
+				633
+			],
+			"friendly_name": "BuildSeq_158",
+			"id": 631,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_158",
+			"id": 632,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 631,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_158",
+			"id": 633,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 631,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				635,
+				636
+			],
+			"friendly_name": "BuildSeq_159",
+			"id": 634,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_159",
+			"id": 635,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 634,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_159",
+			"id": 636,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 634,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				638,
+				639
+			],
+			"friendly_name": "BuildSeq_160",
+			"id": 637,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_160",
+			"id": 638,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 637,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_160",
+			"id": 639,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 637,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				641,
+				642
+			],
+			"friendly_name": "BuildSeq_161",
+			"id": 640,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_161",
+			"id": 641,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 640,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_161",
+			"id": 642,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 640,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				644,
+				645
+			],
+			"friendly_name": "BuildSeq_162",
+			"id": 643,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_162",
+			"id": 644,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 643,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_162",
+			"id": 645,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 643,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				647,
+				648
+			],
+			"friendly_name": "BuildSeq_163",
+			"id": 646,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_163",
+			"id": 647,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 646,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_163",
+			"id": 648,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 646,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				650,
+				651
+			],
+			"friendly_name": "BuildSeq_164",
+			"id": 649,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_164",
+			"id": 650,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 649,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_164",
+			"id": 651,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 649,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				653,
+				654
+			],
+			"friendly_name": "BuildSeq_165",
+			"id": 652,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_165",
+			"id": 653,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 652,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_165",
+			"id": 654,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 652,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				656,
+				657
+			],
+			"friendly_name": "BuildSeq_166",
+			"id": 655,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_166",
+			"id": 656,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 655,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_166",
+			"id": 657,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 655,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				659,
+				660
+			],
+			"friendly_name": "BuildSeq_167",
+			"id": 658,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_167",
+			"id": 659,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 658,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_167",
+			"id": 660,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 658,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				662,
+				663
+			],
+			"friendly_name": "BuildSeq_168",
+			"id": 661,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_168",
+			"id": 662,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 661,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_168",
+			"id": 663,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 661,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				665,
+				666
+			],
+			"friendly_name": "BuildSeq_169",
+			"id": 664,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_169",
+			"id": 665,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 664,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_169",
+			"id": 666,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 664,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				668,
+				669
+			],
+			"friendly_name": "BuildSeq_170",
+			"id": 667,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_170",
+			"id": 668,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 667,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_170",
+			"id": 669,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 667,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				671,
+				672
+			],
+			"friendly_name": "BuildSeq_171",
+			"id": 670,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_171",
+			"id": 671,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 670,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_171",
+			"id": 672,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 670,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				674,
+				675
+			],
+			"friendly_name": "BuildSeq_172",
+			"id": 673,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_172",
+			"id": 674,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 673,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_172",
+			"id": 675,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 673,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				677,
+				678
+			],
+			"friendly_name": "BuildSeq_173",
+			"id": 676,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_173",
+			"id": 677,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 676,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_173",
+			"id": 678,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 676,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				680,
+				681
+			],
+			"friendly_name": "BuildSeq_174",
+			"id": 679,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_174",
+			"id": 680,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 679,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_174",
+			"id": 681,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 679,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				683,
+				684
+			],
+			"friendly_name": "BuildSeq_175",
+			"id": 682,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_175",
+			"id": 683,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 682,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_175",
+			"id": 684,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 682,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				686,
+				687
+			],
+			"friendly_name": "BuildSeq_176",
+			"id": 685,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_176",
+			"id": 686,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 685,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_176",
+			"id": 687,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 685,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				689,
+				690
+			],
+			"friendly_name": "BuildSeq_177",
+			"id": 688,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_177",
+			"id": 689,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 688,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_177",
+			"id": 690,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 688,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				692,
+				693
+			],
+			"friendly_name": "BuildSeq_178",
+			"id": 691,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_178",
+			"id": 692,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 691,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_178",
+			"id": 693,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 691,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				695,
+				696
+			],
+			"friendly_name": "BuildSeq_179",
+			"id": 694,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_179",
+			"id": 695,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 694,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_179",
+			"id": 696,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 694,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				698,
+				699
+			],
+			"friendly_name": "BuildSeq_180",
+			"id": 697,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_180",
+			"id": 698,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 697,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_180",
+			"id": 699,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 697,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				701,
+				702
+			],
+			"friendly_name": "BuildSeq_181",
+			"id": 700,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_181",
+			"id": 701,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 700,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_181",
+			"id": 702,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 700,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				704,
+				705
+			],
+			"friendly_name": "BuildSeq_182",
+			"id": 703,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_182",
+			"id": 704,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 703,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_182",
+			"id": 705,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 703,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				707,
+				708
+			],
+			"friendly_name": "BuildSeq_183",
+			"id": 706,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_183",
+			"id": 707,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 706,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_183",
+			"id": 708,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 706,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				710,
+				711
+			],
+			"friendly_name": "BuildSeq_184",
+			"id": 709,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_184",
+			"id": 710,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 709,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_184",
+			"id": 711,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 709,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				713,
+				714
+			],
+			"friendly_name": "BuildSeq_185",
+			"id": 712,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_185",
+			"id": 713,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 712,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_185",
+			"id": 714,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 712,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				716,
+				717
+			],
+			"friendly_name": "BuildSeq_186",
+			"id": 715,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_186",
+			"id": 716,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 715,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_186",
+			"id": 717,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 715,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				719,
+				720
+			],
+			"friendly_name": "BuildSeq_187",
+			"id": 718,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_187",
+			"id": 719,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 718,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_187",
+			"id": 720,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 718,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				722,
+				723
+			],
+			"friendly_name": "BuildSeq_188",
+			"id": 721,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_188",
+			"id": 722,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 721,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_188",
+			"id": 723,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 721,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				725,
+				726
+			],
+			"friendly_name": "BuildSeq_189",
+			"id": 724,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_189",
+			"id": 725,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 724,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_189",
+			"id": 726,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 724,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				728,
+				729
+			],
+			"friendly_name": "BuildSeq_190",
+			"id": 727,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_190",
+			"id": 728,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 727,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_190",
+			"id": 729,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 727,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				731,
+				732
+			],
+			"friendly_name": "BuildSeq_191",
+			"id": 730,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_191",
+			"id": 731,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 730,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_191",
+			"id": 732,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 730,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				734,
+				735
+			],
+			"friendly_name": "BuildSeq_192",
+			"id": 733,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_192",
+			"id": 734,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 733,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_192",
+			"id": 735,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 733,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				737,
+				738
+			],
+			"friendly_name": "BuildSeq_193",
+			"id": 736,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_193",
+			"id": 737,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 736,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_193",
+			"id": 738,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 736,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				740,
+				741
+			],
+			"friendly_name": "BuildSeq_194",
+			"id": 739,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_194",
+			"id": 740,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 739,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_194",
+			"id": 741,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 739,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				743,
+				744
+			],
+			"friendly_name": "BuildSeq_195",
+			"id": 742,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_195",
+			"id": 743,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 742,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_195",
+			"id": 744,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 742,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				746,
+				747
+			],
+			"friendly_name": "BuildSeq_196",
+			"id": 745,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_196",
+			"id": 746,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 745,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_196",
+			"id": 747,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 745,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				749,
+				750
+			],
+			"friendly_name": "BuildSeq_197",
+			"id": 748,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_197",
+			"id": 749,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 748,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_197",
+			"id": 750,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 748,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				752,
+				753
+			],
+			"friendly_name": "BuildSeq_198",
+			"id": 751,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_198",
+			"id": 752,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 751,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_198",
+			"id": 753,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 751,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				755,
+				756
+			],
+			"friendly_name": "BuildSeq_199",
+			"id": 754,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_199",
+			"id": 755,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 754,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_199",
+			"id": 756,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 754,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				758,
+				759
+			],
+			"friendly_name": "BuildSeq_200",
+			"id": 757,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_200",
+			"id": 758,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 757,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_200",
+			"id": 759,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 757,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				761,
+				762
+			],
+			"friendly_name": "BuildSeq_201",
+			"id": 760,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_201",
+			"id": 761,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 760,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_201",
+			"id": 762,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 760,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				764,
+				765
+			],
+			"friendly_name": "BuildSeq_202",
+			"id": 763,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_202",
+			"id": 764,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 763,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_202",
+			"id": 765,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 763,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				767,
+				768
+			],
+			"friendly_name": "BuildSeq_203",
+			"id": 766,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_203",
+			"id": 767,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 766,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_203",
+			"id": 768,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 766,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				770,
+				771
+			],
+			"friendly_name": "BuildSeq_204",
+			"id": 769,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_204",
+			"id": 770,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 769,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_204",
+			"id": 771,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 769,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				773,
+				774
+			],
+			"friendly_name": "BuildSeq_205",
+			"id": 772,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_205",
+			"id": 773,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 772,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_205",
+			"id": 774,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 772,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				776,
+				777
+			],
+			"friendly_name": "BuildSeq_206",
+			"id": 775,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_206",
+			"id": 776,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 775,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_206",
+			"id": 777,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 775,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				779,
+				780
+			],
+			"friendly_name": "BuildSeq_207",
+			"id": 778,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_207",
+			"id": 779,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 778,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_207",
+			"id": 780,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 778,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				782,
+				783
+			],
+			"friendly_name": "BuildSeq_208",
+			"id": 781,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_208",
+			"id": 782,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 781,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_208",
+			"id": 783,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 781,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				785,
+				786
+			],
+			"friendly_name": "BuildSeq_209",
+			"id": 784,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_209",
+			"id": 785,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 784,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_209",
+			"id": 786,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 784,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				788,
+				789
+			],
+			"friendly_name": "BuildSeq_210",
+			"id": 787,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_210",
+			"id": 788,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 787,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_210",
+			"id": 789,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 787,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				791,
+				792
+			],
+			"friendly_name": "BuildSeq_211",
+			"id": 790,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_211",
+			"id": 791,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 790,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_211",
+			"id": 792,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 790,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				794,
+				795
+			],
+			"friendly_name": "BuildSeq_212",
+			"id": 793,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_212",
+			"id": 794,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 793,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_212",
+			"id": 795,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 793,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				797,
+				798
+			],
+			"friendly_name": "BuildSeq_213",
+			"id": 796,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_213",
+			"id": 797,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 796,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_213",
+			"id": 798,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 796,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				800,
+				801
+			],
+			"friendly_name": "BuildSeq_214",
+			"id": 799,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_214",
+			"id": 800,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 799,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_214",
+			"id": 801,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 799,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				803,
+				804
+			],
+			"friendly_name": "BuildSeq_215",
+			"id": 802,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_215",
+			"id": 803,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 802,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_215",
+			"id": 804,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 802,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				806,
+				807
+			],
+			"friendly_name": "BuildSeq_216",
+			"id": 805,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_216",
+			"id": 806,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 805,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_216",
+			"id": 807,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 805,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				809,
+				810
+			],
+			"friendly_name": "BuildSeq_217",
+			"id": 808,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_217",
+			"id": 809,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 808,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_217",
+			"id": 810,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 808,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				812,
+				813
+			],
+			"friendly_name": "BuildSeq_218",
+			"id": 811,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_218",
+			"id": 812,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 811,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_218",
+			"id": 813,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 811,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				815,
+				816
+			],
+			"friendly_name": "BuildSeq_219",
+			"id": 814,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_219",
+			"id": 815,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 814,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_219",
+			"id": 816,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 814,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				818,
+				819
+			],
+			"friendly_name": "BuildSeq_220",
+			"id": 817,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_220",
+			"id": 818,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 817,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_220",
+			"id": 819,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 817,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				821,
+				822
+			],
+			"friendly_name": "BuildSeq_221",
+			"id": 820,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_221",
+			"id": 821,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 820,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_221",
+			"id": 822,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 820,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				824,
+				825
+			],
+			"friendly_name": "BuildSeq_222",
+			"id": 823,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_222",
+			"id": 824,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 823,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_222",
+			"id": 825,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 823,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				827,
+				828
+			],
+			"friendly_name": "BuildSeq_223",
+			"id": 826,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_223",
+			"id": 827,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 826,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_223",
+			"id": 828,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 826,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				830,
+				831
+			],
+			"friendly_name": "BuildSeq_224",
+			"id": 829,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_224",
+			"id": 830,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 829,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_224",
+			"id": 831,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 829,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				833,
+				834
+			],
+			"friendly_name": "BuildSeq_225",
+			"id": 832,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_225",
+			"id": 833,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 832,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_225",
+			"id": 834,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 832,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				836,
+				837
+			],
+			"friendly_name": "BuildSeq_226",
+			"id": 835,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_226",
+			"id": 836,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 835,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_226",
+			"id": 837,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 835,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				839,
+				840
+			],
+			"friendly_name": "BuildSeq_227",
+			"id": 838,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_227",
+			"id": 839,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 838,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_227",
+			"id": 840,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 838,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				842,
+				843
+			],
+			"friendly_name": "BuildSeq_228",
+			"id": 841,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_228",
+			"id": 842,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 841,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_228",
+			"id": 843,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 841,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				845,
+				846
+			],
+			"friendly_name": "BuildSeq_229",
+			"id": 844,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_229",
+			"id": 845,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 844,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_229",
+			"id": 846,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 844,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				848,
+				849
+			],
+			"friendly_name": "BuildSeq_230",
+			"id": 847,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "BuildCond_230",
+			"id": 848,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 847,
+			"type_name": "CondResourceCheck"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "BuildAct_230",
+			"id": 849,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 847,
+			"type_name": "ActionProduceUnit"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [],
+			"friendly_name": "BuildSeq_231",
+			"id": 850,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 156,
+			"type_name": "Sequence"
+		}
+	],
+	"root_id": 1,
+	"tree_name": "RTS_Commander_850"
+}
