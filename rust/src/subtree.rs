@@ -89,7 +89,7 @@ fn do_load(task: &BTTaskNative, path: &str) {
     }
 
     // Drop the previous subtree runner before rebuilding.
-    stop_runner(task);
+    free_runner(task);
 
     let owner_id = task.data().owner_ref;
     let parent_runner = owner_id
@@ -278,7 +278,8 @@ fn setup_blackboard(task: &BTTaskNative) {
 
     // Point the subtree and all its nodes at the scoped blackboard.
     sub_tree.bind().set_blackboard(child_scope.to_variant());
-    for node in sub_tree.bind().data().nodes.clone() {
+    let nodes = sub_tree.bind().data().nodes.clone();
+    for node in nodes {
         node.bind().data_mut().blackboard_ref = Some(child_scope.clone());
     }
     task.data_mut().sub.blackboard = Some(child_scope);
@@ -356,6 +357,15 @@ pub fn stop_runner(task: &BTTaskNative) {
     if let Some(mut runner) = runner {
         let _ = runner.call("stop", &[]);
     }
+}
+
+pub fn free_runner(task: &BTTaskNative) {
+    let runner = task.data_mut().sub.runner.take();
+    if let Some(mut runner) = runner {
+        let _ = runner.call("stop", &[]);
+        runner.free();
+    }
+    task.data_mut().sub.tree = None;
 }
 
 pub fn abort_runner(task: &BTTaskNative) {

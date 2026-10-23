@@ -245,7 +245,7 @@ func _run() -> void:
 func _test_root_deletion_and_set_as_root() -> void:
 	var viewer := _make_viewer()
 	var tree := _tree_with_root()
-	var root_task := tree.root_task
+	var root_task: BTTask = tree.root_task
 	var child := BTTask.new()
 	child.id = 2
 	child.friendly_name = "Child"
@@ -446,7 +446,7 @@ func _test_typed_parameters() -> void:
 func _test_add_task_attachment() -> void:
 	var viewer := _make_viewer()
 	var tree := _tree_with_root()
-	var root_task := tree.root_task
+	var root_task: BTTask = tree.root_task
 	viewer.load_generic_tree(tree, "Attach")
 	viewer.select_node_by_id(1)
 	var popup: PopupMenu = viewer._add_task_menu_button.get_popup()

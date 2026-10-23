@@ -26,8 +26,9 @@ class CacheProbeB extends BTTask:
 		blackboard.set_var("cache_version_b", true)
 		return BTStatus.SUCCESS
 
-class DuckParent extends BTTask:
-	var children: Array = []
+class DuckParent extends BTParentTask:
+	# Custom parents extend BTParentTask: the native runner only ticks children
+	# of parent-capable kinds, so a leaf task holding children is rejected.
 	func on_update() -> int:
 		return BTStatus.SUCCESS
 
@@ -528,7 +529,7 @@ func _test_round2_fixes() -> void:
 	_check(m1_counter[0] == 1, "M1 shape decision memoized: created task once for 3 nodes of same type_name (creates=%d)" % m1_counter[0])
 
 	# ------------------------------------------------------------- Fix: M4
-	# Duck-typed custom parents (plain BTTask with `var children: Array = []`)
+	# Custom parents (BTParentTask subclasses registered under a custom type)
 	var m4_registry := BTTaskRegistry.new()
 	m4_registry.register_task("DuckParent", func(): return DuckParent.new(), "Action")
 	var m4_data := {
@@ -663,7 +664,7 @@ func _test_extended_encodings_and_whitelist() -> void:
 	var loaded_tree := BTTree.from_dict(parsed)
 	_check(loaded_tree != null, "tree with extended math types loads from JSON")
 
-	var loaded_root := loaded_tree.root_task
+	var loaded_root: BTTask = loaded_tree.root_task
 	_check(loaded_root.get_param("p_v2i") == v2i and typeof(loaded_root.get_param("p_v2i")) == TYPE_VECTOR2I, "Vector2i roundtrips with exact type")
 	_check(loaded_root.get_param("p_v3i") == v3i and typeof(loaded_root.get_param("p_v3i")) == TYPE_VECTOR3I, "Vector3i roundtrips with exact type")
 	_check(loaded_root.get_param("p_v4") == v4 and typeof(loaded_root.get_param("p_v4")) == TYPE_VECTOR4, "Vector4 roundtrips with exact type")

@@ -25,7 +25,12 @@ pub struct BTTaskRegistryNative {
 
 #[godot_api]
 impl BTTaskRegistryNative {
+    /// GDScript-facing shim: the facade adds default arguments.
     #[func]
+    pub fn bt_register_task(&self, p_type: GString, factory: Variant, category: GString) {
+        self.register_task(p_type, factory, category)
+    }
+
     pub fn register_task(&self, p_type: GString, factory: Variant, category: GString) {
         let key = p_type.to_string();
         let mut entries = self.entries.borrow_mut();
@@ -104,12 +109,19 @@ impl BTTaskRegistryNative {
             }
         }
 
-        // Unknown type: placeholder node that never executes.
-        let placeholder = facade::new_unknown_task(&p_type).unwrap_or_else(|| {
-            let mut task = BTTaskNative::new_gd();
-            task.bind()._make_placeholder(p_type.clone());
-            task
-        });
+        // Unknown type: placeholder node that never executes. The facade
+        // registry knows how to build its inner `BTUnknownTask` class.
+        let mut me = self.to_gd();
+        let from_facade = me.call("_make_unknown", &[p_type.to_variant()]);
+        let placeholder = from_facade
+            .try_to::<Gd<BTTaskNative>>()
+            .ok()
+            .filter(|t| is_valid(t))
+            .unwrap_or_else(|| {
+                let mut task = BTTaskNative::new_gd();
+                task.bind()._make_placeholder(p_type.clone());
+                task
+            });
         detect_overrides(&placeholder);
         placeholder
     }

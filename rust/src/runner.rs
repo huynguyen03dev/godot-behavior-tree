@@ -35,6 +35,7 @@ pub struct RunnerCore {
     pub tick_log: Vec<GString>,
     pub elapsed: f64,
     pub started: HashSet<i64>,
+    pub started_order: Vec<i64>,
     pub last_status_map: HashMap<i64, i64>,
     pub prepared: HashSet<i64>,
     pub pending_terminal: HashMap<i64, i64>,
@@ -59,6 +60,7 @@ impl Default for RunnerCore {
             tick_log: Vec::new(),
             elapsed: 0.0,
             started: HashSet::new(),
+            started_order: Vec::new(),
             last_status_map: HashMap::new(),
             prepared: HashSet::new(),
             pending_terminal: HashMap::new(),
@@ -66,6 +68,31 @@ impl Default for RunnerCore {
             budget: None,
             subtree_stack: Vec::new(),
         }
+    }
+}
+
+impl RunnerCore {
+    pub fn mark_started(&mut self, tid: i64) -> bool {
+        if self.started.insert(tid) {
+            self.started_order.push(tid);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn unmark_started(&mut self, tid: i64) -> bool {
+        if self.started.remove(&tid) {
+            self.started_order.retain(|&id| id != tid);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn clear_started(&mut self) {
+        self.started.clear();
+        self.started_order.clear();
     }
 }
 
@@ -105,7 +132,7 @@ pub struct BTRunnerNative {
     ticks: PhantomVar<i64>,
     #[var(get = get_task_executions, set = set_task_executions)]
     task_executions: PhantomVar<i64>,
-    #[var(get = get_time, no_set)]
+    #[var(get = get_time, set = set_time_prop)]
     time: PhantomVar<f64>,
     #[var(get = get_delta, no_set)]
     delta: PhantomVar<f64>,
@@ -115,6 +142,12 @@ pub struct BTRunnerNative {
     stopped_at_placeholder: PhantomVar<GString>,
     #[var(get = get_subtree_path_stack, set = set_subtree_path_stack)]
     subtree_path_stack: PhantomVar<VarArray>,
+    #[var(rename = _paused, get = get_paused_prop, no_set)]
+    paused_prop: PhantomVar<bool>,
+    #[var(rename = _started, get = get_started_prop, no_set)]
+    started_prop: PhantomVar<VarDictionary>,
+    #[var(rename = _ticking, get = get_ticking_prop, set = set_ticking_prop)]
+    ticking_prop: PhantomVar<bool>,
 }
 
 #[godot_api]
@@ -132,7 +165,7 @@ impl BTRunnerNative {
     #[func]
     pub fn get_bt_tree(&self) -> Variant {
         match &*self.tree_ref.borrow() {
-            Some(t) => t.to_variant(),
+            Some(tree) => tree.to_variant(),
             None => Variant::nil(),
         }
     }
@@ -149,7 +182,7 @@ impl BTRunnerNative {
     #[func]
     pub fn get_actor(&self) -> Variant {
         match &*self.actor_ref.borrow() {
-            Some(a) => a.to_variant(),
+            Some(actor) => actor.to_variant(),
             None => Variant::nil(),
         }
     }
@@ -195,6 +228,38 @@ impl BTRunnerNative {
     #[func]
     pub fn get_time(&self) -> f64 {
         self.core.borrow().time
+    }
+
+    #[func]
+    pub fn set_time_prop(&self, value: f64) {
+        self.core.borrow_mut().time = value;
+    }
+
+    #[func]
+    pub fn get_paused_prop(&self) -> bool {
+        self.core.borrow().paused
+    }
+
+    #[func]
+    pub fn get_ticking_prop(&self) -> bool {
+        self.core.borrow().ticking
+    }
+
+    #[func]
+    pub fn set_ticking_prop(&self, value: bool) {
+        self.core.borrow_mut().ticking = value;
+    }
+
+    #[func]
+    pub fn get_started_prop(&self) -> VarDictionary {
+        let ids = self.core.borrow().started_order.clone();
+        let mut out = VarDictionary::new();
+        for id in ids {
+            if let Ok(task) = Gd::<BTTaskNative>::try_from_instance_id(InstanceId::from_i64(id)) {
+                out.set(&task.to_variant(), true);
+            }
+        }
+        out
     }
 
     #[func]
@@ -325,7 +390,8 @@ impl BTRunnerNative {
             self.stop();
         } else if let Some(previous) = self.tree() {
             let me = oid(&self.to_gd());
-            for task in previous.bind().data().nodes.clone() {
+            let previous_nodes = previous.bind().data().nodes.clone();
+            for task in previous_nodes {
                 if task.bind().data().owner_ref == Some(self.to_gd().instance_id()) {
                     let _ = me;
                     task.bind().data_mut().owner_ref = None;
@@ -338,7 +404,7 @@ impl BTRunnerNative {
 
     pub fn reset_state(&self) {
         let mut core = self.core.borrow_mut();
-        core.started.clear();
+        core.clear_started();
         core.last_status_map.clear();
         core.prepared.clear();
         core.pending_terminal.clear();
@@ -415,8 +481,8 @@ impl BTRunnerNative {
         }
         let started: Vec<i64> = {
             let mut core = self.core.borrow_mut();
-            let ids = core.started.iter().copied().collect();
-            core.started.clear();
+            let ids = core.started_order.clone();
+            core.clear_started();
             core.prepared.clear();
             core.pending_terminal.clear();
             ids
@@ -458,7 +524,7 @@ impl BTRunnerNative {
         if let Some(root) = self.root_task() {
             self.abort_task_branch(&root);
         }
-        let remaining: Vec<i64> = self.core.borrow().started.iter().copied().collect();
+        let remaining: Vec<i64> = self.core.borrow().started_order.clone();
         for id in remaining {
             if let Ok(task) = Gd::<BTTaskNative>::try_from_instance_id(InstanceId::from_i64(id)) {
                 self.abort_task_branch(&task);
@@ -482,7 +548,12 @@ impl BTRunnerNative {
     }
 
     // ------------------------------------------------------------ tick
+    /// GDScript-facing shim: the facade adds default arguments.
     #[func]
+    pub fn bt_tick(&self, p_delta: f64) -> i64 {
+        self.tick(p_delta)
+    }
+
     pub fn tick(&self, p_delta: f64) -> i64 {
         if self.core.borrow().ticking {
             godot_warn!(
@@ -580,7 +651,8 @@ impl BTRunnerNative {
         }
         let tid = oid(task);
 
-        if let Some(pending) = self.core.borrow_mut().pending_terminal.remove(&tid) {
+        let pending = { self.core.borrow_mut().pending_terminal.remove(&tid) };
+        if let Some(pending) = pending {
             task.bind().data_mut().last_status = pending;
             self.core.borrow_mut().last_status_map.insert(tid, pending);
             return pending;
@@ -591,6 +663,9 @@ impl BTRunnerNative {
             let d = guard.data();
             (d.kind, d.is_placeholder)
         };
+        task::ensure_overrides(task);
+        // Refreshes the child cache when GDScript mutated the public array.
+        let child_list = task::children_of(task);
         let is_container = kind.is_container();
         let (max_exec, cur_exec) = self.budget_state();
         if max_exec > 0 && cur_exec >= max_exec && !is_container {
@@ -601,19 +676,24 @@ impl BTRunnerNative {
         }
 
         if is_placeholder {
-            {
+            let first = {
                 let mut core = self.core.borrow_mut();
                 if core.stopped_at_placeholder.is_empty() {
                     core.stopped_at_placeholder = task.bind().data().type_name.clone();
+                    true
+                } else {
+                    false
                 }
+            };
+            if first {
+                let label = self.core.borrow().stopped_at_placeholder.clone();
+                self.log_tick(format!("<placeholder:{}>", label));
             }
-            let label = self.core.borrow().stopped_at_placeholder.clone();
-            self.log_tick(format!("<placeholder:{}>", label));
             return INACTIVE;
         }
 
         if !self.core.borrow().started.contains(&tid) {
-            self.core.borrow_mut().started.insert(tid);
+            self.core.borrow_mut().mark_started(tid);
             let activation_generation = self.core.borrow().generation;
             lifecycle::start(task);
             if activation_generation != self.core.borrow().generation
@@ -681,7 +761,7 @@ impl BTRunnerNative {
                 }
                 last_child_index = child_idx;
                 let mut child_status = INACTIVE;
-                let children = task.bind().data().children.clone();
+                let children = &child_list;
                 if child_idx >= 0 && (child_idx as usize) < children.len() {
                     let child_hook_generation = self.core.borrow().generation;
                     dispatch::on_child_started(task, child_idx);
@@ -749,9 +829,10 @@ impl BTRunnerNative {
         task.bind().data_mut().last_status = result;
 
         if result != RUNNING {
-            self.core.borrow_mut().started.remove(&tid);
+            self.core.borrow_mut().unmark_started(tid);
             if kind.has_children() {
-                for child in task.bind().data().children.clone() {
+                let children = task.bind().data().children.clone();
+                for child in children {
                     self.abort_task_branch(&child);
                 }
             }
@@ -833,7 +914,7 @@ impl BTRunnerNative {
         }
         let current_index = self.child_at_execution_order(composite, cursor);
 
-        if kind == task::Kind::Selector
+        if matches!(kind, task::Kind::Selector | task::Kind::RandomSelector)
             && (abort_type == ABORT_LOWER_PRIORITY || abort_type == ABORT_BOTH)
         {
             for order_index in 0..cursor {
@@ -856,7 +937,9 @@ impl BTRunnerNative {
             }
         }
 
-        if kind == task::Kind::Sequence && (abort_type == ABORT_SELF || abort_type == ABORT_BOTH) {
+        if matches!(kind, task::Kind::Sequence | task::Kind::RandomSequence)
+            && (abort_type == ABORT_SELF || abort_type == ABORT_BOTH)
+        {
             for order_index in 0..cursor {
                 let index = self.child_at_execution_order(composite, order_index);
                 if index < 0 || (index as usize) >= children.len() {
@@ -982,11 +1065,13 @@ impl BTRunnerNative {
         self.core.borrow_mut().pending_terminal.remove(&tid);
         let kind = task.bind().data().kind;
         if kind.has_children() {
-            for child in task.bind().data().children.clone() {
+            let children = task.bind().data().children.clone();
+            for child in children {
                 self.abort_task_branch(&child);
             }
         }
-        if self.core.borrow_mut().started.remove(&tid) {
+        let was_started = self.core.borrow_mut().unmark_started(tid);
+        if was_started {
             self.core.borrow_mut().last_status_map.insert(tid, FAILURE);
             task.bind().data_mut().last_status = FAILURE;
             lifecycle::abort(task);
@@ -996,7 +1081,12 @@ impl BTRunnerNative {
     }
 
     // ------------------------------------------------------------ public API
+    /// GDScript-facing shim: the facade adds default arguments.
     #[func]
+    pub fn bt_send_event(&self, event_name: GString, data: Variant) {
+        self.send_event(event_name, data)
+    }
+
     pub fn send_event(&self, event_name: GString, data: Variant) {
         for task in self.tree_nodes() {
             if !task.bind().data().is_placeholder {
@@ -1005,7 +1095,12 @@ impl BTRunnerNative {
         }
     }
 
+    /// GDScript-facing shim: the facade adds default arguments.
     #[func]
+    pub fn bt_pause(&self, paused: bool) {
+        self.pause(paused)
+    }
+
     pub fn pause(&self, paused: bool) {
         if paused {
             if !self.core.borrow().is_running {
@@ -1024,7 +1119,7 @@ impl BTRunnerNative {
         }
         self.core.borrow_mut().is_running = !paused;
 
-        let started: Vec<i64> = self.core.borrow().started.iter().copied().collect();
+        let started: Vec<i64> = self.core.borrow().started_order.clone();
         for id in started {
             if let Ok(task) = Gd::<BTTaskNative>::try_from_instance_id(InstanceId::from_i64(id)) {
                 if !task.bind().data().is_placeholder {
@@ -1034,7 +1129,12 @@ impl BTRunnerNative {
         }
     }
 
+    /// GDScript-facing shim: the facade adds default arguments.
     #[func]
+    pub fn bt_interrupt(&self, task: Variant, status: i64) {
+        self.interrupt(task, status)
+    }
+
     pub fn interrupt(&self, task: Variant, status: i64) {
         let Ok(task) = task.try_to::<Gd<BTTaskNative>>() else {
             return;

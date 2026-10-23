@@ -47,7 +47,7 @@ impl BTTaskVariableNative {
 pub struct BTBlackboardNative {
     base: Base<RefCounted>,
 
-    #[var(get = get_parent_scope, set = set_parent_scope)]
+    #[var(rename = parent_scope, get = get_parent_scope, set = set_parent_scope)]
     parent_scope_prop: PhantomVar<Variant>,
     parent: RefCell<Option<Gd<BTBlackboardNative>>>,
 
@@ -103,6 +103,17 @@ impl BTBlackboardNative {
 
     /// Writes a variable in this scope only, never consulting ancestors.
     #[func]
+    pub fn bt_set_var_local(
+        &self,
+        p_name: GString,
+        p_value: Variant,
+        p_type: GString,
+        p_is_shared: bool,
+        p_description: GString,
+    ) {
+        self.set_var_local(p_name, p_value, p_type, p_is_shared, p_description);
+    }
+
     pub fn set_var_local(
         &self,
         p_name: GString,
@@ -136,13 +147,18 @@ impl BTBlackboardNative {
         } else {
             p_type
         };
-        let var = new_variable(&p_name, &p_value, &type_str, p_is_shared, &p_description);
+        let var = self.make_variable(&p_name, &p_value, &type_str, p_is_shared, &p_description);
         self.store(&key, var);
         self.emit_changed(&p_name, &p_value, &Variant::nil());
     }
 
     /// Writes a variable honouring shared ancestor scopes.
+    /// GDScript-facing shim: the facade adds default arguments.
     #[func]
+    pub fn bt_set_var(&self, p_name: GString, p_value: Variant, p_type: GString) {
+        self.set_var(p_name, p_value, p_type)
+    }
+
     pub fn set_var(&self, p_name: GString, p_value: Variant, p_type: GString) {
         let key = p_name.to_string();
 
@@ -169,8 +185,11 @@ impl BTBlackboardNative {
                 let shared = found.bind().is_shared;
                 if shared {
                     scope.bind().set_var(p_name, p_value, p_type);
+                    return;
                 }
-                return;
+                // A private ancestor variable does not receive the write; the
+                // value is created locally so the caller sees their assignment.
+                break;
             }
             let next = scope.bind().parent.borrow().clone();
             ancestor = next;
@@ -181,12 +200,17 @@ impl BTBlackboardNative {
         } else {
             p_type
         };
-        let var = new_variable(&p_name, &p_value, &type_str, false, &GString::new());
+        let var = self.make_variable(&p_name, &p_value, &type_str, true, &GString::new());
         self.store(&key, var);
         self.emit_changed(&p_name, &p_value, &Variant::nil());
     }
 
+    /// GDScript-facing shim: the facade adds default arguments.
     #[func]
+    pub fn bt_get_var(&self, p_name: GString, default_value: Variant) -> Variant {
+        self.get_var(p_name, default_value)
+    }
+
     pub fn get_var(&self, p_name: GString, default_value: Variant) -> Variant {
         if let Some(v) = self.find(&p_name.to_string()) {
             return v.bind().value.clone();
@@ -275,6 +299,35 @@ impl BTBlackboardNative {
     #[func]
     pub fn clear(&self) {
         self.vars.borrow_mut().clear();
+    }
+}
+
+impl BTBlackboardNative {
+    /// Builds a variable through the facade so GDScript keeps its
+    /// `BTBlackboard.Variable` type (typed annotations and `is` checks).
+    fn make_variable(
+        &self,
+        name: &GString,
+        value: &Variant,
+        type_name: &GString,
+        is_shared: bool,
+        description: &GString,
+    ) -> Gd<BTTaskVariableNative> {
+        let mut me = self.to_gd();
+        let built = me.call(
+            "_make_variable",
+            &[name.to_variant(), value.clone(), type_name.to_variant()],
+        );
+        let mut var = match built.try_to::<Gd<BTTaskVariableNative>>() {
+            Ok(var) if is_valid(&var) => var,
+            _ => new_variable(name, value, type_name, is_shared, description),
+        };
+        {
+            let mut v = var.bind_mut();
+            v.is_shared = is_shared;
+            v.description = description.clone();
+        }
+        var
     }
 }
 

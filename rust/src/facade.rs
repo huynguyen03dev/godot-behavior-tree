@@ -5,15 +5,17 @@
 //! arguments, inner classes, `is` checks) keeps working. Native code that must
 //! create such an object (subtree sub-runners, placeholder tasks, trees built
 //! from JSON) goes through here.
+//!
+//! Instantiation uses `ClassDB` because a GDScript's `new()` is a language
+//! construct, not a callable method (`script.call("new")` fails on 4.7).
 
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use godot::classes::{Node, RefCounted, Script};
+use godot::classes::{Node, Script};
 use godot::prelude::*;
 
 use crate::blackboard::BTBlackboardNative;
-use crate::common::is_valid;
 use crate::registry::BTTaskRegistryNative;
 use crate::task::BTTaskNative;
 use crate::tree::BTTreeNative;
@@ -29,18 +31,20 @@ thread_local! {
     static CACHE: RefCell<HashMap<String, Option<Gd<Script>>>> = RefCell::new(HashMap::new());
 }
 
-pub fn script(path: &str) -> Option<Gd<Script>> {
+fn script(path: &str) -> Option<Gd<Script>> {
     if let Some(hit) = CACHE.with(|c| c.borrow().get(path).cloned()) {
         return hit;
     }
-    let loaded = try_load::<Script>(path).ok().filter(|s| is_valid(&s));
+    let loaded = try_load::<Script>(path).ok().filter(|s| crate::common::is_valid(s));
     CACHE.with(|c| c.borrow_mut().insert(path.to_string(), loaded.clone()));
     loaded
 }
 
-fn new_from(script: Gd<Script>, args: &[Variant]) -> Option<Variant> {
-    let mut s = script;
-    let value = s.call("new", args);
+/// Instantiates a facade script. GDScript classes are not in `ClassDB`
+/// (`class_exists("BTTree")` is false), but `new` is callable on the script.
+fn instantiate(path: &str) -> Option<Variant> {
+    let mut script = script(path)?;
+    let value = script.call("new", &[]);
     if value.get_type() == VariantType::OBJECT {
         Some(value)
     } else {
@@ -48,47 +52,40 @@ fn new_from(script: Gd<Script>, args: &[Variant]) -> Option<Variant> {
     }
 }
 
-/// Instantiates an inner class (`class Foo extends ...`) of a facade script.
-pub fn inner_new(outer_path: &str, class_name: &str, args: &[Variant]) -> Option<Variant> {
-    let mut outer = script(outer_path)?;
-    let constants = outer
-        .call("get_script_constant_map", &[])
-        .try_to::<VarDictionary>()
-        .ok()?;
-    let inner = constants.get(class_name)?.try_to::<Gd<Script>>().ok()?;
-    new_from(inner, args)
-}
-
 pub fn new_task() -> Option<Gd<BTTaskNative>> {
-    new_from(script(TASK_SCRIPT)?, &[])?.try_to::<Gd<BTTaskNative>>().ok()
+    instantiate(TASK_SCRIPT)?.try_to::<Gd<BTTaskNative>>().ok()
 }
 
 pub fn new_tree() -> Option<Gd<BTTreeNative>> {
-    new_from(script(TREE_SCRIPT)?, &[])?.try_to::<Gd<BTTreeNative>>().ok()
+    instantiate(TREE_SCRIPT)?.try_to::<Gd<BTTreeNative>>().ok()
 }
 
 pub fn new_blackboard() -> Option<Gd<BTBlackboardNative>> {
-    new_from(script(BLACKBOARD_SCRIPT)?, &[])?
+    instantiate(BLACKBOARD_SCRIPT)?
         .try_to::<Gd<BTBlackboardNative>>()
         .ok()
 }
 
 pub fn new_registry() -> Option<Gd<BTTaskRegistryNative>> {
-    new_from(script(REGISTRY_SCRIPT)?, &[])?
+    instantiate(REGISTRY_SCRIPT)?
         .try_to::<Gd<BTTaskRegistryNative>>()
         .ok()
 }
 
 pub fn new_runner(tree: Option<Gd<BTTreeNative>>) -> Option<Gd<Node>> {
-    let args = vec![match tree {
-        Some(t) => t.to_variant(),
-        None => Variant::nil(),
-    }];
-    let obj = new_from(script(RUNNER_SCRIPT)?, &args)?;
-    obj.try_to::<Gd<Node>>().ok()
+    let value = instantiate(RUNNER_SCRIPT)?;
+    let mut node = value.try_to::<Gd<Node>>().ok()?;
+    if let Some(tree) = tree {
+        node.set("tree", &tree.to_variant());
+    }
+    Some(node)
 }
 
-pub fn new_unknown_task(type_name: &GString) -> Option<Gd<BTTaskNative>> {
-    let obj = inner_new(REGISTRY_SCRIPT, "BTUnknownTask", &[type_name.to_variant()])?;
-    obj.try_to::<Gd<BTTaskNative>>().ok()
+pub fn new_subtree(path: &GString) -> Option<Gd<BTTaskNative>> {
+    let value = instantiate(SUBTREE_SCRIPT)?;
+    let mut task = value.try_to::<Gd<BTTaskNative>>().ok()?;
+    if !path.is_empty() {
+        task.set("tree_path", &path.to_variant());
+    }
+    Some(task)
 }

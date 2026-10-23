@@ -109,6 +109,17 @@ impl Kind {
     }
 }
 
+impl Drop for SubTreeData {
+    fn drop(&mut self) {
+        if let Some(mut runner) = self.runner.take() {
+            let _ = runner.call("stop", &[]);
+            if crate::common::is_valid(&runner) {
+                runner.free();
+            }
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct SubTreeData {
     pub tree: Option<Gd<crate::tree::BTTreeNative>>,
@@ -128,6 +139,9 @@ pub struct TaskData {
     pub is_placeholder: bool,
     pub parameters: VarDictionary,
 
+    /// Public, live children array (GDScript may append/erase directly).
+    pub children_array: VarArray,
+    /// Cache mirroring `children_array`, rebuilt when lengths diverge.
     pub children: Vec<Gd<BTTaskNative>>,
     pub parent_ref: Option<InstanceId>,
     pub owner_ref: Option<InstanceId>,
@@ -146,6 +160,7 @@ pub struct TaskData {
 
     pub kind: Kind,
     pub overrides: u32,
+    pub overrides_checked: bool,
     pub iteration: i64,
     pub last_execution_time: f64,
     pub start_time: f64,
@@ -172,6 +187,7 @@ impl TaskData {
             category: GString::from("Action"),
             is_placeholder: false,
             parameters: VarDictionary::new(),
+            children_array: VarArray::new(),
             children: Vec::new(),
             parent_ref: None,
             owner_ref: None,
@@ -187,6 +203,7 @@ impl TaskData {
             time_limit: 5.0,
             kind: Kind::Leaf,
             overrides: 0,
+            overrides_checked: false,
             iteration: 0,
             last_execution_time: -999999.0,
             start_time: 0.0,
@@ -250,6 +267,22 @@ pub struct BTTaskNative {
     time_limit: PhantomVar<f64>,
     #[var(get = get_tree_path, set = set_tree_path)]
     tree_path: PhantomVar<GString>,
+    #[var(rename = _warned_bindings, get = get_warned_bindings, no_set)]
+    warned_bindings: PhantomVar<VarDictionary>,
+    #[var(rename = _sub_runner, get = get_sub_runner, no_set)]
+    sub_runner: PhantomVar<Variant>,
+    #[var(rename = _shuffled_order, get = get_shuffled_order, set = set_shuffled_order)]
+    shuffled_order_prop: PhantomVar<VarArray>,
+    #[var(rename = _last_execution_time, get = get_last_execution_time, no_set)]
+    last_execution_time_prop: PhantomVar<f64>,
+    #[var(rename = _warned_placeholders, get = get_warned_placeholders, no_set)]
+    warned_placeholders_prop: PhantomVar<VarDictionary>,
+    #[var(rename = _sub_blackboard, get = get_sub_blackboard, no_set)]
+    sub_blackboard_prop: PhantomVar<Variant>,
+    #[var(rename = _load_failure_warned, get = get_load_failure_warned, set = set_load_failure_warned)]
+    load_failure_warned_prop: PhantomVar<bool>,
+    #[var(rename = _loaded_path, get = get_loaded_path, set = set_loaded_path)]
+    loaded_path_prop: PhantomVar<GString>,
 }
 
 impl BTTaskNative {
@@ -321,31 +354,55 @@ impl BTTaskNative {
 
     #[func]
     pub fn get_children(&self) -> VarArray {
-        let mut out = VarArray::new();
-        for child in &self.d.borrow().children {
-            out.push(child);
+        self.d.borrow().children_array.clone()
+    }
+
+    /// Returns the child list, rebuilding the `Gd` cache when user code has
+    /// mutated the public `children` array directly.
+    pub fn children_snapshot(&self) -> Vec<Gd<BTTaskNative>> {
+        let (array, cached_len) = {
+            let d = self.d.borrow();
+            (d.children_array.clone(), d.children.len())
+        };
+        if array.len() == cached_len {
+            return self.d.borrow().children.clone();
         }
-        out
+        let mut rebuilt = Vec::with_capacity(array.len());
+        for item in array.iter_shared() {
+            if let Ok(task) = item.try_to::<Gd<BTTaskNative>>() {
+                rebuilt.push(task);
+            }
+        }
+        self.d.borrow_mut().children = rebuilt.clone();
+        rebuilt
+    }
+
+    pub fn child_count(&self) -> usize {
+        self.d.borrow().children_array.len()
     }
 
     #[func]
     pub fn get_parent_task(&self) -> Variant {
-        match self.d.borrow().parent_ref {
-            Some(id) => match Gd::<BTTaskNative>::try_from_instance_id(id) {
-                Ok(gd) => gd.to_variant(),
-                Err(_) => Variant::nil(),
-            },
+        match self
+            .d
+            .borrow()
+            .parent_ref
+            .and_then(|id| Gd::<BTTaskNative>::try_from_instance_id(id).ok())
+        {
+            Some(task) => task.to_variant(),
             None => Variant::nil(),
         }
     }
 
     #[func]
     pub fn get_owner_node(&self) -> Variant {
-        match self.d.borrow().owner_ref {
-            Some(id) => match Gd::<Node>::try_from_instance_id(id) {
-                Ok(gd) => gd.to_variant(),
-                Err(_) => Variant::nil(),
-            },
+        match self
+            .d
+            .borrow()
+            .owner_ref
+            .and_then(|id| Gd::<Node>::try_from_instance_id(id).ok())
+        {
+            Some(node) => node.to_variant(),
             None => Variant::nil(),
         }
     }
@@ -455,6 +512,89 @@ impl BTTaskNative {
     }
 
     #[func]
+    pub fn get_warned_bindings(&self) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        for key in &self.d.borrow().warned_bindings {
+            out.set(key.as_str(), true);
+        }
+        out
+    }
+
+    #[func]
+    pub fn get_shuffled_order(&self) -> VarArray {
+        let mut out = VarArray::new();
+        for index in &self.d.borrow().shuffled_order {
+            out.push(*index);
+        }
+        out
+    }
+
+    #[func]
+    pub fn set_shuffled_order(&self, value: VarArray) {
+        let mut order = Vec::with_capacity(value.len());
+        for item in value.iter_shared() {
+            order.push(crate::tree::to_int(&item));
+        }
+        self.d.borrow_mut().shuffled_order = order;
+    }
+
+    #[func]
+    pub fn get_last_execution_time(&self) -> f64 {
+        self.d.borrow().last_execution_time
+    }
+
+    #[func]
+    pub fn get_warned_placeholders(&self) -> VarDictionary {
+        let ids: Vec<i64> = self.d.borrow().warned_placeholders.iter().copied().collect();
+        let mut out = VarDictionary::new();
+        for id in ids {
+            if let Ok(task) = Gd::<BTTaskNative>::try_from_instance_id(InstanceId::from_i64(id)) {
+                out.set(&task.to_variant(), true);
+            }
+        }
+        out
+    }
+
+    #[func]
+    pub fn get_sub_runner(&self) -> Variant {
+        match &self.d.borrow().sub.runner {
+            Some(runner) => runner.to_variant(),
+            None => Variant::nil(),
+        }
+    }
+
+    #[func]
+    pub fn get_sub_blackboard(&self) -> Variant {
+        match &self.d.borrow().sub.blackboard {
+            Some(bb) => bb.to_variant(),
+            None => Variant::nil(),
+        }
+    }
+
+    #[func]
+    pub fn get_load_failure_warned(&self) -> bool {
+        self.d.borrow().sub.warned
+    }
+    #[func]
+    pub fn set_load_failure_warned(&self, value: bool) {
+        self.d.borrow_mut().sub.warned = value;
+    }
+
+    #[func]
+    pub fn get_loaded_path(&self) -> GString {
+        GString::from(self.d.borrow().sub.loaded_path.as_str())
+    }
+    #[func]
+    pub fn set_loaded_path(&self, value: GString) {
+        self.d.borrow_mut().sub.loaded_path = value.to_string();
+    }
+
+    #[func]
+    pub fn _runner_time(&self) -> f64 {
+        runner_time(self.d.borrow().owner_ref)
+    }
+
+    #[func]
     pub fn get_tree_path(&self) -> GString {
         self.param_string("tree_path", &GString::new())
     }
@@ -492,7 +632,12 @@ impl BTTaskNative {
     }
 
     // ------------------------------------------------------------ parameters
+    /// GDScript-facing shim: the facade adds default arguments.
     #[func]
+    pub fn bt_get_param(&self, name: GString, default_val: Variant) -> Variant {
+        self.get_param(name, default_val)
+    }
+
     pub fn get_param(&self, name: GString, default_val: Variant) -> Variant {
         let (raw, blackboard) = {
             let d = self.d.borrow();
@@ -504,7 +649,12 @@ impl BTTaskNative {
         resolve_param(self, &name, raw, default_val, blackboard)
     }
 
+    /// GDScript-facing shim: the facade adds default arguments.
     #[func]
+    pub fn bt_set_param(&self, name: GString, value: Variant, is_blackboard_key: bool) {
+        self.set_param(name, value, is_blackboard_key)
+    }
+
     pub fn set_param(&self, name: GString, value: Variant, is_blackboard_key: bool) {
         let mut d = self.d.borrow_mut();
         if is_blackboard_key {
@@ -570,7 +720,12 @@ impl BTTaskNative {
         coerce_bool(&value, fallback)
     }
 
+    /// GDScript-facing shim: the facade adds default arguments.
     #[func]
+    pub fn bt_get_blackboard_var(&self, name: GString, default_val: Variant) -> Variant {
+        self.get_blackboard_var(name, default_val)
+    }
+
     pub fn get_blackboard_var(&self, name: GString, default_val: Variant) -> Variant {
         let blackboard = self.d.borrow().blackboard_ref.clone();
         match blackboard {
@@ -585,6 +740,35 @@ impl BTTaskNative {
         if let Some(bb) = blackboard {
             bb.bind().set_var(name, value, GString::new());
         }
+    }
+
+    /// Typed parameter schema for the editor. Builtin config decorators expose
+    /// their fields here; custom tasks may not override this name.
+    #[func]
+    pub fn get_parameter_schema(&self) -> VarDictionary {
+        let d = self.d.borrow();
+        let mut out = VarDictionary::new();
+        let mut entry = |key: &str, type_name: &str, default: Variant| {
+            let mut spec = VarDictionary::new();
+            spec.set("type", type_name);
+            spec.set("default", &default);
+            out.set(key, &spec.to_variant());
+        };
+        match d.kind {
+            Kind::Repeater => {
+                entry("count", "int", d.count.to_variant());
+                entry("repeat_forever", "bool", d.repeat_forever.to_variant());
+                entry("end_on_failure", "bool", d.end_on_failure.to_variant());
+            }
+            Kind::Cooldown => {
+                entry("cooldown_time", "float", d.cooldown_time.to_variant());
+            }
+            Kind::TimeLimit => {
+                entry("time_limit", "float", d.time_limit.to_variant());
+            }
+            _ => {}
+        }
+        out
     }
 
     #[func]
@@ -638,10 +822,13 @@ impl BTTaskNative {
         }
         {
             let d = self.d.borrow();
-            if d.children.iter().any(|c| c.instance_id() == child.instance_id()) {
+            if d.children_array
+                .iter_shared()
+                .any(|c| c.try_to::<Gd<BTTaskNative>>().map(|t| t.instance_id()).ok() == Some(child.instance_id()))
+            {
                 return;
             }
-            if d.kind.is_decorator() && !d.children.is_empty() {
+            if d.kind.is_decorator() && !d.children_array.is_empty() {
                 return;
             }
         }
@@ -660,7 +847,11 @@ impl BTTaskNative {
             }
         }
         child.bind().data_mut().parent_ref = Some(self.to_gd().instance_id());
-        self.d.borrow_mut().children.push(child);
+        {
+            let mut d = self.d.borrow_mut();
+            d.children_array.push(&child.to_variant());
+            d.children.push(child);
+        }
     }
 
     #[func]
@@ -673,6 +864,17 @@ impl BTTaskNative {
             let before = d.children.len();
             d.children
                 .retain(|c| c.instance_id() != child.instance_id());
+            let mut kept = VarArray::new();
+            for item in d.children_array.iter_shared() {
+                let same = item
+                    .try_to::<Gd<BTTaskNative>>()
+                    .map(|t| t.instance_id() == child.instance_id())
+                    .unwrap_or(false);
+                if !same {
+                    kept.push(&item);
+                }
+            }
+            d.children_array = kept;
             d.children.len() != before
         };
         if removed {
@@ -686,7 +888,7 @@ impl BTTaskNative {
 
     #[func]
     pub fn get_children_count(&self) -> i64 {
-        self.d.borrow().children.len() as i64
+        self.children_snapshot().len() as i64
     }
 
     pub fn is_ancestor_or_self(&self, candidate: &Gd<BTTaskNative>) -> bool {
@@ -933,6 +1135,8 @@ impl BTTaskNative {
                     let dispatched = d.dispatched_this_tick.get(index).copied().unwrap_or(false);
                     let status = d.children_status.get(index).copied().unwrap_or(RUNNING);
                     if !dispatched && status == RUNNING {
+                        drop(d);
+                        self.d.borrow_mut().current_child_index = index as i64;
                         return true;
                     }
                 }
@@ -948,6 +1152,7 @@ impl BTTaskNative {
             Kind::Sequence | Kind::Selector | Kind::RandomSequence | Kind::RandomSelector => {
                 (d.current_child_index < d.children.len() as i64) && d.execution_status == RUNNING
             }
+            Kind::Parent => d.current_child_index < d.children.len() as i64,
             _ => {
                 if d.kind.has_children() {
                     (d.current_child_index < d.children.len() as i64)
@@ -1162,7 +1367,10 @@ impl BTTaskNative {
                         if let Some(owner_id) = owner {
                             if let Ok(owner_node) = Gd::<Node>::try_from_instance_id(owner_id) {
                                 let mut o = owner_node;
-                                let _ = o.call("interrupt", &[child.to_variant()]);
+                                let _ = o.call(
+                                    "interrupt",
+                                    &[child.to_variant(), FAILURE.to_variant()],
+                                );
                             }
                         }
                     }
@@ -1346,6 +1554,15 @@ pub fn object_id_of(value: &Variant) -> Option<InstanceId> {
     }
 }
 
+/// Child list of a `Gd` handle, refreshed if the public array was mutated.
+pub fn children_of(task: &Gd<BTTaskNative>) -> Vec<Gd<BTTaskNative>> {
+    task.bind().children_snapshot()
+}
+
+pub fn child_count_of(task: &Gd<BTTaskNative>) -> usize {
+    task.bind().child_count()
+}
+
 pub fn has_method_name(task: &Gd<BTTaskNative>, method: &str) -> bool {
     let mut t = task.clone();
     t.has_method(method)
@@ -1363,6 +1580,7 @@ pub fn call_int(task: &Gd<BTTaskNative>, method: &str, args: &[Variant]) -> i64 
 }
 
 pub fn has_override(task: &Gd<BTTaskNative>, bit: u32) -> bool {
+    ensure_overrides(task);
     task.bind().data().overrides & bit != 0
 }
 
@@ -1387,14 +1605,14 @@ fn is_facade_script(script: &Gd<Script>) -> bool {
     )
 }
 
-fn method_names(script: &Gd<Script>) -> HashSet<String> {
-    let mut out = HashSet::new();
+fn method_counts(script: &Gd<Script>) -> std::collections::HashMap<String, usize> {
+    let mut out: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
     let mut s = script.clone();
     let value = s.call("get_script_method_list", &[]);
     if let Ok(list) = value.try_to::<Array<VarDictionary>>() {
         for dict in list.iter_shared() {
             if let Some(name) = dict.get("name") {
-                out.insert(name.to::<GString>().to_string());
+                *out.entry(name.to::<GString>().to_string()).or_insert(0) += 1;
             }
         }
     }
@@ -1411,40 +1629,54 @@ fn base_script(script: &Gd<Script>) -> Option<Gd<Script>> {
 
 /// Recomputes which hooks the node's own GDScript declares.
 ///
-/// `get_script_method_list()` reports inherited methods too, so each script's
-/// own methods are its list minus its base's list. The walk stops at the first
-/// facade script: facade wrappers (`on_update` -> `bt_on_update`) are API glue,
-/// not user overrides.
+/// `get_script_method_list()` lists inherited methods too, and Godot appends a
+/// second entry with the same name when a subclass overrides one (verified on
+/// 4.7: `[on_update, on_update, helper]`). So a hook is overridden when its
+/// entry count exceeds the number of facade definitions in the chain (1 when a
+/// facade script is present, 0 for tasks extending the native class directly).
 pub fn detect_overrides(task: &Gd<BTTaskNative>) {
-    let mut names: HashSet<String> = HashSet::new();
-    let mut cursor = {
+    let mut mask = 0u32;
+    let script = {
         let mut t = task.clone();
-        let sc = t.get_script();
-        sc
+        t.get_script()
     };
-    while let Some(script) = cursor {
-        if !is_valid(&script) || is_facade_script(&script) {
+    let Some(script) = script.filter(|s| is_valid(s)) else {
+        let guard = task.bind();
+        guard.data_mut().overrides = 0;
+        return;
+    };
+
+    // Walk the chain once: does it cross a facade script?
+    let mut has_facade = false;
+    let mut cursor = Some(script.clone());
+    while let Some(current) = cursor {
+        if is_facade_script(&current) {
+            has_facade = true;
             break;
         }
-        let base = base_script(&script);
-        let mut own = method_names(&script);
-        if let Some(base) = &base {
-            for inherited in method_names(base) {
-                own.remove(&inherited);
-            }
-        }
-        names.extend(own);
-        cursor = base;
+        cursor = base_script(&current);
     }
+    let baseline: usize = if has_facade { 1 } else { 0 };
 
-    let mut mask = 0u32;
+    let counts = method_counts(&script);
     for (name, bit) in hook::NAMES {
-        if names.contains(*name) {
+        if counts.get(*name).copied().unwrap_or(0) > baseline {
             mask |= bit;
         }
     }
+
     let guard = task.bind();
-    guard.data_mut().overrides = mask;
+    let mut d = guard.data_mut();
+    d.overrides = mask;
+    d.overrides_checked = true;
+}
+
+/// Detects GDScript hook overrides once per node, even for nodes that were
+/// attached by mutating `children` directly instead of `add_child_task`.
+pub fn ensure_overrides(task: &Gd<BTTaskNative>) {
+    if !task.bind().data().overrides_checked {
+        detect_overrides(task);
+    }
 }
 
 fn aggregate_parallel(children_status: &[i64]) -> i64 {

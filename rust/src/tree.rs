@@ -115,7 +115,7 @@ impl BTTreeNative {
     #[func]
     pub fn get_root_task(&self) -> Variant {
         match &self.d.borrow().root {
-            Some(t) => t.to_variant(),
+            Some(task) => task.to_variant(),
             None => Variant::nil(),
         }
     }
@@ -156,7 +156,7 @@ impl BTTreeNative {
     #[func]
     pub fn get_registry(&self) -> Variant {
         match &self.d.borrow().registry {
-            Some(r) => r.to_variant(),
+            Some(registry) => registry.to_variant(),
             None => Variant::nil(),
         }
     }
@@ -267,9 +267,6 @@ impl BTTreeNative {
         if is_root {
             return;
         }
-        if !parent_task.bind().data().kind.has_children() {
-            return;
-        }
         // Reject cycles.
         let mut cursor = Some(parent_task.instance_id());
         while let Some(id) = cursor {
@@ -307,15 +304,14 @@ impl BTTreeNative {
         if !is_valid(&task) {
             return;
         }
-        if let Some(parent) = task
-            .bind()
-            .data()
-            .parent_ref
-            .and_then(|id| Gd::<BTTaskNative>::try_from_instance_id(id).ok())
+        let parent_ref = task.bind().data().parent_ref;
+        if let Some(parent) =
+            parent_ref.and_then(|id| Gd::<BTTaskNative>::try_from_instance_id(id).ok())
         {
             parent.bind().remove_child_task(task.to_variant());
         }
-        for child in task.bind().data().children.clone() {
+        let children = task.bind().data().children.clone();
+        for child in children {
             task.bind().remove_child_task(child.to_variant());
         }
         let mut d = self.d.borrow_mut();
@@ -334,11 +330,8 @@ impl BTTreeNative {
     }
 
     #[func]
-    pub fn get_node_by_id(&self, id: i64) -> Variant {
-        match self.d.borrow().by_id.get(&id) {
-            Some(t) => t.to_variant(),
-            None => Variant::nil(),
-        }
+    pub fn get_node_by_id(&self, id: i64) -> Option<Gd<BTTaskNative>> {
+        self.d.borrow().by_id.get(&id).cloned()
     }
 
     #[func]
@@ -475,14 +468,18 @@ impl BTTreeNative {
     }
 
     #[func]
-    pub fn validate_dict(data: VarDictionary, registry: Variant) -> VarArray {
+    pub fn validate_dict(data: VarDictionary, registry: Variant) -> PackedStringArray {
         let registry = registry
             .try_to::<Gd<BTTaskRegistryNative>>()
             .ok()
             .filter(|r| is_valid(&r));
         let mut errors = VarArray::new();
         validate_tree_data(&data, registry.as_ref(), &mut errors);
-        errors
+        let mut out = PackedStringArray::new();
+        for item in errors.iter_shared() {
+            out.push(&item.to::<GString>());
+        }
+        out
     }
 
     #[func]
@@ -909,12 +906,13 @@ fn node_parent_shape(
         let task = registry.bind().create_task(GString::from(type_name));
         let __g_td = task.bind();
         let td = __g_td.data();
-        if td.kind.has_children() {
-            let is_decorator = td.kind.is_decorator()
-                || registry.bind().get_category(GString::from(type_name)).to_string() == "Decorator";
-            return (true, is_decorator);
-        }
-        return (false, false);
+        let is_decorator = td.kind.is_decorator()
+            || registry
+                .bind()
+                .get_category(GString::from(type_name))
+                .to_string()
+                == "Decorator";
+        return (td.kind.has_children(), is_decorator);
     }
     if BUILTIN_DECORATOR_TYPES.contains(&type_name) {
         return (true, true);
