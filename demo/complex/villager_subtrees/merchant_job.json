@@ -1,0 +1,546 @@
+{
+	"blackboard": {
+		"coins_counted": {
+			"description": "Private coin auditing counter",
+			"is_shared": false,
+			"type_name": "int",
+			"value": 0
+		},
+		"village_gold": {
+			"description": "Gold coins earned for village treasury, shared with parent",
+			"is_shared": true,
+			"type_name": "int",
+			"value": 0
+		}
+	},
+	"description": "Colony merchant commerce: stall management, haggling, restocking, coin auditing, ledger.",
+	"metadata": {},
+	"nodes": [
+		{
+			"category": "Composite",
+			"children_ids": [
+				2,
+				9,
+				16,
+				24,
+				31,
+				36
+			],
+			"friendly_name": "Merchant Task Selector",
+			"id": 1,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": -1,
+			"type_name": "Selector"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				3
+			],
+			"friendly_name": "Trade Cooldown",
+			"id": 2,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 2.5
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				4,
+				5,
+				6,
+				7,
+				8
+			],
+			"friendly_name": "Trade Haggle Sequence",
+			"id": 3,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 2,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Customer Waiting?",
+			"id": 4,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "customer_waiting"
+			},
+			"parent_id": 3,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Step to Counter",
+			"id": 5,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "market_stall"
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Greet Buyer",
+			"id": 6,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "greet_customer",
+				"ticks": 1
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Haggle Fair Price",
+			"id": 7,
+			"is_placeholder": false,
+			"parameters": {
+				"gold_delta": 2,
+				"job_action": "haggle_price",
+				"private_var": "coins_counted",
+				"shared_var": "village_gold",
+				"ticks": 2
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Wrap Goods Package",
+			"id": 8,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "wrap_goods",
+				"ticks": 1
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				10
+			],
+			"friendly_name": "Stall Setup Cooldown",
+			"id": 9,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 5.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				11,
+				12,
+				13,
+				14,
+				15
+			],
+			"friendly_name": "Stall Display Sequence",
+			"id": 10,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 9,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Stall Needs Setup?",
+			"id": 11,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "stall_open"
+			},
+			"parent_id": 10,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Stall",
+			"id": 12,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "market_stall"
+			},
+			"parent_id": 10,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Unroll Vendor Rug",
+			"id": 13,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "unroll_rug",
+				"ticks": 1
+			},
+			"parent_id": 10,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Display Fine Pottery",
+			"id": 14,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "display_pottery",
+				"ticks": 1
+			},
+			"parent_id": 10,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Ring Brass Welcome Bell",
+			"id": 15,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "ring_brass_bell",
+				"ticks": 1
+			},
+			"parent_id": 10,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				17
+			],
+			"friendly_name": "Restock Cooldown",
+			"id": 16,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 4.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				18,
+				19,
+				20,
+				21,
+				22,
+				23
+			],
+			"friendly_name": "Warehouse Restock Sequence",
+			"id": 17,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 16,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Restock Needed?",
+			"id": 18,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "restock_needed"
+			},
+			"parent_id": 17,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Warehouse",
+			"id": 19,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "warehouse"
+			},
+			"parent_id": 17,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Inspect Supply Crates",
+			"id": 20,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "inspect_crates",
+				"ticks": 1
+			},
+			"parent_id": 17,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Haul Burlap Sacks",
+			"id": 21,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "haul_burlap_sacks",
+				"ticks": 1
+			},
+			"parent_id": 17,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Carry to Stall",
+			"id": 22,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "market_stall"
+			},
+			"parent_id": 17,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Stock Stall Shelves",
+			"id": 23,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "stock_shelves",
+				"ticks": 1
+			},
+			"parent_id": 17,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				25
+			],
+			"friendly_name": "Audit Cooldown",
+			"id": 24,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 6.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				26,
+				27,
+				28,
+				29,
+				30
+			],
+			"friendly_name": "Audit Ledger Sequence",
+			"id": 25,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 24,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Audit Due?",
+			"id": 26,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "audit_due"
+			},
+			"parent_id": 25,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Sit at Ledger Desk",
+			"id": 27,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "ledger_desk"
+			},
+			"parent_id": 25,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Count Gold Sovereigns",
+			"id": 28,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "count_coins",
+				"private_var": "coins_counted",
+				"ticks": 2
+			},
+			"parent_id": 25,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Balance Credit Ledger",
+			"id": 29,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "balance_credits",
+				"ticks": 1
+			},
+			"parent_id": 25,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Stamp Official Wax Seal",
+			"id": 30,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "stamp_wax_seal",
+				"ticks": 1
+			},
+			"parent_id": 25,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				32
+			],
+			"friendly_name": "Caravan Cooldown",
+			"id": 31,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 4.5
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				33,
+				34,
+				35
+			],
+			"friendly_name": "Caravan Route Sequence",
+			"id": 32,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 31,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Caravan Stop",
+			"id": 33,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "caravan_stop"
+			},
+			"parent_id": 32,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Inquire Trade Routes",
+			"id": 34,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "inquire_trade_routes",
+				"ticks": 1
+			},
+			"parent_id": 32,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Exchange Trade Vouchers",
+			"id": 35,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "exchange_coupons",
+				"ticks": 1
+			},
+			"parent_id": 32,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				37,
+				38,
+				39
+			],
+			"friendly_name": "Stall Maintenance Sequence",
+			"id": 36,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Market Stall",
+			"id": 37,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "market_stall"
+			},
+			"parent_id": 36,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Sweep Stall Floor",
+			"id": 38,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "sweep_stall",
+				"ticks": 1
+			},
+			"parent_id": 36,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Rest on Wooden Stool",
+			"id": 39,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "rest_on_stool",
+				"ticks": 1
+			},
+			"parent_id": 36,
+			"type_name": "VillagerActionWork"
+		}
+	],
+	"root_id": 1,
+	"tree_name": "MerchantJob"
+}

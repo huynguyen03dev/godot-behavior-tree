@@ -1,0 +1,275 @@
+{
+	"blackboard": {
+		"alert_level": {
+			"description": "Colony alert status, shared with parent",
+			"is_shared": true,
+			"type_name": "int",
+			"value": 1
+		},
+		"panic_ticks": {
+			"description": "Private panic duration internal to threat subtree",
+			"is_shared": false,
+			"type_name": "int",
+			"value": 0
+		}
+	},
+	"description": "Emergency colony threat response: guards engage and defend, civilians flee and barricade.",
+	"metadata": {},
+	"nodes": [
+		{
+			"category": "Composite",
+			"children_ids": [
+				2,
+				8,
+				12,
+				18
+			],
+			"friendly_name": "Threat Response Selector",
+			"id": 1,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": -1,
+			"type_name": "Selector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				3,
+				4,
+				5,
+				6,
+				7
+			],
+			"friendly_name": "Guard Combat Defense Sequence",
+			"id": 2,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Is Guard Defender?",
+			"id": 3,
+			"is_placeholder": false,
+			"parameters": {
+				"role": "guard"
+			},
+			"parent_id": 2,
+			"type_name": "VillagerConditionRole"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Sound Horn Alarm",
+			"id": 4,
+			"is_placeholder": false,
+			"parameters": {
+				"response_type": "sound_alarm",
+				"shared_var": "alert_level",
+				"ticks": 1
+			},
+			"parent_id": 2,
+			"type_name": "VillagerActionThreat"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Rush to Wolf Threat",
+			"id": 5,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "threat"
+			},
+			"parent_id": 2,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Engage Threat with Blade",
+			"id": 6,
+			"is_placeholder": false,
+			"parameters": {
+				"private_var": "panic_ticks",
+				"response_type": "guard_attack",
+				"ticks": 2
+			},
+			"parent_id": 2,
+			"type_name": "VillagerActionThreat"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Hold Perimeter Guard",
+			"id": 7,
+			"is_placeholder": false,
+			"parameters": {
+				"response_type": "guard_defend",
+				"ticks": 1
+			},
+			"parent_id": 2,
+			"type_name": "VillagerActionThreat"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				9,
+				10,
+				11
+			],
+			"friendly_name": "Guard Gate Hold Sequence",
+			"id": 8,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Is Guard Defender?",
+			"id": 9,
+			"is_placeholder": false,
+			"parameters": {
+				"role": "guard"
+			},
+			"parent_id": 8,
+			"type_name": "VillagerConditionRole"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Position at North Gate",
+			"id": 10,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "north_gate"
+			},
+			"parent_id": 8,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Lock Shield Barrier",
+			"id": 11,
+			"is_placeholder": false,
+			"parameters": {
+				"response_type": "guard_defend",
+				"ticks": 2
+			},
+			"parent_id": 8,
+			"type_name": "VillagerActionThreat"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				13,
+				14,
+				15,
+				16,
+				17
+			],
+			"friendly_name": "Civilian Bunker Evacuation Sequence",
+			"id": 12,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Is Civilian?",
+			"id": 13,
+			"is_placeholder": false,
+			"parameters": {
+				"role": "civilian"
+			},
+			"parent_id": 12,
+			"type_name": "VillagerConditionRole"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Scream Warning Alarm",
+			"id": 14,
+			"is_placeholder": false,
+			"parameters": {
+				"private_var": "panic_ticks",
+				"response_type": "civilian_flee",
+				"ticks": 1
+			},
+			"parent_id": 12,
+			"type_name": "VillagerActionThreat"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Sprint to Safe Bunker",
+			"id": 15,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "safe_bunker"
+			},
+			"parent_id": 12,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Slam Heavy Iron Door",
+			"id": 16,
+			"is_placeholder": false,
+			"parameters": {
+				"response_type": "barricade",
+				"ticks": 1
+			},
+			"parent_id": 12,
+			"type_name": "VillagerActionThreat"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Cower in Fortified Shelter",
+			"id": 17,
+			"is_placeholder": false,
+			"parameters": {
+				"response_type": "cower",
+				"shared_var": "alert_level",
+				"ticks": 2
+			},
+			"parent_id": 12,
+			"type_name": "VillagerActionThreat"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				19
+			],
+			"friendly_name": "Civilian Standby Fallback",
+			"id": 18,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Huddle in Cover",
+			"id": 19,
+			"is_placeholder": false,
+			"parameters": {
+				"response_type": "cower",
+				"ticks": 1
+			},
+			"parent_id": 18,
+			"type_name": "VillagerActionThreat"
+		}
+	],
+	"root_id": 1,
+	"tree_name": "ThreatResponse"
+}

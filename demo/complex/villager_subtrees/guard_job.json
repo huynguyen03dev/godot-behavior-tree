@@ -1,0 +1,518 @@
+{
+	"blackboard": {
+		"drill_reps": {
+			"description": "Private combat dummy practice strikes",
+			"is_shared": false,
+			"type_name": "int",
+			"value": 0
+		},
+		"patrol_reports": {
+			"description": "Patrol reports submitted to village defense, shared with parent",
+			"is_shared": true,
+			"type_name": "int",
+			"value": 0
+		}
+	},
+	"description": "Colony guard defense: watchtower, gate checks, wall patrol, combat drills, armory.",
+	"metadata": {},
+	"nodes": [
+		{
+			"category": "Composite",
+			"children_ids": [
+				2,
+				8,
+				15,
+				21,
+				27,
+				34
+			],
+			"friendly_name": "Guard Task Selector",
+			"id": 1,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": -1,
+			"type_name": "Selector"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				3
+			],
+			"friendly_name": "Watchtower Cooldown",
+			"id": 2,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 3.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				4,
+				5,
+				6,
+				7
+			],
+			"friendly_name": "Watchtower Scan Sequence",
+			"id": 3,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 2,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Watchtower Due?",
+			"id": 4,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "watchtower_due"
+			},
+			"parent_id": 3,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Ascend Watchtower",
+			"id": 5,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "watchtower"
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Scan Horizon for Threat",
+			"id": 6,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "scan_horizon",
+				"shared_var": "patrol_reports",
+				"ticks": 2
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Log Perimeter Safe",
+			"id": 7,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "log_perimeter_safe",
+				"ticks": 1
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				9
+			],
+			"friendly_name": "Gate Inspection Cooldown",
+			"id": 8,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 4.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				10,
+				11,
+				12,
+				13,
+				14
+			],
+			"friendly_name": "North Gate Sequence",
+			"id": 9,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 8,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Gate Due?",
+			"id": 10,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "gate_due"
+			},
+			"parent_id": 9,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "March to North Gate",
+			"id": 11,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "north_gate"
+			},
+			"parent_id": 9,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Inspect Gate Barricade",
+			"id": 12,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "inspect_gate",
+				"ticks": 1
+			},
+			"parent_id": 9,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Test Portcullis Winch",
+			"id": 13,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "check_portcullis",
+				"ticks": 1
+			},
+			"parent_id": 9,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Oil Heavy Hinges",
+			"id": 14,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "oil_hinges",
+				"ticks": 1
+			},
+			"parent_id": 9,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				16
+			],
+			"friendly_name": "Palisade Cooldown",
+			"id": 15,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 5.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				17,
+				18,
+				19,
+				20
+			],
+			"friendly_name": "South Palisade Sequence",
+			"id": 16,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 15,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Palisade Due?",
+			"id": 17,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "palisade_due"
+			},
+			"parent_id": 16,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "March to South Palisade",
+			"id": 18,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "south_palisade"
+			},
+			"parent_id": 16,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Patrol Wooden Wall Walk",
+			"id": 19,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "patrol_wall_walk",
+				"shared_var": "patrol_reports",
+				"ticks": 2
+			},
+			"parent_id": 16,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Reinforce Palisade Stakes",
+			"id": 20,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "reinforce_planks",
+				"ticks": 1
+			},
+			"parent_id": 16,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				22
+			],
+			"friendly_name": "Combat Drill Cooldown",
+			"id": 21,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 3.5
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				23,
+				24,
+				25,
+				26
+			],
+			"friendly_name": "Combat Dummy Drill Sequence",
+			"id": 22,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 21,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Drill Due?",
+			"id": 23,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "drill_due"
+			},
+			"parent_id": 22,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Training Dummy",
+			"id": 24,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "training_dummy"
+			},
+			"parent_id": 22,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Sword Strike Drills",
+			"id": 25,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "sword_strikes",
+				"private_var": "drill_reps",
+				"ticks": 2
+			},
+			"parent_id": 22,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Shield Parry Maneuver",
+			"id": 26,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "shield_parry",
+				"private_var": "drill_reps",
+				"ticks": 1
+			},
+			"parent_id": 22,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				28
+			],
+			"friendly_name": "Armory Cooldown",
+			"id": 27,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 6.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				29,
+				30,
+				31,
+				32,
+				33
+			],
+			"friendly_name": "Armory Maintenance Sequence",
+			"id": 28,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 27,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Armory Due?",
+			"id": 29,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "armory_due"
+			},
+			"parent_id": 28,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Armory",
+			"id": 30,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "armory"
+			},
+			"parent_id": 28,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Sharpen Spearheads",
+			"id": 31,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "sharpen_halberd",
+				"ticks": 1
+			},
+			"parent_id": 28,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Fletch Ashwood Arrows",
+			"id": 32,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "fletch_arrows",
+				"ticks": 1
+			},
+			"parent_id": 28,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Count Defense Spears",
+			"id": 33,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "count_spears",
+				"ticks": 1
+			},
+			"parent_id": 28,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				35,
+				36,
+				37
+			],
+			"friendly_name": "Bastion Standby Sequence",
+			"id": 34,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Bastion",
+			"id": 35,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "bastion"
+			},
+			"parent_id": 34,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Stand at Attention",
+			"id": 36,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "stand_at_attention",
+				"ticks": 1
+			},
+			"parent_id": 34,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Survey Village Courtyard",
+			"id": 37,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "survey_courtyard",
+				"ticks": 1
+			},
+			"parent_id": 34,
+			"type_name": "VillagerActionWork"
+		}
+	],
+	"root_id": 1,
+	"tree_name": "GuardJob"
+}

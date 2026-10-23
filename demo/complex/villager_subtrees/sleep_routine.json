@@ -1,0 +1,108 @@
+{
+	"blackboard": {
+		"rest_quality": {
+			"description": "Sleep quality rating, shared with parent",
+			"is_shared": true,
+			"type_name": "float",
+			"value": 1.0
+		},
+		"snore_count": {
+			"description": "Private snoring cycles count",
+			"is_shared": false,
+			"type_name": "int",
+			"value": 0
+		}
+	},
+	"description": "Energy restoration: return home, extinguish candle, deep sleep, stretch on waking.",
+	"metadata": {},
+	"nodes": [
+		{
+			"category": "Composite",
+			"children_ids": [
+				2,
+				3,
+				4,
+				5,
+				6
+			],
+			"friendly_name": "Sleep Routine Sequence",
+			"id": 1,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": -1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk Home to Bed",
+			"id": 2,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "home"
+			},
+			"parent_id": 1,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Extinguish Candle & Tuck In",
+			"id": 3,
+			"is_placeholder": false,
+			"parameters": {
+				"private_var": "snore_count",
+				"response_type": "tuck_in",
+				"ticks": 1
+			},
+			"parent_id": 1,
+			"type_name": "VillagerActionSleep"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Deep Restful Slumber",
+			"id": 4,
+			"is_placeholder": false,
+			"parameters": {
+				"energy_restore": 35.0,
+				"private_var": "snore_count",
+				"response_type": "deep_sleep",
+				"shared_var": "rest_quality",
+				"ticks": 2
+			},
+			"parent_id": 1,
+			"type_name": "VillagerActionSleep"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Peaceful REM Dreams",
+			"id": 5,
+			"is_placeholder": false,
+			"parameters": {
+				"energy_restore": 35.0,
+				"response_type": "dream_rest",
+				"shared_var": "rest_quality",
+				"ticks": 2
+			},
+			"parent_id": 1,
+			"type_name": "VillagerActionSleep"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Awake & Morning Stretch",
+			"id": 6,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "wake_up_stretch",
+				"ticks": 1
+			},
+			"parent_id": 1,
+			"type_name": "VillagerActionWork"
+		}
+	],
+	"root_id": 1,
+	"tree_name": "SleepRoutine"
+}

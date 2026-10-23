@@ -1,0 +1,188 @@
+{
+	"blackboard": {
+		"bites_taken": {
+			"description": "Private chewing counter internal to eat subtree",
+			"is_shared": false,
+			"type_name": "int",
+			"value": 0
+		},
+		"meals_consumed": {
+			"description": "Total meals eaten, shared with parent",
+			"is_shared": true,
+			"type_name": "int",
+			"value": 0
+		}
+	},
+	"description": "Hunger satisfaction: dining table meal from granary, or wild berry forage.",
+	"metadata": {},
+	"nodes": [
+		{
+			"category": "Composite",
+			"children_ids": [
+				2,
+				9
+			],
+			"friendly_name": "Eat Strategy Selector",
+			"id": 1,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": -1,
+			"type_name": "Selector"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				3,
+				4,
+				5,
+				6,
+				7,
+				8
+			],
+			"friendly_name": "Granary Feast Sequence",
+			"id": 2,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Food in Granary?",
+			"id": 3,
+			"is_placeholder": false,
+			"parameters": {
+				"min_amount": 1,
+				"resource": "food"
+			},
+			"parent_id": 2,
+			"type_name": "VillagerConditionStock"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Granary",
+			"id": 4,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "granary"
+			},
+			"parent_id": 2,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Collect Stew Ration",
+			"id": 5,
+			"is_placeholder": false,
+			"parameters": {
+				"hunger_restore": 45.0,
+				"private_var": "bites_taken",
+				"shared_var": "meals_consumed",
+				"source": "granary",
+				"ticks": 1
+			},
+			"parent_id": 2,
+			"type_name": "VillagerActionEat"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Carry to Dining Table",
+			"id": 6,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "dining_table"
+			},
+			"parent_id": 2,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Dine Hearty Meal",
+			"id": 7,
+			"is_placeholder": false,
+			"parameters": {
+				"hunger_restore": 25.0,
+				"private_var": "bites_taken",
+				"shared_var": "meals_consumed",
+				"source": "table",
+				"ticks": 2
+			},
+			"parent_id": 2,
+			"type_name": "VillagerActionEat"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Wash Wooden Bowl",
+			"id": 8,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "clear_bowl",
+				"ticks": 1
+			},
+			"parent_id": 2,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				10,
+				11,
+				12
+			],
+			"friendly_name": "Berry Foraging Sequence",
+			"id": 9,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Berry Bushes",
+			"id": 10,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "berry_bush"
+			},
+			"parent_id": 9,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Eat Sweet Wild Berries",
+			"id": 11,
+			"is_placeholder": false,
+			"parameters": {
+				"hunger_restore": 30.0,
+				"private_var": "bites_taken",
+				"source": "berry_bush",
+				"ticks": 2
+			},
+			"parent_id": 9,
+			"type_name": "VillagerActionEat"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Stash Emergency Berries",
+			"id": 12,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "forage_reserve",
+				"ticks": 1
+			},
+			"parent_id": 9,
+			"type_name": "VillagerActionWork"
+		}
+	],
+	"root_id": 1,
+	"tree_name": "EatRoutine"
+}

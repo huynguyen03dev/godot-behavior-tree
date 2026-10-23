@@ -1,0 +1,561 @@
+{
+	"blackboard": {
+		"field_harvest_count": {
+			"description": "Private harvest cycles counter",
+			"is_shared": false,
+			"type_name": "int",
+			"value": 0
+		},
+		"food_produced": {
+			"description": "Total food units harvested by farmer, shared with parent",
+			"is_shared": true,
+			"type_name": "int",
+			"value": 0
+		}
+	},
+	"description": "Colony farming routine: harvesting, irrigation, weeding, orchard, pests, and maintenance.",
+	"metadata": {},
+	"nodes": [
+		{
+			"category": "Composite",
+			"children_ids": [
+				2,
+				9,
+				16,
+				23,
+				31,
+				37
+			],
+			"friendly_name": "Farmer Task Selector",
+			"id": 1,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": -1,
+			"type_name": "Selector"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				3
+			],
+			"friendly_name": "Harvest Cooldown",
+			"id": 2,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 3.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				4,
+				5,
+				6,
+				7,
+				8
+			],
+			"friendly_name": "Harvest Wheat Sequence",
+			"id": 3,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 2,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Crops Ripe?",
+			"id": 4,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "crops_ripe"
+			},
+			"parent_id": 3,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Field",
+			"id": 5,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "crop_field"
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Reap Wheat Sheaves",
+			"id": 6,
+			"is_placeholder": false,
+			"parameters": {
+				"food_delta": 2,
+				"job_action": "harvest_wheat",
+				"private_var": "field_harvest_count",
+				"shared_var": "food_produced",
+				"ticks": 2
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Granary",
+			"id": 7,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "granary"
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Deposit Wheat in Granary",
+			"id": 8,
+			"is_placeholder": false,
+			"parameters": {
+				"food_delta": 2,
+				"job_action": "store_harvest",
+				"shared_var": "food_produced",
+				"ticks": 1
+			},
+			"parent_id": 3,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				10
+			],
+			"friendly_name": "Irrigate Cooldown",
+			"id": 9,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 4.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				11,
+				12,
+				13,
+				14,
+				15
+			],
+			"friendly_name": "Irrigate Crops Sequence",
+			"id": 10,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 9,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Soil Dry?",
+			"id": 11,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "soil_dry"
+			},
+			"parent_id": 10,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Well",
+			"id": 12,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "water_well"
+			},
+			"parent_id": 10,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Draw Water Bucket",
+			"id": 13,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "draw_water",
+				"ticks": 1
+			},
+			"parent_id": 10,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Crop Bed",
+			"id": 14,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "crop_field"
+			},
+			"parent_id": 10,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Irrigate Soil Bed",
+			"id": 15,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "irrigate_soil",
+				"ticks": 2
+			},
+			"parent_id": 10,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				17
+			],
+			"friendly_name": "Tilling Cooldown",
+			"id": 16,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 5.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				18,
+				19,
+				20,
+				21,
+				22
+			],
+			"friendly_name": "Weed and Till Sequence",
+			"id": 17,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 16,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Weeds Grown?",
+			"id": 18,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "weeds_grown"
+			},
+			"parent_id": 17,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Furrows",
+			"id": 19,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "furrow"
+			},
+			"parent_id": 17,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Pull Invasive Weeds",
+			"id": 20,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "weed_furrows",
+				"private_var": "field_harvest_count",
+				"ticks": 2
+			},
+			"parent_id": 17,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Till Soil Bed",
+			"id": 21,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "till_earth",
+				"ticks": 1
+			},
+			"parent_id": 17,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Compost Organic Waste",
+			"id": 22,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "compost_weeds",
+				"ticks": 1
+			},
+			"parent_id": 17,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				24
+			],
+			"friendly_name": "Orchard Cooldown",
+			"id": 23,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 6.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				25,
+				26,
+				27,
+				28,
+				29,
+				30
+			],
+			"friendly_name": "Orchard Routine Sequence",
+			"id": 24,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 23,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Orchard Ready?",
+			"id": 25,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "orchard_ready"
+			},
+			"parent_id": 24,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Orchard",
+			"id": 26,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "orchard"
+			},
+			"parent_id": 24,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Prune Apple Boughs",
+			"id": 27,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "prune_boughs",
+				"ticks": 1
+			},
+			"parent_id": 24,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Pick Red Apples",
+			"id": 28,
+			"is_placeholder": false,
+			"parameters": {
+				"food_delta": 1,
+				"job_action": "pick_apples",
+				"ticks": 2
+			},
+			"parent_id": 24,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Haul to Granary",
+			"id": 29,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "granary"
+			},
+			"parent_id": 24,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Deposit Apple Crates",
+			"id": 30,
+			"is_placeholder": false,
+			"parameters": {
+				"food_delta": 1,
+				"job_action": "store_apples",
+				"ticks": 1
+			},
+			"parent_id": 24,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Decorator",
+			"children_ids": [
+				32
+			],
+			"friendly_name": "Pest Check Cooldown",
+			"id": 31,
+			"is_placeholder": false,
+			"parameters": {
+				"cooldown_time": 7.0
+			},
+			"parent_id": 1,
+			"type_name": "Cooldown"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				33,
+				34,
+				35,
+				36
+			],
+			"friendly_name": "Pest Control Sequence",
+			"id": 32,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 31,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Condition",
+			"children_ids": [],
+			"friendly_name": "Pests Spotted?",
+			"id": 33,
+			"is_placeholder": false,
+			"parameters": {
+				"task_key": "pests_spotted"
+			},
+			"parent_id": 32,
+			"type_name": "VillagerConditionTaskReady"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Fence Border",
+			"id": 34,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "field_fence"
+			},
+			"parent_id": 32,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Check Insect Traps",
+			"id": 35,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "check_traps",
+				"ticks": 1
+			},
+			"parent_id": 32,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Repair Field Scarecrow",
+			"id": 36,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "repair_scarecrow",
+				"ticks": 1
+			},
+			"parent_id": 32,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Composite",
+			"children_ids": [
+				38,
+				39,
+				40
+			],
+			"friendly_name": "Tool Maintenance Sequence",
+			"id": 37,
+			"is_placeholder": false,
+			"parameters": {},
+			"parent_id": 1,
+			"type_name": "Sequence"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Walk to Tool Shed",
+			"id": 38,
+			"is_placeholder": false,
+			"parameters": {
+				"location": "tool_shed"
+			},
+			"parent_id": 37,
+			"type_name": "VillagerActionMoveTo"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Hone Scythe Blade",
+			"id": 39,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "hone_scythe",
+				"ticks": 1
+			},
+			"parent_id": 37,
+			"type_name": "VillagerActionWork"
+		},
+		{
+			"category": "Action",
+			"children_ids": [],
+			"friendly_name": "Rest on Tool Bench",
+			"id": 40,
+			"is_placeholder": false,
+			"parameters": {
+				"job_action": "rest_bench",
+				"ticks": 1
+			},
+			"parent_id": 37,
+			"type_name": "VillagerActionWork"
+		}
+	],
+	"root_id": 1,
+	"tree_name": "FarmerJob"
+}
