@@ -40,6 +40,10 @@ fn script(path: &str) -> Option<Gd<Script>> {
     loaded
 }
 
+pub fn clear_cache() {
+    CACHE.with(|c| c.borrow_mut().clear());
+}
+
 /// Instantiates a facade script. GDScript classes are not in `ClassDB`
 /// (`class_exists("BTTree")` is false), but `new` is callable on the script.
 fn instantiate(path: &str) -> Option<Variant> {

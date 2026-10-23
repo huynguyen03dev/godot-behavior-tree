@@ -16,13 +16,30 @@
 //! documented extension points (`decorate`, `get_current_child_index`, ...).
 
 use std::cell::{Ref, RefCell, RefMut};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use godot::classes::{Node, Object, RefCounted, Script};
 use godot::prelude::*;
 
 use crate::blackboard::BTBlackboardNative;
 use crate::common::*;
+
+pub mod legacy_hook {
+    pub const ON_UPDATE: u8 = 1 << 0;
+    pub const EVALUATE_CONDITION: u8 = 1 << 1;
+    pub const ON_CONDITIONAL_ABORT: u8 = 1 << 2;
+    pub const ON_ABORT: u8 = 1 << 3;
+    pub const ON_PAUSE: u8 = 1 << 4;
+    pub const ON_EVENT: u8 = 1 << 5;
+}
+
+thread_local! {
+    static OVERRIDE_CACHE: RefCell<HashMap<i64, (u32, u8)>> = RefCell::new(HashMap::new());
+}
+
+pub fn clear_override_cache() {
+    OVERRIDE_CACHE.with(|c| c.borrow_mut().clear());
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Kind {
@@ -160,6 +177,7 @@ pub struct TaskData {
 
     pub kind: Kind,
     pub overrides: u32,
+    pub legacy_hooks: u8,
     pub overrides_checked: bool,
     pub iteration: i64,
     pub last_execution_time: f64,
@@ -203,6 +221,7 @@ impl TaskData {
             time_limit: 5.0,
             kind: Kind::Leaf,
             overrides: 0,
+            legacy_hooks: 0,
             overrides_checked: false,
             iteration: 0,
             last_execution_time: -999999.0,
@@ -360,13 +379,14 @@ impl BTTaskNative {
     /// Returns the child list, rebuilding the `Gd` cache when user code has
     /// mutated the public `children` array directly.
     pub fn children_snapshot(&self) -> Vec<Gd<BTTaskNative>> {
-        let (array, cached_len) = {
+        let needs_rebuild = {
             let d = self.d.borrow();
-            (d.children_array.clone(), d.children.len())
+            d.children_array.len() != d.children.len()
         };
-        if array.len() == cached_len {
+        if !needs_rebuild {
             return self.d.borrow().children.clone();
         }
+        let array = self.d.borrow().children_array.clone();
         let mut rebuilt = Vec::with_capacity(array.len());
         for item in array.iter_shared() {
             if let Ok(task) = item.try_to::<Gd<BTTaskNative>>() {
@@ -777,6 +797,9 @@ impl BTTaskNative {
     }
 
     pub fn param_string(&self, name: &str, fallback: &GString) -> GString {
+        if self.d.borrow().parameters.is_empty() {
+            return fallback.clone();
+        }
         let raw = self.get_param(GString::from(name), fallback.to_variant());
         if raw.get_type() == VariantType::NIL {
             return fallback.clone();
@@ -785,6 +808,9 @@ impl BTTaskNative {
     }
 
     pub fn param_float(&self, name: &str, fallback: f64) -> f64 {
+        if self.d.borrow().parameters.is_empty() {
+            return fallback;
+        }
         let raw = self.get_param(GString::from(name), fallback.to_variant());
         match raw.get_type() {
             VariantType::NIL => fallback,
@@ -796,6 +822,9 @@ impl BTTaskNative {
     }
 
     pub fn param_int(&self, name: &str, fallback: i64) -> i64 {
+        if self.d.borrow().parameters.is_empty() {
+            return fallback;
+        }
         let raw = self.get_param(GString::from(name), fallback.to_variant());
         match raw.get_type() {
             VariantType::NIL => fallback,
@@ -807,6 +836,9 @@ impl BTTaskNative {
     }
 
     pub fn param_bool(&self, name: &str, fallback: bool) -> bool {
+        if self.d.borrow().parameters.is_empty() {
+            return fallback;
+        }
         let raw = self.get_param(GString::from(name), fallback.to_variant());
         coerce_bool(&raw, fallback)
     }
@@ -1048,8 +1080,11 @@ impl BTTaskNative {
         if kind == Kind::SubTree {
             return crate::subtree::tick(self);
         }
-        let me = self.to_gd();
-        if has_method_name(&me, "OnUpdate") {
+        if !self.d.borrow().overrides_checked {
+            detect_overrides(&self.to_gd());
+        }
+        if self.d.borrow().legacy_hooks & legacy_hook::ON_UPDATE != 0 {
+            let me = self.to_gd();
             return call_int(&me, "OnUpdate", &[]);
         }
         SUCCESS
@@ -1060,10 +1095,14 @@ impl BTTaskNative {
         let _ = runner;
         let category = self.d.borrow().category.clone();
         if category.to_string() == "Condition" {
-            let me = self.to_gd();
-            if has_method_name(&me, "EvaluateCondition") {
+            if !self.d.borrow().overrides_checked {
+                detect_overrides(&self.to_gd());
+            }
+            if self.d.borrow().legacy_hooks & legacy_hook::EVALUATE_CONDITION != 0 {
+                let me = self.to_gd();
                 return call_int(&me, "EvaluateCondition", &[]);
             }
+            let me = self.to_gd();
             return dispatch::on_update(&me);
         }
         INACTIVE
@@ -1085,14 +1124,18 @@ impl BTTaskNative {
         if self.d.borrow().kind == Kind::SubTree {
             crate::subtree::abort_runner(self);
         }
-        let me = self.to_gd();
-        if has_method_name(&me, "OnConditionalAbort") {
-            let mut m = me.clone();
-            let _ = m.call("OnConditionalAbort", &[]);
-        } else if has_method_name(&me, "OnAbort") {
-            let mut m = me.clone();
-            let _ = m.call("OnAbort", &[]);
+        if !self.d.borrow().overrides_checked {
+            detect_overrides(&self.to_gd());
         }
+        let legacy = self.d.borrow().legacy_hooks;
+        if legacy & legacy_hook::ON_CONDITIONAL_ABORT != 0 {
+            let mut me = self.to_gd();
+            let _ = me.call("OnConditionalAbort", &[]);
+        } else if legacy & legacy_hook::ON_ABORT != 0 {
+            let mut me = self.to_gd();
+            let _ = me.call("OnAbort", &[]);
+        }
+        let me = self.to_gd();
         // `on_end` may be overridden, so dispatch instead of calling natively.
         if has_override(&me, hook::ON_END) {
             let mut m = me.clone();
@@ -1104,19 +1147,23 @@ impl BTTaskNative {
 
     #[func]
     pub fn bt_on_pause(&self, paused: bool) {
-        let me = self.to_gd();
-        if has_method_name(&me, "OnPause") {
-            let mut m = me.clone();
-            let _ = m.call("OnPause", &[paused.to_variant()]);
+        if !self.d.borrow().overrides_checked {
+            detect_overrides(&self.to_gd());
+        }
+        if self.d.borrow().legacy_hooks & legacy_hook::ON_PAUSE != 0 {
+            let mut me = self.to_gd();
+            let _ = me.call("OnPause", &[paused.to_variant()]);
         }
     }
 
     #[func]
     pub fn bt_on_event(&self, event_name: GString, data: Variant) {
-        let me = self.to_gd();
-        if has_method_name(&me, "OnEvent") {
-            let mut m = me.clone();
-            let _ = m.call("OnEvent", &[event_name.to_variant(), data]);
+        if !self.d.borrow().overrides_checked {
+            detect_overrides(&self.to_gd());
+        }
+        if self.d.borrow().legacy_hooks & legacy_hook::ON_EVENT != 0 {
+            let mut me = self.to_gd();
+            let _ = me.call("OnEvent", &[event_name.to_variant(), data]);
         }
     }
 
@@ -1579,9 +1626,16 @@ pub fn call_int(task: &Gd<BTTaskNative>, method: &str, args: &[Variant]) -> i64 
     }
 }
 
+#[inline]
 pub fn has_override(task: &Gd<BTTaskNative>, bit: u32) -> bool {
-    ensure_overrides(task);
-    task.bind().data().overrides & bit != 0
+    let guard = task.bind();
+    if !guard.data().overrides_checked {
+        drop(guard);
+        detect_overrides(task);
+        task.bind().data().overrides & bit != 0
+    } else {
+        guard.data().overrides & bit != 0
+    }
 }
 
 /// True for scripts that belong to the addon's own GDScript facade layer.
@@ -1635,16 +1689,28 @@ fn base_script(script: &Gd<Script>) -> Option<Gd<Script>> {
 /// entry count exceeds the number of facade definitions in the chain (1 when a
 /// facade script is present, 0 for tasks extending the native class directly).
 pub fn detect_overrides(task: &Gd<BTTaskNative>) {
-    let mut mask = 0u32;
     let script = {
         let mut t = task.clone();
         t.get_script()
     };
     let Some(script) = script.filter(|s| is_valid(s)) else {
         let guard = task.bind();
-        guard.data_mut().overrides = 0;
+        let mut d = guard.data_mut();
+        d.overrides = 0;
+        d.legacy_hooks = 0;
+        d.overrides_checked = true;
         return;
     };
+
+    let script_id = script.instance_id().to_i64();
+    if let Some((mask, legacy)) = OVERRIDE_CACHE.with(|c| c.borrow().get(&script_id).copied()) {
+        let guard = task.bind();
+        let mut d = guard.data_mut();
+        d.overrides = mask;
+        d.legacy_hooks = legacy;
+        d.overrides_checked = true;
+        return;
+    }
 
     // Walk the chain once: does it cross a facade script?
     let mut has_facade = false;
@@ -1658,6 +1724,7 @@ pub fn detect_overrides(task: &Gd<BTTaskNative>) {
     }
     let baseline: usize = if has_facade { 1 } else { 0 };
 
+    let mut mask = 0u32;
     let counts = method_counts(&script);
     for (name, bit) in hook::NAMES {
         if counts.get(*name).copied().unwrap_or(0) > baseline {
@@ -1665,9 +1732,32 @@ pub fn detect_overrides(task: &Gd<BTTaskNative>) {
         }
     }
 
+    let mut legacy = 0u8;
+    if has_method_name(task, "OnUpdate") {
+        legacy |= legacy_hook::ON_UPDATE;
+    }
+    if has_method_name(task, "EvaluateCondition") {
+        legacy |= legacy_hook::EVALUATE_CONDITION;
+    }
+    if has_method_name(task, "OnConditionalAbort") {
+        legacy |= legacy_hook::ON_CONDITIONAL_ABORT;
+    }
+    if has_method_name(task, "OnAbort") {
+        legacy |= legacy_hook::ON_ABORT;
+    }
+    if has_method_name(task, "OnPause") {
+        legacy |= legacy_hook::ON_PAUSE;
+    }
+    if has_method_name(task, "OnEvent") {
+        legacy |= legacy_hook::ON_EVENT;
+    }
+
+    OVERRIDE_CACHE.with(|c| c.borrow_mut().insert(script_id, (mask, legacy)));
+
     let guard = task.bind();
     let mut d = guard.data_mut();
     d.overrides = mask;
+    d.legacy_hooks = legacy;
     d.overrides_checked = true;
 }
 
@@ -1776,11 +1866,23 @@ pub mod lifecycle {
 pub mod dispatch {
     use super::*;
 
+    #[inline]
     pub fn on_update(task: &Gd<BTTaskNative>) -> i64 {
-        if has_override(task, hook::ON_UPDATE) {
+        let (overrides, kind, legacy) = {
+            let guard = task.bind();
+            let d = guard.data();
+            (d.overrides, d.kind, d.legacy_hooks)
+        };
+        if overrides & hook::ON_UPDATE != 0 {
             return call_int(task, "on_update", &[]);
         }
-        task.bind().bt_on_update()
+        if kind == Kind::SubTree {
+            return crate::subtree::tick(&task.bind());
+        }
+        if legacy & legacy_hook::ON_UPDATE != 0 {
+            return call_int(task, "OnUpdate", &[]);
+        }
+        SUCCESS
     }
 
     pub fn evaluate_condition(task: &Gd<BTTaskNative>, runner: &Gd<Node>) -> i64 {

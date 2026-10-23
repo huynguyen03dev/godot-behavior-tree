@@ -1,7 +1,7 @@
 //! Tree model, serialization and validation (JSON-compatible dictionaries).
 
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use godot::classes::RefCounted;
 use godot::prelude::*;
@@ -10,7 +10,7 @@ use crate::blackboard::{type_name_of, BTBlackboardNative};
 use crate::common::{coerce_bool, is_valid};
 use crate::facade;
 use crate::registry::BTTaskRegistryNative;
-use crate::task::{detect_overrides, Kind, BTTaskNative};
+use crate::task::BTTaskNative;
 
 pub const BUILTIN_COMPOSITE_TYPES: [&str; 5] = [
     "Sequence",
@@ -53,6 +53,7 @@ impl Default for TreeData {
             registry: None,
             next_id_hint: 1,
             by_id: std::collections::HashMap::new(),
+            by_instance: HashSet::new(),
         }
     }
 }
@@ -67,6 +68,7 @@ pub struct TreeData {
     pub registry: Option<Gd<BTTaskRegistryNative>>,
     pub next_id_hint: i64,
     pub by_id: HashMap<i64, Gd<BTTaskNative>>,
+    pub by_instance: HashSet<InstanceId>,
 }
 
 #[derive(GodotClass)]
@@ -182,13 +184,8 @@ impl BTTreeNative {
     }
 
     pub fn register_node(&self, task: Gd<BTTaskNative>) {
-        if self
-            .d
-            .borrow()
-            .nodes
-            .iter()
-            .any(|n| n.instance_id() == task.instance_id())
-        {
+        let instance_id = task.instance_id();
+        if self.d.borrow().by_instance.contains(&instance_id) {
             return;
         }
         let blackboard = self.d.borrow().blackboard.clone();
@@ -216,6 +213,7 @@ impl BTTreeNative {
             if id >= d.next_id_hint {
                 d.next_id_hint = id + 1;
             }
+            d.by_instance.insert(instance_id);
             d.by_id.insert(id, task.clone());
             d.nodes.push(task);
         }
@@ -325,6 +323,7 @@ impl BTTreeNative {
         }
         let id = task.bind().data().id;
         d.by_id.remove(&id);
+        d.by_instance.remove(&task.instance_id());
         d.nodes
             .retain(|n| n.instance_id() != task.instance_id());
     }
@@ -593,7 +592,7 @@ pub fn build_tree(
         }
 
         // Typed parameter schema: coerce values to the declared type.
-        {
+        if !task.bind().data().parameters.is_empty() {
             let mut handle = task.clone();
             if handle.has_method("get_parameter_schema") {
                 if let Ok(schema) = handle.call("get_parameter_schema", &[]).try_to::<VarDictionary>() {

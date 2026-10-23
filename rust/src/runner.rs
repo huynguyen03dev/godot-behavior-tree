@@ -21,6 +21,25 @@ pub struct Budget {
     pub executions: i64,
 }
 
+#[derive(Clone)]
+pub struct SignalNames {
+    pub tree_finished: StringName,
+    pub task_started: StringName,
+    pub task_finished: StringName,
+    pub task_aborted: StringName,
+}
+
+impl Default for SignalNames {
+    fn default() -> Self {
+        Self {
+            tree_finished: StringName::from("tree_finished"),
+            task_started: StringName::from("task_started"),
+            task_finished: StringName::from("task_finished"),
+            task_aborted: StringName::from("task_aborted"),
+        }
+    }
+}
+
 pub struct RunnerCore {
     pub is_running: bool,
     pub paused: bool,
@@ -42,6 +61,7 @@ pub struct RunnerCore {
     pub activation_interrupts: HashMap<i64, i64>,
     pub budget: Option<Rc<RefCell<Budget>>>,
     pub subtree_stack: Vec<String>,
+    pub signals: SignalNames,
 }
 
 impl Default for RunnerCore {
@@ -67,6 +87,7 @@ impl Default for RunnerCore {
             activation_interrupts: HashMap::new(),
             budget: None,
             subtree_stack: Vec::new(),
+            signals: SignalNames::default(),
         }
     }
 }
@@ -303,9 +324,40 @@ impl BTRunnerNative {
         self.core.borrow().time
     }
 
-    fn emit(&self, signal: &str, args: &[Variant]) {
+    #[inline]
+    fn emit_task_started(&self, task: &Gd<BTTaskNative>) {
+        let sig = self.core.borrow().signals.task_started.clone();
         let mut me = self.to_gd();
-        me.emit_signal(signal, args);
+        if me.has_connections(&sig) {
+            me.emit_signal(&sig, &[task.to_variant()]);
+        }
+    }
+
+    #[inline]
+    fn emit_task_finished(&self, task: &Gd<BTTaskNative>, status: i64) {
+        let sig = self.core.borrow().signals.task_finished.clone();
+        let mut me = self.to_gd();
+        if me.has_connections(&sig) {
+            me.emit_signal(&sig, &[task.to_variant(), status.to_variant()]);
+        }
+    }
+
+    #[inline]
+    fn emit_task_aborted(&self, task: &Gd<BTTaskNative>) {
+        let sig = self.core.borrow().signals.task_aborted.clone();
+        let mut me = self.to_gd();
+        if me.has_connections(&sig) {
+            me.emit_signal(&sig, &[task.to_variant()]);
+        }
+    }
+
+    #[inline]
+    fn emit_tree_finished(&self, status: i64) {
+        let sig = self.core.borrow().signals.tree_finished.clone();
+        let mut me = self.to_gd();
+        if me.has_connections(&sig) {
+            me.emit_signal(&sig, &[status.to_variant()]);
+        }
     }
 
     pub fn subtree_paths(&self) -> Vec<String> {
@@ -497,15 +549,17 @@ impl BTRunnerNative {
             }
             lifecycle::end(&task);
             let status = task.bind().data().last_status;
-            self.emit(
-                "task_finished",
-                &[task.to_variant(), status.to_variant()],
-            );
+            self.emit_task_finished(&task, status);
         }
         let runner_id = self.to_gd().instance_id();
-        for task in self.tree_nodes() {
-            if task.bind().data().owner_ref == Some(runner_id) {
-                task.bind().data_mut().owner_ref = None;
+        if let Some(tree) = self.tree() {
+            let tree_guard = tree.bind();
+            for task in &tree_guard.data().nodes {
+                let guard = task.bind();
+                if guard.data().owner_ref == Some(runner_id) {
+                    drop(guard);
+                    task.bind().data_mut().owner_ref = None;
+                }
             }
         }
         self.core.borrow_mut().ticking = false;
@@ -640,7 +694,7 @@ impl BTRunnerNative {
         self.core.borrow_mut().last_status = status;
         if status != RUNNING {
             self.stop();
-            self.emit("tree_finished", &[status.to_variant()]);
+            self.emit_tree_finished(status);
         }
         status
     }
@@ -658,14 +712,20 @@ impl BTRunnerNative {
             return pending;
         }
 
-        let (kind, is_placeholder) = {
+        let (kind, is_placeholder, overrides_checked) = {
             let guard = task.bind();
             let d = guard.data();
-            (d.kind, d.is_placeholder)
+            (d.kind, d.is_placeholder, d.overrides_checked)
         };
-        task::ensure_overrides(task);
+        if !overrides_checked {
+            task::detect_overrides(task);
+        }
         // Refreshes the child cache when GDScript mutated the public array.
-        let child_list = task::children_of(task);
+        let child_list = if kind.has_children() {
+            task::children_of(task)
+        } else {
+            Vec::new()
+        };
         let is_container = kind.is_container();
         let (max_exec, cur_exec) = self.budget_state();
         if max_exec > 0 && cur_exec >= max_exec && !is_container {
@@ -701,7 +761,7 @@ impl BTRunnerNative {
             {
                 return self.activation_status(tid, INACTIVE);
             }
-            self.emit("task_started", &[task.to_variant()]);
+            self.emit_task_started(task);
             if activation_generation != self.core.borrow().generation
                 || !self.core.borrow().started.contains(&tid)
             {
@@ -709,16 +769,18 @@ impl BTRunnerNative {
             }
         }
 
-        let label = {
-            let guard = task.bind();
-            let d = guard.data();
-            if d.friendly_name.is_empty() {
-                d.type_name.to_string()
-            } else {
-                d.friendly_name.to_string()
-            }
-        };
-        self.log_tick(label);
+        if self.debug_log {
+            let label = {
+                let guard = task.bind();
+                let d = guard.data();
+                if d.friendly_name.is_empty() {
+                    d.type_name.to_string()
+                } else {
+                    d.friendly_name.to_string()
+                }
+            };
+            self.log_tick(label);
+        }
 
         let mut result = INACTIVE;
 
@@ -840,7 +902,7 @@ impl BTRunnerNative {
             if self.core.borrow().generation != tick_generation {
                 return result;
             }
-            self.emit("task_finished", &[task.to_variant(), result.to_variant()]);
+            self.emit_task_finished(task, result);
             if self.core.borrow().generation != tick_generation {
                 return result;
             }
@@ -863,8 +925,9 @@ impl BTRunnerNative {
     pub fn bump_executions(&self) {
         let mut core = self.core.borrow_mut();
         if let Some(budget) = core.budget.clone() {
-            budget.borrow_mut().executions += 1;
-            core.task_executions = budget.borrow().executions;
+            let mut b = budget.borrow_mut();
+            b.executions += 1;
+            core.task_executions = b.executions;
         } else {
             core.task_executions += 1;
         }
@@ -1075,8 +1138,8 @@ impl BTRunnerNative {
             self.core.borrow_mut().last_status_map.insert(tid, FAILURE);
             task.bind().data_mut().last_status = FAILURE;
             lifecycle::abort(task);
-            self.emit("task_aborted", &[task.to_variant()]);
-            self.emit("task_finished", &[task.to_variant(), FAILURE.to_variant()]);
+            self.emit_task_aborted(task);
+            self.emit_task_finished(task, FAILURE);
         }
     }
 
@@ -1164,7 +1227,7 @@ impl BTRunnerNative {
             core.paused = false;
             core.pending_terminal.remove(&tid);
             drop(core);
-            self.emit("tree_finished", &[status.to_variant()]);
+            self.emit_tree_finished(status);
         } else {
             let has_parent = task.bind().data().parent_ref.is_some();
             if has_parent {
