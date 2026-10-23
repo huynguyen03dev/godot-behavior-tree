@@ -44,5 +44,10 @@ func _get_unsaved_status(for_scene: String) -> String:
 func _save_external_data() -> void:
 	if _viewer_instance == null:
 		return
-	if _viewer_instance.has_method("save_current_tree"):
+	if _viewer_instance.has_method("auto_save_external_data"):
+		_viewer_instance.auto_save_external_data()
+	elif _viewer_instance.has_method("can_auto_save") and not _viewer_instance.can_auto_save():
+		return
+	elif _viewer_instance.has_method("save_current_tree"):
 		_viewer_instance.save_current_tree()
+

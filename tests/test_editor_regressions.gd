@@ -65,8 +65,10 @@ func _run() -> void:
 	viewer.select_node_by_id(1)
 	var edit := _find_line_edit(viewer._inspector_form_container, "3")
 	if edit != null:
-		edit.text_changed.emit("9")
-		edit.text_changed.emit("bad")
+		edit.text = "9"
+		edit.text_submitted.emit("9")
+		edit.text = "bad"
+		edit.text_submitted.emit("bad")
 	checks += 1
 	failures += int(not _expect(edit != null and not signals.is_empty() and tree.blackboard.get_var("probe") == 9 and tree.blackboard.get_variable_obj("probe").type_name == "int", "typed blackboard edit retains type after invalid input"))
 	var custom_registry := BTTaskRegistry.new()
@@ -93,7 +95,8 @@ func _run() -> void:
 	viewer.select_node_by_id(tree.node_list.back().id)
 	var name_edit := _find_line_edit(viewer._inspector_form_container, "CustomRegressionTask")
 	if name_edit != null:
-		name_edit.text_changed.emit("Edited custom")
+		name_edit.text = "Edited custom"
+		name_edit.text_submitted.emit("Edited custom")
 	viewer._on_save_pressed()
 	checks += 2
 	failures += int(not _expect(provider.load_tree("Regression").get_node_by_id(tree.node_list.back().id).friendly_name == "Edited custom", "Save persists Inspector model edit"))
@@ -228,6 +231,13 @@ func _run() -> void:
 	_test_filtering()
 	_test_source_label()
 	_test_incremental_render_identity()
+	_test_fix1_new_tree_prompt_save_as_and_autosave()
+	_test_fix2_json_draft_deadlock_and_revert()
+	_test_fix3_per_keystroke_undo_and_focus()
+	_test_fix4_node_drag_undo_and_live_positions()
+	_test_fix5_delete_hidden_children_dialog()
+	_test_fix6_redo_add_task_selection()
+	_test_fix7_tree_name_edit_in_json_tab()
 	print("Editor regressions: %d passed, %d failed" % [checks - failures, failures])
 	quit(1 if failures else 0)
 
@@ -307,6 +317,8 @@ func _test_onboarding() -> void:
 	failures += int(not _expect(viewer._source_button != null and viewer._new_tree_button != null, "the toolbar offers a source and a new tree button"))
 
 	viewer._on_new_tree_pressed()
+	if viewer._new_tree_dialog.visible:
+		viewer._new_tree_dialog.confirmed.emit()
 	checks += 5
 	failures += int(not _expect(viewer.current_tree != null, "New creates a tree"))
 	failures += int(not _expect(viewer.current_tree_name == "new_tree", "the new tree is named new_tree"))
@@ -404,14 +416,16 @@ func _test_typed_parameters() -> void:
 	checks += 1
 	failures += int(not _expect(edit != null, "the Vector2 parameter is shown as text"))
 	if edit != null:
-		edit.text_changed.emit("(5, 6)")
+		edit.text = "(5, 6)"
+		edit.text_submitted.emit("(5, 6)")
 	checks += 2
 	failures += int(not _expect(typeof(leaf.parameters["target"]) == TYPE_VECTOR2, "editing a Vector2 parameter keeps its type"))
 	failures += int(not _expect(leaf.parameters["target"] == Vector2(5, 6), "editing Vector2 to '(5, 6)' updates value to Vector2(5, 6)"))
 
 	# Garbage input keeps the old value
 	if edit != null:
-		edit.text_changed.emit("garbage")
+		edit.text = "garbage"
+		edit.text_submitted.emit("garbage")
 	checks += 1
 	failures += int(not _expect(leaf.parameters["target"] == Vector2(5, 6), "garbage input keeps the old Vector2 value"))
 
@@ -608,7 +622,8 @@ func _test_editor_misc() -> void:
 	viewer.select_node_by_id(2)
 	var name_edit := _find_line_edit(viewer._inspector_form_container, "Child")
 	if name_edit != null:
-		name_edit.text_changed.emit("Renamed child")
+		name_edit.text = "Renamed child"
+		name_edit.text_submitted.emit("Renamed child")
 	checks += 1
 	failures += int(not _expect(_hierarchy_row_text(viewer._hierarchy_tree, 2) == "Renamed child", "renaming refreshes the hierarchy row"))
 
@@ -823,6 +838,8 @@ func _test_n11_new_tree_dropdown_and_save_sync() -> void:
 
 	# Press "+ New"
 	viewer._on_new_tree_pressed()
+	if viewer._new_tree_dialog.visible:
+		viewer._new_tree_dialog.confirmed.emit()
 	checks += 3
 	failures += int(not _expect(viewer._tree_option_button.item_count == 1, "＋ New inserts an entry in the dropdown before save"))
 	failures += int(not _expect(viewer._tree_option_button.get_item_text(viewer._tree_option_button.selected) == "new_tree", "＋ New selects new_tree in dropdown before save"))
@@ -983,7 +1000,8 @@ func _test_undo_redo_rename() -> void:
 	if name_edit == null:
 		viewer.free()
 		return
-	name_edit.text_changed.emit("Renamed")
+	name_edit.text = "Renamed"
+	name_edit.text_submitted.emit("Renamed")
 	checks += 1
 	failures += int(not _expect(viewer.current_tree.root_task.friendly_name == "Renamed", "rename applies to the model"))
 	checks += 1
@@ -1093,7 +1111,8 @@ func _test_incremental_render_identity() -> void:
 	viewer.select_node_by_id(1)
 	var name_edit := _find_line_edit(viewer._inspector_form_container, "Root")
 	if name_edit != null:
-		name_edit.text_changed.emit("Renamed Root")
+		name_edit.text = "Renamed Root"
+		name_edit.text_submitted.emit("Renamed Root")
 	viewer._render_current_tree()
 	checks += 2
 	failures += int(not _expect(viewer._graph_nodes_by_id[1] == root_gnode, "re-render reuses the surviving GraphNode"))
@@ -1103,3 +1122,278 @@ func _test_incremental_render_identity() -> void:
 	failures += int(not _expect(not viewer._graph_nodes_by_id.has(2), "the removed node leaves the graph map"))
 	failures += int(not _expect(not is_instance_valid(child_gnode), "the removed GraphNode is freed"))
 	viewer.free()
+
+# ---------------------------------------------------------------- New Tests for Fixes 1-7
+
+func _test_fix1_new_tree_prompt_save_as_and_autosave() -> void:
+	var viewer := _make_viewer()
+	var provider := BTMemoryTreeSource.new()
+	viewer.set_tree_source(provider)
+
+	# 1.1: New tree prompts for name and defaults to unused name
+	viewer._on_new_tree_pressed()
+	checks += 3
+	failures += int(not _expect(viewer._new_tree_dialog != null and viewer._new_tree_dialog.visible, "New tree button opens name prompt dialog"))
+	failures += int(not _expect(viewer._new_tree_line_edit.text == "new_tree", "Default name is new_tree when unused"))
+	viewer._new_tree_dialog.confirmed.emit()
+	failures += int(not _expect(viewer.current_tree_name == "new_tree", "Confirmed new tree creates new_tree"))
+
+	# Save it so new_tree is used
+	viewer.save_current_tree()
+	checks += 1
+	failures += int(not _expect(provider.load_tree("new_tree") != null, "new_tree saved to provider"))
+
+	# 1.2: Next new tree defaults to new_tree_1
+	viewer._on_new_tree_pressed()
+	checks += 2
+	failures += int(not _expect(viewer._new_tree_line_edit.text == "new_tree_1", "Next new tree defaults to unused name new_tree_1"))
+	viewer._new_tree_dialog.confirmed.emit()
+	failures += int(not _expect(viewer.current_tree_name == "new_tree_1", "Confirmed creates new_tree_1"))
+
+	# 1.3: Autosave guard: scratch tree without prior save/load is not auto-saved
+	checks += 2
+	failures += int(not _expect(not viewer.can_auto_save(), "Never-saved scratch tree cannot auto-save"))
+	var auto_saved := viewer.auto_save_external_data()
+	failures += int(not _expect(not auto_saved and provider.load_tree("new_tree_1") == null, "Autosave skipped scratch tree"))
+
+	# 1.4: Save As functionality
+	viewer._on_save_as_pressed()
+	checks += 1
+	failures += int(not _expect(viewer._save_as_dialog != null and viewer._save_as_dialog.visible, "Save As opens FileDialog"))
+	viewer._save_as_dialog.hide()
+
+	# Save As to a new file
+	var ok_save_as := viewer.save_tree_as("res://custom_tree.json")
+	checks += 3
+	failures += int(not _expect(ok_save_as, "save_tree_as succeeds"))
+	failures += int(not _expect(viewer.current_tree_name == "custom_tree", "save_tree_as updates current_tree_name"))
+	failures += int(not _expect(viewer.can_auto_save(), "Saved tree can now auto-save"))
+
+	# Overwrite existing tree prompt
+	viewer._on_save_as_file_selected("res://new_tree.json")
+	checks += 2
+	failures += int(not _expect(viewer._save_as_confirm_dialog != null and viewer._save_as_confirm_dialog.visible, "Saving over existing tree shows confirm dialog"))
+	viewer._save_as_confirm_dialog.confirmed.emit()
+	failures += int(not _expect(viewer.current_tree_name == "new_tree", "Confirm overwrite completes save_tree_as"))
+
+	viewer.free()
+
+func _test_fix2_json_draft_deadlock_and_revert() -> void:
+	var viewer := _make_viewer()
+	var provider := BTMemoryTreeSource.new()
+	viewer.set_tree_source(provider)
+	var tree := _tree_with_root()
+	viewer.load_generic_tree(tree, "DraftDeadlockTree")
+
+	# Introduce invalid JSON draft
+	viewer._tab_bar.current_tab = 2
+	viewer._json_text_edit.text = "{\"broken_json: unclosed"
+	viewer._json_text_edit.text_changed.emit()
+
+	checks += 3
+	failures += int(not _expect(viewer._json_draft_modified, "Editing draft marks _json_draft_modified"))
+	failures += int(not _expect(not viewer.save_current_tree(), "save_current_tree blocked while JSON draft modified"))
+	viewer._on_apply_json_pressed()
+	failures += int(not _expect(viewer._json_status_label.text.begins_with("❌"), "Apply JSON fails on invalid syntax"))
+
+	# Test Revert Draft button
+	viewer._on_revert_json_draft_pressed()
+	checks += 3
+	failures += int(not _expect(not viewer._json_draft_modified, "Revert draft resets _json_draft_modified"))
+	failures += int(not _expect(viewer._json_text_edit.text.contains("Root"), "Revert draft restores JSON text from tree"))
+	failures += int(not _expect(viewer.save_current_tree(), "save_current_tree unblocked after revert draft"))
+
+	# Test reload/discard path when tree not on disk
+	viewer._json_text_edit.text = "{\"invalid_draft\": true"
+	viewer._json_text_edit.text_changed.emit()
+	checks += 1
+	failures += int(not _expect(viewer._json_draft_modified, "Draft modified again"))
+	viewer._on_reload_pressed()
+	if viewer._confirm_dialog.visible:
+		viewer._confirm_dialog.confirmed.emit()
+	checks += 2
+	failures += int(not _expect(not viewer._json_draft_modified, "Confirmed reload clears _json_draft_modified even when tree not on disk"))
+	failures += int(not _expect(viewer._json_text_edit.text.contains("Root"), "Confirmed reload re-serializes in-memory tree"))
+
+	viewer.free()
+
+func _test_fix3_per_keystroke_undo_and_focus() -> void:
+	var viewer := _make_viewer()
+	var tree := _tree_with_root()
+	viewer.load_generic_tree(tree, "KeystrokeTree")
+	viewer.select_node_by_id(1)
+
+	var name_edit := _find_line_edit(viewer._inspector_form_container, "Root")
+	checks += 1
+	failures += int(not _expect(name_edit != null, "Found name_edit in inspector"))
+	if name_edit == null:
+		viewer.free()
+		return
+
+	# Emitting text_changed should NOT create undo actions
+	name_edit.text = "R"
+	name_edit.text_changed.emit("R")
+	name_edit.text = "Ro"
+	name_edit.text_changed.emit("Ro")
+	name_edit.text = "Roo"
+	name_edit.text_changed.emit("Roo")
+	name_edit.text = "Root2"
+	name_edit.text_changed.emit("Root2")
+
+	# Model should not have mutated yet
+	checks += 1
+	failures += int(not _expect(viewer.current_tree.root_task.friendly_name == "Root", "text_changed alone does not commit mutation"))
+
+	# text_submitted commits the mutation (single undo action)
+	name_edit.text_submitted.emit("Root2")
+	checks += 2
+	failures += int(not _expect(viewer.current_tree.root_task.friendly_name == "Root2", "text_submitted commits the mutation"))
+	failures += int(not _expect(viewer.has_undo(), "One undo action recorded"))
+
+	# Undo restores and retains selection
+	viewer.undo()
+	checks += 2
+	failures += int(not _expect(viewer.current_tree.root_task.friendly_name == "Root", "Undo restores original name"))
+	failures += int(not _expect(viewer.selected_node_id == 1, "Undo preserves selected_node_id"))
+
+	# focus_exited also commits if text changed
+	name_edit = _find_line_edit(viewer._inspector_form_container, "Root")
+	if name_edit != null:
+		name_edit.text = "RootBlurred"
+		name_edit.focus_exited.emit()
+		checks += 1
+		failures += int(not _expect(viewer.current_tree.root_task.friendly_name == "RootBlurred", "focus_exited commits the mutation"))
+
+	viewer.free()
+
+func _test_fix4_node_drag_undo_and_live_positions() -> void:
+	var viewer := _make_viewer()
+	var tree := _tree_with_root()
+	var child := BTComposite.BTSelector.new()
+	child.id = 2
+	child.friendly_name = "Child"
+	tree.connect_parent_child(tree.root_task, child)
+	viewer.load_generic_tree(tree, "DragTree")
+
+	var gnode1: GraphNode = viewer._graph_nodes_by_id[1]
+	var gnode2: GraphNode = viewer._graph_nodes_by_id[2]
+	gnode1.position_offset = Vector2(120, 140)
+	gnode2.position_offset = Vector2(300, 400)
+
+	# Moving nodes records undo
+	viewer._save_node_positions(true)
+	checks += 2
+	failures += int(not _expect(viewer.has_undo(), "Moving nodes records an undo action"))
+	failures += int(not _expect(viewer.undo_redo.get_current_action_name() == "Move Nodes", "Action name is 'Move Nodes'"))
+
+	# Perform another mutation: Rename child
+	viewer.select_node_by_id(2)
+	var name_edit := _find_line_edit(viewer._inspector_form_container, "Child")
+	if name_edit != null:
+		name_edit.text = "RenamedChild"
+		name_edit.text_submitted.emit("RenamedChild")
+
+	# Live positions should still be (120, 140) and (300, 400)
+	checks += 1
+	failures += int(not _expect(viewer._graph_nodes_by_id[1].position_offset == Vector2(120, 140), "Positions intact after rename"))
+
+	# Undoing rename must NOT clobber current node positions
+	viewer.undo()
+	checks += 2
+	failures += int(not _expect(viewer.current_tree.get_node_by_id(2).friendly_name == "Child", "Undo rename restored friendly_name"))
+	failures += int(not _expect(viewer._graph_nodes_by_id[1].position_offset == Vector2(120, 140) and viewer._graph_nodes_by_id[2].position_offset == Vector2(300, 400), "Undo rename did not clobber live node positions"))
+
+	# Undoing Move Nodes restores old positions
+	viewer.undo()
+	checks += 1
+	failures += int(not _expect(viewer._graph_nodes_by_id[1].position_offset != Vector2(120, 140), "Undo Move Nodes restored prior positions"))
+
+	# Redo Move Nodes reapplies moved positions
+	viewer.redo()
+	checks += 1
+	failures += int(not _expect(viewer._graph_nodes_by_id[1].position_offset == Vector2(120, 140), "Redo Move Nodes reapplies moved positions"))
+
+	viewer.free()
+
+func _test_fix5_delete_hidden_children_dialog() -> void:
+	var viewer := _make_viewer()
+	var tree := _tree_with_root()
+	var parent_task := BTComposite.BTSelector.new()
+	parent_task.id = 2
+	parent_task.friendly_name = "CombatGroup"
+	var hidden_child := BTTask.new()
+	hidden_child.id = 3
+	hidden_child.friendly_name = "PatrolSecret"
+	tree.connect_parent_child(tree.root_task, parent_task)
+	tree.connect_parent_child(parent_task, hidden_child)
+	viewer.load_generic_tree(tree, "FilterDeleteTree")
+
+	# Filter hides child 3 ("PatrolSecret") while parent 2 ("CombatGroup") matches
+	viewer.set_search_filter("Combat")
+	checks += 2
+	failures += int(not _expect(viewer._graph_nodes_by_id[2].visible, "Parent node visible under filter"))
+	failures += int(not _expect(not viewer._graph_nodes_by_id[3].visible, "Child node hidden under filter"))
+
+	# Deleting parent node prompts confirmation because it has 1 hidden descendant
+	viewer._delete_task(parent_task)
+	checks += 2
+	failures += int(not _expect(viewer._delete_confirm_dialog != null and viewer._delete_confirm_dialog.visible, "Delete confirmation shown when hidden children exist"))
+	failures += int(not _expect(viewer._delete_confirm_dialog.dialog_text.contains("1 hidden child node"), "Confirmation dialog text mentions 1 hidden child node"))
+
+	# Confirming deletion deletes both parent and hidden child
+	viewer._delete_confirm_dialog.confirmed.emit()
+	checks += 2
+	failures += int(not _expect(viewer.current_tree.get_node_by_id(2) == null, "Parent deleted after confirmation"))
+	failures += int(not _expect(viewer.current_tree.get_node_by_id(3) == null, "Hidden child deleted after confirmation"))
+
+	viewer.free()
+
+func _test_fix6_redo_add_task_selection() -> void:
+	var viewer := _make_viewer()
+	var tree := _tree_with_root()
+	viewer.load_generic_tree(tree, "RedoAddTree")
+
+	var popup: PopupMenu = viewer._add_task_menu_button.get_popup()
+	var seq_id := -1
+	for i in popup.item_count:
+		if popup.get_item_metadata(i) == "BTSequence" or str(popup.get_item_metadata(i)).contains("Sequence"):
+			seq_id = popup.get_item_id(i)
+			break
+	if seq_id == -1 and popup.item_count > 0:
+		seq_id = popup.get_item_id(0)
+
+	popup.id_pressed.emit(seq_id)
+	var added_id := viewer.selected_node_id
+	checks += 2
+	failures += int(not _expect(added_id > 1, "Added task is selected"))
+	failures += int(not _expect(viewer._inspector_content.text != "", "Inspector shows details of added task"))
+
+	viewer.undo()
+	checks += 1
+	failures += int(not _expect(viewer.current_tree.get_node_by_id(added_id) == null, "Undo removed task"))
+
+	viewer.redo()
+	checks += 2
+	failures += int(not _expect(viewer.selected_node_id == added_id, "Redo restores selected_node_id to added task"))
+	failures += int(not _expect(viewer._inspector_form_container.get_child_count() > 1, "Inspector is not blank after redo"))
+
+	viewer.free()
+
+func _test_fix7_tree_name_edit_in_json_tab() -> void:
+	var viewer := _make_viewer()
+	var tree := _tree_with_root()
+	viewer.load_generic_tree(tree, "OldJSONName")
+
+	viewer._tab_bar.current_tab = 2
+	var dict: Dictionary = tree.to_dict()
+	dict["tree_name"] = "NewJSONName"
+	viewer._json_text_edit.text = JSON.stringify(dict, "\t")
+	viewer._json_text_edit.text_changed.emit()
+
+	viewer._on_apply_json_pressed()
+	checks += 2
+	failures += int(not _expect(viewer.current_tree.tree_name == "NewJSONName", "Applying JSON updates tree.tree_name"))
+	failures += int(not _expect(viewer.current_tree_name == "NewJSONName", "Applying JSON updates viewer.current_tree_name"))
+
+	viewer.free()
+

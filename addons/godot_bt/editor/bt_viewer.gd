@@ -32,6 +32,15 @@ var _model_baseline := ""
 var _previous_tab := 0
 var _pending_action: Callable
 var _confirm_dialog: ConfirmationDialog
+var _new_tree_dialog: ConfirmationDialog
+var _new_tree_line_edit: LineEdit
+var _save_as_dialog: FileDialog
+var _save_as_confirm_dialog: ConfirmationDialog
+var _pending_save_as_path: String = ""
+var _delete_confirm_dialog: ConfirmationDialog
+var _pending_delete_action: Callable
+var _is_persisted_to_source: bool = false
+var _persisted_source_name: String = ""
 var _registry: BTTaskRegistry = null
 var selected_node_id: int = -1
 
@@ -48,6 +57,7 @@ var _source_dialog: Window = null
 var _tree_option_button: OptionButton
 var _reload_button: Button
 var _save_button: Button
+var _save_as_button: Button
 var _source_button: Button
 var _new_tree_button: Button
 var _add_task_menu_button: MenuButton
@@ -156,6 +166,7 @@ func _record_mutation(action_name: String, mutation_callable: Callable, keep_ins
 		mutation_callable.call()
 		return
 
+	var before_selection := selected_node_id
 	var before_snapshot := JSON.stringify(current_tree.to_dict(), "\t")
 	if keep_inspector:
 		_suppress_inspector_rebuild = true
@@ -163,13 +174,14 @@ func _record_mutation(action_name: String, mutation_callable: Callable, keep_ins
 	if keep_inspector:
 		_suppress_inspector_rebuild = false
 
+	var after_selection := selected_node_id
 	var after_snapshot := JSON.stringify(current_tree.to_dict(), "\t")
 	if after_snapshot == before_snapshot:
 		return
 
 	undo_redo.create_action(action_name)
-	undo_redo.add_do_method(_restore_snapshot.bind(after_snapshot))
-	undo_redo.add_undo_method(_restore_snapshot.bind(before_snapshot))
+	undo_redo.add_do_method(_restore_snapshot.bind(after_snapshot, action_name == "Move Nodes", after_selection))
+	undo_redo.add_undo_method(_restore_snapshot.bind(before_snapshot, action_name == "Move Nodes", before_selection))
 	undo_redo.commit_action(false)
 
 func _notification(what: int) -> void:
@@ -178,26 +190,50 @@ func _notification(what: int) -> void:
 			undo_redo.free()
 			undo_redo = null
 
-func _restore_snapshot(snapshot: String) -> void:
+func _restore_snapshot(snapshot: String, is_move_action: bool = false, target_selection: int = -2) -> void:
 	if snapshot == "":
 		return
 	var parsed = JSON.parse_string(snapshot)
 	if not (parsed is Dictionary):
 		return
 	_is_restoring_undo_redo = true
+
+	var live_positions: Dictionary = {}
+	if not is_move_action and current_tree != null and current_tree.metadata.has("node_positions"):
+		for id in _graph_nodes_by_id.keys():
+			var gn: GraphNode = _graph_nodes_by_id[id]
+			if is_instance_valid(gn):
+				live_positions[str(id)] = [gn.position_offset.x, gn.position_offset.y]
+
 	var nodes_data: Array = parsed.get("nodes", [])
 	var restored: BTTree
 	if nodes_data.is_empty():
 		restored = BTTree.new()
 		restored.tree_name = str(parsed.get("tree_name", "Untitled Tree"))
 		restored.description = str(parsed.get("description", ""))
-		restored.metadata = parsed.get("metadata", {}).duplicate()
+		restored.metadata = parsed.get("metadata", {}).duplicate(true)
 		restored.registry = _active_registry()
 	else:
 		restored = BTTree.from_dict(parsed, _active_registry())
 	if restored != null:
-		if current_tree_name != "":
+		var parsed_name = str(parsed.get("tree_name", ""))
+		if parsed_name != "":
+			restored.tree_name = parsed_name
+			current_tree_name = parsed_name
+		elif current_tree_name != "":
 			restored.tree_name = current_tree_name
+
+		if not is_move_action and not live_positions.is_empty():
+			var meta_pos = restored.metadata.get("node_positions", {})
+			if not (meta_pos is Dictionary):
+				meta_pos = {}
+			else:
+				meta_pos = meta_pos.duplicate(true)
+			for id_str in live_positions.keys():
+				if restored.get_node_by_id(int(id_str)) != null:
+					meta_pos[id_str] = live_positions[id_str]
+			restored.metadata["node_positions"] = meta_pos
+
 		for n_dict in nodes_data:
 			var nid: int = int(n_dict.get("id", -1))
 			var t := restored.get_node_by_id(nid)
@@ -215,10 +251,18 @@ func _restore_snapshot(snapshot: String) -> void:
 		_json_draft_tree = current_tree
 		if _json_text_edit != null:
 			_json_text_edit.text = snapshot
-		if current_tree.get_node_by_id(selected_node_id) == null:
+
+		if target_selection != -2:
+			selected_node_id = target_selection
+		if selected_node_id >= 0 and current_tree.get_node_by_id(selected_node_id) == null:
 			selected_node_id = -1
+
 		_render_current_tree()
-		_update_inspector()
+		if selected_node_id >= 0:
+			select_node_by_id(selected_node_id)
+		else:
+			_update_inspector()
+		_select_tree_option(current_tree_name)
 	_is_restoring_undo_redo = false
 
 func set_tree_source(p_source: BTTreeSourceProvider) -> void:
@@ -250,6 +294,8 @@ func _apply_tree_source(p_source: BTTreeSourceProvider) -> void:
 	_json_draft_modified = false
 	_json_baseline = ""
 	_model_baseline = ""
+	_is_persisted_to_source = false
+	_persisted_source_name = ""
 	if _json_text_edit != null:
 		_json_text_edit.text = ""
 	if _source_label != null:
@@ -274,6 +320,8 @@ func load_generic_tree(p_tree: BTTree, p_name: String = "", clear_undo: bool = t
 			p_tree.tree_name = p_name
 	else:
 		current_tree_name = p_tree.tree_name
+	_is_persisted_to_source = false
+	_persisted_source_name = ""
 	_json_draft_modified = false
 	_json_baseline = JSON.stringify(p_tree.to_dict(), "\t")
 	_model_baseline = _json_baseline
@@ -304,7 +352,11 @@ func load_tree_by_name(p_name: String) -> bool:
 	var tree := tree_source.load_tree(p_name)
 	if tree == null:
 		return false
-	return load_generic_tree(tree, p_name)
+	var ok := load_generic_tree(tree, p_name)
+	if ok:
+		_is_persisted_to_source = true
+		_persisted_source_name = p_name
+	return ok
 
 func load_tree_file(p_file_path: String) -> bool:
 	if tree_source == null:
@@ -312,7 +364,12 @@ func load_tree_file(p_file_path: String) -> bool:
 	var tree := tree_source.load_tree(p_file_path)
 	if tree == null:
 		return false
-	return load_generic_tree(tree, p_file_path.get_file().get_basename())
+	var base := p_file_path.get_file().get_basename()
+	var ok := load_generic_tree(tree, base)
+	if ok:
+		_is_persisted_to_source = true
+		_persisted_source_name = base
+	return ok
 
 func select_node_by_id(node_id: int) -> void:
 	selected_node_id = node_id
@@ -380,6 +437,12 @@ func _build_ui() -> void:
 	_save_button.tooltip_text = "Save changes back to source file"
 	_save_button.pressed.connect(_on_save_pressed)
 	row1.add_child(_save_button)
+
+	_save_as_button = Button.new()
+	_save_as_button.text = "💾 Save As…"
+	_save_as_button.tooltip_text = "Save current tree under a new name or file"
+	_save_as_button.pressed.connect(_on_save_as_pressed)
+	row1.add_child(_save_as_button)
 
 	_source_button = Button.new()
 	_source_button.text = "📁 Source…"
@@ -500,6 +563,12 @@ func _build_ui() -> void:
 	apply_json_btn.pressed.connect(_on_apply_json_pressed)
 	json_tb.add_child(apply_json_btn)
 
+	var revert_json_btn := Button.new()
+	revert_json_btn.text = "↩ Revert Draft"
+	revert_json_btn.tooltip_text = "Discard unapplied JSON draft edits and restore from current tree"
+	revert_json_btn.pressed.connect(_on_revert_json_draft_pressed)
+	json_tb.add_child(revert_json_btn)
+
 	_json_status_label = Label.new()
 	_json_status_label.text = "Edit JSON directly and click 'Apply JSON to Tree'"
 	_json_status_label.modulate = Color(0.7, 0.7, 0.7, 1.0)
@@ -576,6 +645,43 @@ func _build_ui() -> void:
 	_confirm_dialog.canceled.connect(_cancel_pending_action)
 	add_child(_confirm_dialog)
 
+	_new_tree_dialog = ConfirmationDialog.new()
+	_new_tree_dialog.title = "New Behavior Tree"
+	_new_tree_dialog.ok_button_text = "Create"
+	var ntd_vbox := VBoxContainer.new()
+	var ntd_lbl := Label.new()
+	ntd_lbl.text = "Tree Name:"
+	ntd_vbox.add_child(ntd_lbl)
+	_new_tree_line_edit = LineEdit.new()
+	_new_tree_line_edit.custom_minimum_size = Vector2(250, 0)
+	ntd_vbox.add_child(_new_tree_line_edit)
+	_new_tree_dialog.add_child(ntd_vbox)
+	_new_tree_dialog.confirmed.connect(_on_new_tree_dialog_confirmed)
+	_new_tree_line_edit.text_submitted.connect(func(_t: String):
+		_new_tree_dialog.hide()
+		_on_new_tree_dialog_confirmed()
+	)
+	add_child(_new_tree_dialog)
+
+	_save_as_dialog = FileDialog.new()
+	_save_as_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	_save_as_dialog.access = FileDialog.ACCESS_RESOURCES
+	_save_as_dialog.filters = PackedStringArray(["*.json ; JSON Behavior Trees"])
+	_save_as_dialog.title = "Save Behavior Tree As"
+	_save_as_dialog.file_selected.connect(_on_save_as_file_selected)
+	add_child(_save_as_dialog)
+
+	_save_as_confirm_dialog = ConfirmationDialog.new()
+	_save_as_confirm_dialog.title = "Confirm Overwrite"
+	_save_as_confirm_dialog.dialog_text = "File already exists. Overwrite?"
+	_save_as_confirm_dialog.confirmed.connect(_on_save_as_overwrite_confirmed)
+	add_child(_save_as_confirm_dialog)
+
+	_delete_confirm_dialog = ConfirmationDialog.new()
+	_delete_confirm_dialog.title = "Confirm Deletion"
+	_delete_confirm_dialog.confirmed.connect(_on_delete_confirmed)
+	add_child(_delete_confirm_dialog)
+
 func _setup_add_task_menu(popup: PopupMenu) -> void:
 	popup.clear()
 	if not popup.id_pressed.is_connected(_on_add_task_menu_item_pressed):
@@ -641,10 +747,141 @@ func _on_reload_pressed() -> void:
 		_sync_tree_options()
 	if current_tree_name != "":
 		var tree_name := current_tree_name
-		_request_action(func(): load_tree_by_name(tree_name))
+		_request_action(func(): _reload_tree(tree_name))
+
+func _reload_tree(tree_name: String) -> void:
+	var loaded := load_tree_by_name(tree_name)
+	if not loaded:
+		_json_draft_modified = false
+		if current_tree != null:
+			var serialized := JSON.stringify(current_tree.to_dict(), "\t")
+			_json_draft = serialized
+			_json_baseline = serialized
+			_json_draft_tree = current_tree
+			if _json_text_edit != null:
+				_json_text_edit.text = serialized
+			if _stats_label != null:
+				_stats_label.text = "⚠️ Tree '%s' not found on disk; discarded unapplied draft." % tree_name
+		else:
+			if _stats_label != null:
+				_stats_label.text = "❌ Failed to reload tree '%s'." % tree_name
+
+func _on_revert_json_draft_pressed() -> void:
+	revert_json_draft()
+
+func revert_json_draft() -> void:
+	if current_tree == null:
+		return
+	var serialized := JSON.stringify(current_tree.to_dict(), "\t")
+	_json_draft = serialized
+	_json_baseline = serialized
+	_json_draft_tree = current_tree
+	_json_draft_modified = false
+	if _json_text_edit != null:
+		_json_text_edit.text = serialized
+	if _json_status_label != null:
+		_json_status_label.text = "Draft reverted to current tree."
+		_json_status_label.modulate = Color(0.7, 0.7, 0.7, 1.0)
 
 func _on_save_pressed() -> void:
 	save_current_tree()
+
+func _on_save_as_pressed() -> void:
+	if current_tree == null:
+		return
+	if _save_as_dialog == null:
+		return
+	var default_filename := "%s.json" % current_tree_name
+	_save_as_dialog.current_file = default_filename
+	_save_as_dialog.popup_centered_ratio(0.6)
+
+func _on_save_as_file_selected(path: String) -> void:
+	if path.strip_edges() == "":
+		return
+	var target_tree_name := path.get_file().get_basename()
+	var is_different_existing := false
+	if FileAccess.file_exists(path) and (target_tree_name != _persisted_source_name or not _is_persisted_to_source):
+		is_different_existing = true
+	elif tree_source != null and tree_source.list_trees().has(target_tree_name) and (target_tree_name != _persisted_source_name or not _is_persisted_to_source):
+		is_different_existing = true
+
+	if is_different_existing:
+		_pending_save_as_path = path
+		if _save_as_confirm_dialog != null:
+			_save_as_confirm_dialog.dialog_text = "File '%s' already exists for a different tree. Overwrite?" % path.get_file()
+			_save_as_confirm_dialog.popup_centered()
+		return
+	save_tree_as(path)
+
+func _on_save_as_overwrite_confirmed() -> void:
+	if _save_as_confirm_dialog != null:
+		_save_as_confirm_dialog.hide()
+	if _pending_save_as_path != "":
+		var path := _pending_save_as_path
+		_pending_save_as_path = ""
+		save_tree_as(path)
+
+func save_tree_as(target_path: String) -> bool:
+	if current_tree == null:
+		return false
+	if _json_draft_modified:
+		if _stats_label != null:
+			_stats_label.text = "Unapplied JSON edits; apply JSON before saving."
+		return false
+	var new_name := target_path.get_file().get_basename()
+	if new_name == "":
+		new_name = target_path
+	current_tree.tree_name = new_name
+	current_tree_name = new_name
+
+	var ok := false
+	if tree_source != null:
+		var identifier := target_path if (target_path.contains("/") or target_path.ends_with(".json")) else new_name
+		ok = tree_source.save_tree(identifier, current_tree)
+		if not ok and tree_source is BTMemoryTreeSource:
+			ok = tree_source.save_tree(new_name, current_tree)
+	if not ok and (target_path.begins_with("res://") or target_path.begins_with("user://") or target_path.is_absolute_path()):
+		var dir := target_path.get_base_dir()
+		if dir != "" and not DirAccess.dir_exists_absolute(dir):
+			DirAccess.make_dir_recursive_absolute(dir)
+		var file = FileAccess.open(target_path, FileAccess.WRITE)
+		if file != null:
+			file.store_string(JSON.stringify(current_tree.to_dict(), "\t"))
+			file.close()
+			ok = true
+
+	if ok:
+		_is_persisted_to_source = true
+		_persisted_source_name = new_name
+		_model_baseline = JSON.stringify(current_tree.to_dict(), "\t")
+		if _stats_label != null:
+			_stats_label.text = "✅ Saved tree as '%s' successfully." % new_name
+		_sync_tree_options()
+	else:
+		if _stats_label != null:
+			var last_err = tree_source.get("last_error") if tree_source != null else ""
+			if last_err is String and not last_err.is_empty():
+				_stats_label.text = "❌ %s" % last_err
+			else:
+				_stats_label.text = "❌ Failed to save tree as '%s'." % new_name
+	return ok
+
+func can_auto_save() -> bool:
+	if current_tree == null or tree_source == null:
+		return false
+	if not _is_persisted_to_source:
+		return false
+	if _persisted_source_name == "" or _persisted_source_name != current_tree_name:
+		return false
+	return true
+
+func auto_save_external_data() -> bool:
+	if not can_auto_save():
+		if current_tree != null and not _is_persisted_to_source:
+			if _stats_label != null:
+				_stats_label.text = "ℹ️ Skipped autosave for unsaved tree '%s'." % current_tree_name
+		return false
+	return save_current_tree()
 
 ## Writes the model through the provider.
 ## Returns true when the tree was written.
@@ -656,6 +893,8 @@ func save_current_tree() -> bool:
 		return false
 	var ok: bool = tree_source.save_tree(current_tree_name, current_tree)
 	if ok:
+		_is_persisted_to_source = true
+		_persisted_source_name = current_tree_name
 		_model_baseline = JSON.stringify(current_tree.to_dict(), "\t")
 		_stats_label.text = "✅ Saved tree '%s' successfully." % current_tree_name
 		_sync_tree_options()
@@ -723,8 +962,10 @@ func _on_apply_json_pressed() -> void:
 
 func _apply_parsed_tree(new_tree: BTTree) -> void:
 	_record_mutation("Apply JSON", func():
+		var target_name := new_tree.tree_name if new_tree.tree_name.strip_edges() != "" else current_tree_name
 		var persisted_model_baseline := _model_baseline
-		load_generic_tree(new_tree, current_tree_name, false)
+		load_generic_tree(new_tree, target_name, false)
+		current_tree_name = target_name
 		_model_baseline = persisted_model_baseline
 		_json_baseline = JSON.stringify(current_tree.to_dict(), "\t")
 		_json_draft = _json_baseline
@@ -734,6 +975,7 @@ func _apply_parsed_tree(new_tree: BTTree) -> void:
 			_json_text_edit.text = _json_draft
 		_json_status_label.text = "✅ Tree updated successfully from JSON!"
 		_json_status_label.modulate = COLOR_ACTION
+		_sync_tree_options()
 	)
 
 func _on_search_changed(query: String) -> void:
@@ -787,34 +1029,82 @@ func _on_source_dir_selected(dir_path: String) -> void:
 		return
 	set_source_directory(dir_path)
 
+## Returns all tree names currently known from the source, dropdown, and active tree.
+func _get_existing_tree_names() -> Array[String]:
+	var names: Array[String] = []
+	if tree_source != null:
+		for t in tree_source.list_trees():
+			if not names.has(str(t)):
+				names.append(str(t))
+	if _tree_option_button != null:
+		for i in _tree_option_button.item_count:
+			var item_text := _tree_option_button.get_item_text(i)
+			if not names.has(item_text):
+				names.append(item_text)
+	if current_tree_name != "" and not names.has(current_tree_name):
+		names.append(current_tree_name)
+	return names
+
+## Finds the first unused name of form prefix, prefix_1, prefix_2...
+func _get_next_unused_tree_name(prefix: String = "new_tree") -> String:
+	var existing := _get_existing_tree_names()
+	if not existing.has(prefix):
+		return prefix
+	var idx := 1
+	while true:
+		var candidate := "%s_%d" % [prefix, idx]
+		if not existing.has(candidate):
+			return candidate
+		idx += 1
+	return prefix
+
 ## Creates a new tree with an empty Sequence root. The tree stays dirty until
 ## it is saved to the source.
 func _on_new_tree_pressed() -> void:
-	_request_action(_create_new_tree)
+	_request_action(_prompt_new_tree)
 
-func _create_new_tree() -> void:
+func _prompt_new_tree() -> void:
+	var default_name := _get_next_unused_tree_name()
+	if _new_tree_line_edit != null:
+		_new_tree_line_edit.text = default_name
+	if _new_tree_dialog != null:
+		_new_tree_dialog.popup_centered()
+
+func _on_new_tree_dialog_confirmed() -> void:
+	if _new_tree_dialog != null:
+		_new_tree_dialog.hide()
+	var chosen_name := _new_tree_line_edit.text.strip_edges() if _new_tree_line_edit != null else ""
+	if chosen_name == "":
+		chosen_name = _get_next_unused_tree_name()
+	_create_new_tree(chosen_name)
+
+func _create_new_tree(p_name: String = "") -> void:
+	if p_name.strip_edges() == "":
+		p_name = _get_next_unused_tree_name()
 	var tree := BTTree.new()
 	var root_task := BTComposite.BTSequence.new()
 	root_task.id = 1
 	root_task.friendly_name = "Root"
 	root_task.category = "Root"
-	tree.tree_name = "new_tree"
+	tree.tree_name = p_name
 	tree.set_root(root_task)
-	load_generic_tree(tree, "new_tree")
+	load_generic_tree(tree, p_name)
+	_is_persisted_to_source = false
+	_persisted_source_name = ""
 	if _tree_option_button != null:
 		var found_idx := -1
 		for i in _tree_option_button.item_count:
-			if _tree_option_button.get_item_text(i) == "new_tree":
+			if _tree_option_button.get_item_text(i) == p_name:
 				found_idx = i
 				break
 		if found_idx >= 0:
 			_tree_option_button.select(found_idx)
 		else:
-			_tree_option_button.add_item("new_tree")
+			_tree_option_button.add_item(p_name)
 			_tree_option_button.select(_tree_option_button.item_count - 1)
 	# Nothing has been written to the source yet, so the tree counts as dirty.
 	_model_baseline = ""
-	_stats_label.text = "🆕 Created 'new_tree'. Save to write it to the source."
+	_stats_label.text = "🆕 Created '%s'. Save to write it to the source." % p_name
 
 # ---------------------------------------------------------------- Node Adding & Editing
 func _on_add_task_menu_item_pressed(id: int) -> void:
@@ -1205,16 +1495,47 @@ func _apply_saved_positions(positions: Dictionary) -> void:
 		if entry is Array and entry.size() == 2:
 			positions[id] = Vector2(float(entry[0]), float(entry[1]))
 
+func _are_positions_equal(a: Variant, b: Variant) -> bool:
+	if not (a is Dictionary) or not (b is Dictionary):
+		return false
+	if a.size() != b.size():
+		return false
+	for k in a.keys():
+		var str_k := str(k)
+		var b_val = null
+		if b.has(k):
+			b_val = b[k]
+		elif b.has(str_k):
+			b_val = b[str_k]
+		else:
+			return false
+		var a_val = a[k]
+		if not (a_val is Array) or not (b_val is Array) or a_val.size() != 2 or b_val.size() != 2:
+			return false
+		if not is_equal_approx(float(a_val[0]), float(b_val[0])) or not is_equal_approx(float(a_val[1]), float(b_val[1])):
+			return false
+	return true
+
 ## Stores the current graph positions in the tree metadata. Ids of deleted
 ## nodes disappear because only the nodes currently in the graph are written.
-func _save_node_positions() -> void:
+func _save_node_positions(record_undo: bool = false) -> void:
 	if current_tree == null or _is_rendering:
 		return
-	var positions := {}
+	var new_positions := {}
 	for id in _graph_nodes_by_id.keys():
 		var gn: GraphNode = _graph_nodes_by_id[id]
-		positions[id] = [gn.position_offset.x, gn.position_offset.y]
-	current_tree.metadata["node_positions"] = positions
+		if is_instance_valid(gn):
+			new_positions[str(id)] = [gn.position_offset.x, gn.position_offset.y]
+
+	var old_positions = current_tree.metadata.get("node_positions", {})
+	if record_undo and undo_redo != null and not _is_restoring_undo_redo:
+		if not _are_positions_equal(old_positions, new_positions):
+			_record_mutation("Move Nodes", func():
+				current_tree.metadata["node_positions"] = new_positions.duplicate(true)
+			, true)
+			return
+
+	current_tree.metadata["node_positions"] = new_positions
 
 ## Drops the saved positions of nodes that are no longer part of the tree.
 func _prune_node_positions() -> void:
@@ -1230,7 +1551,7 @@ func _prune_node_positions() -> void:
 	current_tree.metadata["node_positions"] = pruned
 
 func _on_graph_end_node_move() -> void:
-	_save_node_positions()
+	_save_node_positions(true)
 
 ## Fallback for engines without GraphEdit.end_node_move: every node reports
 ## its own position changes.
@@ -1303,8 +1624,52 @@ func _apply_filters() -> void:
 			var gn: GraphNode = _graph_nodes_by_id[task.id]
 			gn.visible = visible_state
 
+func _capture_inspector_focus() -> Dictionary:
+	var viewport := get_viewport()
+	if viewport == null:
+		return {}
+	var focused = viewport.gui_get_focus_owner()
+	if focused == null:
+		return {}
+	if focused is LineEdit:
+		var fid = focused.get_meta("field_id", "")
+		if fid != "":
+			return {
+				"type": "line_edit",
+				"field_id": fid,
+				"caret_column": focused.caret_column
+			}
+	return {}
+
+func _restore_inspector_focus(focus_info: Dictionary) -> void:
+	if focus_info.is_empty():
+		return
+	var field_id: String = focus_info.get("field_id", "")
+	if field_id == "":
+		return
+	var control := _find_control_by_field_id(_inspector_form_container, field_id)
+	if control != null and control is LineEdit:
+		control.grab_focus()
+		control.caret_column = mini(focus_info.get("caret_column", 0), control.text.length())
+
+func _find_control_by_field_id(root: Node, field_id: String) -> Control:
+	if root == null:
+		return null
+	if root is Control and root.has_meta("field_id") and root.get_meta("field_id") == field_id:
+		return root as Control
+	if root is SpinBox:
+		var le := (root as SpinBox).get_line_edit()
+		if le.has_meta("field_id") and le.get_meta("field_id") == field_id:
+			return le
+	for child in root.get_children():
+		var found := _find_control_by_field_id(child, field_id)
+		if found != null:
+			return found
+	return null
+
 # ---------------------------------------------------------------- Inspector
 func _update_inspector() -> void:
+	var focus_info := _capture_inspector_focus()
 	# Clear previous dynamic form controls. remove_child + queue_free detaches
 	# the old controls right away, so the container never accumulates stale
 	# controls (and their closures never point at an old task).
@@ -1360,7 +1725,11 @@ func _update_inspector() -> void:
 	var name_edit := LineEdit.new()
 	name_edit.text = task.friendly_name
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_edit.text_changed.connect(func(new_text: String):
+	name_edit.set_meta("field_id", "task_name")
+	var initial_name := task.friendly_name
+	var commit_name := func(new_text: String):
+		if new_text == initial_name:
+			return
 		_record_mutation("Rename Task", func():
 			task.friendly_name = new_text
 			if _graph_nodes_by_id.has(task.id):
@@ -1370,7 +1739,9 @@ func _update_inspector() -> void:
 				var item: TreeItem = _hierarchy_items[task.id]
 				item.set_text(0, new_text)
 		, true)
-	)
+		initial_name = new_text
+	name_edit.text_submitted.connect(commit_name)
+	name_edit.focus_exited.connect(func(): commit_name.call(name_edit.text))
 	name_row.add_child(name_edit)
 	_inspector_form_container.add_child(name_row)
 
@@ -1453,6 +1824,7 @@ func _update_inspector() -> void:
 		var vars = current_tree.blackboard.get_all_variables()
 		for vname in vars.keys():
 			var v = vars[vname]
+			var var_capture = v
 			var bb_row := HBoxContainer.new()
 			var v_lbl := Label.new()
 			v_lbl.text = v.name + " (" + v.type_name + "):"
@@ -1462,14 +1834,19 @@ func _update_inspector() -> void:
 			var val_edit := LineEdit.new()
 			val_edit.text = str(v.value)
 			val_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			var var_capture = v
-			val_edit.text_changed.connect(func(nv: String):
+			val_edit.set_meta("field_id", "bb_var_%s" % var_capture.name)
+			var initial_bb_val := val_edit.text
+			var commit_bb_var := func(nv: String):
+				if nv == initial_bb_val:
+					return
 				var parsed := _parse_editor_value(nv, var_capture.value)
 				if typeof(parsed) == typeof(var_capture.value):
 					_record_mutation("Edit Blackboard Variable", func():
 						current_tree.blackboard.set_var(var_capture.name, parsed, var_capture.type_name)
 					, true)
-			)
+					initial_bb_val = nv
+			val_edit.text_submitted.connect(commit_bb_var)
+			val_edit.focus_exited.connect(func(): commit_bb_var.call(val_edit.text))
 			bb_row.add_child(val_edit)
 
 			var del_v_btn := Button.new()
@@ -1529,6 +1906,8 @@ func _update_inspector() -> void:
 		_delete_task(task)
 	)
 	_inspector_form_container.add_child(del_node_btn)
+
+	_restore_inspector_focus(focus_info)
 
 # ---------------------------------------------------------------- Inspector Helpers
 ## The registry the editor uses for the current tree.
@@ -1630,11 +2009,18 @@ func _build_parameter_row(task: BTTask, key: String) -> Control:
 		bb_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		bb_edit.text = task.get_param_blackboard_key(key_capture)
 		bb_edit.placeholder_text = "Blackboard key..."
-		bb_edit.text_changed.connect(func(new_key: String):
+		bb_edit.set_meta("field_id", "param_bb_%s" % key_capture)
+		var initial_bb_key := bb_edit.text
+		var commit_bb_key := func(new_key: String):
+			var stripped := new_key.strip_edges()
+			if stripped == initial_bb_key:
+				return
 			_record_mutation("Edit Parameter Blackboard Key", func():
-				task.set_param(key_capture, new_key.strip_edges(), true)
+				task.set_param(key_capture, stripped, true)
 			, true)
-		)
+			initial_bb_key = stripped
+		bb_edit.text_submitted.connect(commit_bb_key)
+		bb_edit.focus_exited.connect(func(): commit_bb_key.call(bb_edit.text))
 		p_row.add_child(bb_edit)
 	else:
 		p_row.add_child(_build_value_control(task, key_capture, value_type, expected_type, previous))
@@ -1667,11 +2053,26 @@ func _build_value_control(task: BTTask, key: String, value_type: String, expecte
 			int_spin.min_value = -1000000000.0
 			int_spin.max_value = 1000000000.0
 			int_spin.step = 1.0
-			int_spin.value = float(int(previous)) if previous != null else 0.0
-			int_spin.value_changed.connect(func(v: float):
+			var start_val: int = int(round(previous)) if previous != null else 0
+			int_spin.value = float(start_val)
+			int_spin.set_meta("field_id", "param_spin_%s" % key)
+			var le_int := int_spin.get_line_edit()
+			le_int.set_meta("field_id", "param_spin_le_%s" % key)
+			var last_committed_int := start_val
+			var commit_int := func():
+				var curr := int(round(int_spin.value))
+				if curr == last_committed_int:
+					return
+				last_committed_int = curr
 				_record_mutation("Edit Parameter", func():
-					task.parameters[key] = int(round(v))
+					task.parameters[key] = curr
 				, true)
+			le_int.text_submitted.connect(func(_t): commit_int.call())
+			le_int.focus_exited.connect(commit_int)
+			int_spin.focus_exited.connect(commit_int)
+			int_spin.gui_input.connect(func(event: InputEvent):
+				if event is InputEventMouseButton and not event.pressed:
+					commit_int.call()
 			)
 			return int_spin
 		"float":
@@ -1679,11 +2080,26 @@ func _build_value_control(task: BTTask, key: String, value_type: String, expecte
 			float_spin.min_value = -1000000000.0
 			float_spin.max_value = 1000000000.0
 			float_spin.step = 0.1
-			float_spin.value = float(previous) if previous != null else 0.0
-			float_spin.value_changed.connect(func(v: float):
+			var start_fval: float = float(previous) if previous != null else 0.0
+			float_spin.value = start_fval
+			float_spin.set_meta("field_id", "param_spin_%s" % key)
+			var le_float := float_spin.get_line_edit()
+			le_float.set_meta("field_id", "param_spin_le_%s" % key)
+			var last_committed_float := start_fval
+			var commit_float := func():
+				var curr := float_spin.value
+				if is_equal_approx(curr, last_committed_float):
+					return
+				last_committed_float = curr
 				_record_mutation("Edit Parameter", func():
-					task.parameters[key] = v
+					task.parameters[key] = curr
 				, true)
+			le_float.text_submitted.connect(func(_t): commit_float.call())
+			le_float.focus_exited.connect(commit_float)
+			float_spin.focus_exited.connect(commit_float)
+			float_spin.gui_input.connect(func(event: InputEvent):
+				if event is InputEventMouseButton and not event.pressed:
+					commit_float.call()
 			)
 			return float_spin
 		_:
@@ -1691,13 +2107,19 @@ func _build_value_control(task: BTTask, key: String, value_type: String, expecte
 			v_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			v_edit.text = str(previous) if previous != null else ""
 			v_edit.placeholder_text = "Literal value..."
-			v_edit.text_changed.connect(func(new_val: String):
+			v_edit.set_meta("field_id", "param_val_%s" % key)
+			var initial_v_text := v_edit.text
+			var commit_v := func(new_val: String):
+				if new_val == initial_v_text:
+					return
 				var curr: Variant = task.parameters.get(key, previous)
 				var coerced := _coerce_param_value(new_val, curr, expected_type)
 				_record_mutation("Edit Parameter", func():
 					task.parameters[key] = coerced
 				, true)
-			)
+				initial_v_text = new_val
+			v_edit.text_submitted.connect(commit_v)
+			v_edit.focus_exited.connect(func(): commit_v.call(v_edit.text))
 			return v_edit
 
 ## Converts edited text into a value of the type the parameter already has.
@@ -1799,6 +2221,34 @@ func _coerce_new_param_value(text: String) -> Variant:
 		return false
 	return text
 
+func _count_hidden_descendants(task: BTTask) -> int:
+	if task == null or current_tree == null:
+		return 0
+	var has_filter := (_search_filter != "" or _filter_placeholders_only)
+	if not has_filter:
+		return 0
+	var count := 0
+	for node in _collect_subtree_nodes(task):
+		if node == task:
+			continue
+		if not _is_task_matching_filter(node):
+			count += 1
+	return count
+
+func _count_hidden_nodes_in_subtrees(targets: Array) -> int:
+	var has_filter := (_search_filter != "" or _filter_placeholders_only)
+	if not has_filter:
+		return 0
+	var count := 0
+	var counted: Dictionary = {}
+	for task in targets:
+		for node in _collect_subtree_nodes(task):
+			if not targets.has(node) and not counted.has(node.id):
+				counted[node.id] = true
+				if not _is_task_matching_filter(node):
+					count += 1
+	return count
+
 # ---------------------------------------------------------------- Tree Editing
 ## Removes a task and its whole subtree. The root can never be deleted: the
 ## tree would have no root and could not be saved or loaded again.
@@ -1808,6 +2258,14 @@ func _delete_task(task: BTTask) -> bool:
 	if task == current_tree.root_task:
 		_stats_label.text = "❌ Cannot delete the root node '%s'. Use 'Set as Root' on another node first." % task.friendly_name
 		return false
+	var hidden_count := _count_hidden_descendants(task)
+	if hidden_count > 0:
+		_pending_delete_action = func():
+			_record_mutation("Delete Task", func(): _delete_task_with_descendants(task))
+		if _delete_confirm_dialog != null:
+			_delete_confirm_dialog.dialog_text = "Deleting '%s' will also delete %d hidden child node(s). Continue?" % [task.friendly_name, hidden_count]
+			_delete_confirm_dialog.popup_centered()
+		return true
 	_record_mutation("Delete Task", func(): _delete_task_with_descendants(task))
 	return true
 
@@ -1955,11 +2413,27 @@ func _confirm_pending_action() -> void:
 		var action := _pending_action
 		_pending_action = Callable()
 		_confirm_dialog.dialog_text = "Discard unapplied changes?"
+		_json_draft_modified = false
+		if current_tree != null:
+			var serialized := JSON.stringify(current_tree.to_dict(), "\t")
+			_json_draft = serialized
+			_json_baseline = serialized
+			_json_draft_tree = current_tree
+			if _json_text_edit != null:
+				_json_text_edit.text = serialized
 		action.call()
 
 func _cancel_pending_action() -> void:
 	_pending_action = Callable()
 	_confirm_dialog.dialog_text = "Discard unapplied changes?"
+
+func _on_delete_confirmed() -> void:
+	if _delete_confirm_dialog != null:
+		_delete_confirm_dialog.hide()
+	if _pending_delete_action.is_valid():
+		var action := _pending_delete_action
+		_pending_delete_action = Callable()
+		action.call()
 
 func _on_graph_delete_nodes_request(nodes: Array[StringName]) -> void:
 	if current_tree == null:
@@ -1982,6 +2456,20 @@ func _on_graph_delete_nodes_request(nodes: Array[StringName]) -> void:
 		if blocked_root != "":
 			_stats_label.text = "❌ Cannot delete the root node '%s'. Use 'Set as Root' on another node first." % blocked_root
 		return
+
+	var hidden_count := _count_hidden_nodes_in_subtrees(targets)
+	if hidden_count > 0:
+		_pending_delete_action = func():
+			_record_mutation("Delete Tasks", func():
+				for task in targets:
+					if current_tree.get_node_by_id(task.id) == task:
+						_delete_task_with_descendants(task)
+			)
+		if _delete_confirm_dialog != null:
+			_delete_confirm_dialog.dialog_text = "Deleting selected node(s) will also delete %d hidden child node(s). Continue?" % hidden_count
+			_delete_confirm_dialog.popup_centered()
+		return
+
 	_record_mutation("Delete Tasks", func():
 		for task in targets:
 			if current_tree.get_node_by_id(task.id) == task:
