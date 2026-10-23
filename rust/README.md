@@ -43,9 +43,12 @@ To allow GDScript code to define custom actions/conditions/decorators seamlessly
 
 ---
 
-## Build Instructions
+## Build Instructions & Cross-platform builds
 
 Requirements: Rust toolchain (`rustup`, cargo), Godot 4.6+ or 4.7+.
+
+### Building on Host Platform
+The build script automatically detects the host operating system (`Linux`, `macOS`, or `Windows`) and copies the output artifact with the appropriate extension:
 
 ```bash
 # Build both debug and release binaries
@@ -58,9 +61,18 @@ bash rust/build.sh --release-only
 bash rust/build.sh --debug-only
 ```
 
-Compiled shared libraries land in `addons/godot_bt_native/bin/`:
-- `libgodot_bt_native.release.so`
-- `libgodot_bt_native.debug.so`
+### Cross-platform Target & File Mapping
+
+The Godot GDExtension configuration (`addons/godot_bt_native/godot_bt_native.gdextension`) expects the following library artifacts in `addons/godot_bt_native/bin/`:
+
+| Platform | Feature Tag | Cargo Target Artifact | Addon Destination File |
+|---|---|---|---|
+| **Linux (x86_64)** | `linux.debug.x86_64`<br>`linux.release.x86_64` | `target/<profile>/libgodot_bt_native.so` | `libgodot_bt_native.debug.so`<br>`libgodot_bt_native.release.so` |
+| **Linux (ARM64)** | `linux.debug.arm64`<br>`linux.release.arm64` | `target/<profile>/libgodot_bt_native.so` | `libgodot_bt_native.debug.so`<br>`libgodot_bt_native.release.so` |
+| **Windows (x86_64)** | `windows.debug.x86_64`<br>`windows.release.x86_64` | `target/<profile>/godot_bt_native.dll` | `libgodot_bt_native.debug.dll`<br>`libgodot_bt_native.release.dll` |
+| **macOS (Universal / Host)** | `macos.debug`<br>`macos.release` | `target/<profile>/libgodot_bt_native.dylib` | `libgodot_bt_native.debug.dylib`<br>`libgodot_bt_native.release.dylib` |
+
+> **Current Build Limits:** Pre-built cross-platform binaries are not yet published to a public release repository. When distributing or running on Windows or macOS, users/developers must build the extension locally on their respective target operating system (or via a GitHub Actions CI matrix) using `bash rust/build.sh`. Godot safely ignores missing platform entries when running on a different platform (e.g., Windows/macOS entries are ignored on Linux).
 
 ---
 
