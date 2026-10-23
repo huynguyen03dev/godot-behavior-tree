@@ -55,8 +55,10 @@
 			"parent_id": 4,
 			"children_ids": [],
 			"parameters": {
+				"fov_degrees": 90.0,
 				"max_distance": 15.0,
-				"fov_degrees": 90.0
+				"threshold": 0.5,
+				"variable": "has_target"
 			}
 		},
 		{
@@ -128,7 +130,7 @@
 			"description": "Current agent health point"
 		},
 		"has_target": {
-			"value": false,
+			"value": true,
 			"type_name": "bool",
 			"is_shared": true,
 			"description": "True if an enemy target is spotted"

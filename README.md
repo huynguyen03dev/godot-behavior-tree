@@ -12,7 +12,7 @@ It provides a lightweight runtime engine for behavior trees along with a built-i
 - **Core Nodes**:
   - **Composites**: Sequence, Selector, Parallel, RandomSelector, RandomSequence. Conditional aborts support Self on Sequence and Lower Priority on Selector; Both combines those supported checks. This is not full external-sibling observer or Behavior Designer abort parity. Runtime abort checks reevaluate the guard prefix; conditions can provide a pure `evaluate_condition(runner)` probe (recommended), while legacy `Condition` tasks using `on_update()` remain supported.
   - **Decorators**: Inverter, Repeater, ReturnSuccess, ReturnFailure, UntilSuccess, UntilFailure, TimeLimit, Cooldown — with typed Inspector controls for their configuration.
-  - **SubTree**: Modular tree embedding (`BTSubTree`) to reuse sub-behaviors with a shared blackboard; the parsed subtree is cached across runner restarts and reloaded only when `tree_path` changes.
+  - **SubTree**: Modular tree embedding (`BTSubTree`) to reuse sub-behaviors. Each subtree runs in its own blackboard scope with fallback to the parent tree's blackboard: reads resolve subtree-local variables first, then the parent chain; `is_shared` declarations live in the parent scope and are shared bidirectionally, everything else stays subtree-private. The parsed subtree is cached across runner restarts and reloaded only when `tree_path` changes.
   - **Leaves**: Extend `BTTask` in GDScript; tasks identify their category as Action or Condition.
 - **Dynamic Parameters & Blackboard**: Dual-mode parameters supporting literal values or dynamic blackboard variable bindings (`@var_name` / `$var_name`). An unresolvable binding returns the parameter default, and `@@` / `$$` escape a literal leading `@` / `$`.
 - **Task Lifecycle**: Hooks include `on_awake`, `on_reset`, `on_start`, `on_update`, `on_end`, `on_abort`, `on_pause`, and `on_event`. Signals: `tree_finished`, `task_started`, `task_finished`, and `task_aborted` (fires when a running task ends because its branch was aborted).
@@ -147,7 +147,13 @@ Roadmap items no longer open: Undo/Redo, New/Open workflows, and real filtering 
 - `BTRunner.time` is monotonic for the runner's lifetime and is not reset by `set_tree()`, so a Cooldown window survives swapping to a different tree on the same runner.
 - A second `interrupt()` on a task that is no longer running is ignored (the first one wins).
 - Saving writes a built-in decorator's effective configuration (count, repeat_forever, end_on_failure, cooldown_time, time_limit) and a composite's `abort_type` (when not NONE) even when those were assigned from code instead of via parameters.
-- The file source lists the `.json` files directly inside its folder (no recursion), works in exported PCK builds, reports save failures through `last_error`, and `refresh()` drops in-folder files that were deleted on disk.
+- Saving creates missing target directories recursively before opening the destination file.
+- Blackboard serialization supports primitives, nested containers, and encoded math types only; Object or Node references cannot be saved and must be populated at runtime (a save with an Object or Node instance is refused by validation).
+- The file source lists the `.json` files directly inside its folder (no recursion), works in exported PCK builds, reports save and load failures through `last_error`, and `refresh()` drops in-folder files that were deleted on disk.
+- Subtree writes follow the owning scope: a write inside a subtree updates the subtree-local variable when one exists, otherwise writes through to an ancestor variable only when it is `is_shared`, and otherwise creates a subtree-local variable. Declare `is_shared` variables in the subtree JSON to intentionally share state with the parent tree.
+- Aborting a running subtree branch invokes `on_abort` (and emits `task_aborted`) on the subtree's active inner tasks, and subtrees share the parent runner's `max_task_executions_per_tick` budget across parent and subtree leaf executions.
+- Stopping or freeing a runner clears `task.owner` on its tasks, so a tree that outlives its runner (actor pooling, subtree reloads) no longer errors on freed-instance checks in time-based decorators.
+- In the interactive demo (`demo/demo.tscn`), toggling "has_target" drives the "Can See Target?" condition (node 5, threshold 0.5): when `has_target` is true, execution enters the combat sequence; toggling it to false causes the condition to fail, switching execution to the patrol sequence.
 
 ## License
 

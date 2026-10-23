@@ -13,12 +13,21 @@ func register_tree(name: String, tree: BTTree) -> void:
 		_trees[name] = tree
 
 func list_trees() -> Array:
+	last_error = ""
 	var keys = _trees.keys()
 	keys.sort()
 	return keys
 
 func load_tree(identifier: String) -> BTTree:
-	return _trees.get(identifier, null)
+	last_error = ""
+	if identifier == "":
+		last_error = "BTMemoryTreeSource: identifier is empty"
+		return null
+	var tree = _trees.get(identifier, null)
+	if tree == null:
+		last_error = "BTMemoryTreeSource: tree '%s' not found" % identifier
+		return null
+	return tree
 
 func save_tree(identifier: String, tree: BTTree) -> bool:
 	last_error = ""

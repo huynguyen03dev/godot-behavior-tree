@@ -19,6 +19,7 @@ func get_directory_path() -> String:
 	return _directory_path
 
 func list_trees() -> Array:
+	last_error = ""
 	var names := _tree_files.keys()
 	names.sort()
 	return names
@@ -47,6 +48,7 @@ func _is_in_directory(path: String) -> bool:
 	return path_norm == dir_norm or path_norm.begins_with(dir_norm + "/")
 
 func load_tree(identifier: String) -> BTTree:
+	last_error = ""
 	var path: String = identifier
 	if _tree_files.has(identifier):
 		path = _tree_files[identifier]
@@ -56,29 +58,42 @@ func load_tree(identifier: String) -> BTTree:
 			path = full
 
 	if not FileAccess.file_exists(path):
+		last_error = "BTFileTreeSource: file not found at '%s'" % path
 		return null
 
 	var file = FileAccess.open(path, FileAccess.READ)
 	if file == null:
+		last_error = "BTFileTreeSource: failed to open file for reading at '%s'" % path
 		return null
 
 	var text = file.get_as_text()
 	var json = JSON.new()
 	var err = json.parse(text)
 	if err != OK:
+		last_error = "BTFileTreeSource: failed to parse JSON at '%s': %s (line %d)" % [path, json.get_error_message(), json.get_error_line()]
 		return null
 
 	var data = json.data
 	if not (data is Dictionary):
+		last_error = "BTFileTreeSource: invalid tree format at '%s' (root must be a JSON object)" % path
+		return null
+
+	var errors := BTTree.validate_dict(data, _registry)
+	if not errors.is_empty():
+		last_error = "BTFileTreeSource: validation failed for '%s': %s" % [path, "; ".join(errors)]
 		return null
 
 	var tree = BTTree.from_dict(data, _registry)
-	if tree != null:
-		# Remember the resolved file so a later save_tree by basename updates
-		# this file instead of creating a new one in the source directory.
-		var base_key := path.get_file().get_basename()
-		if not _tree_files.has(base_key):
-			_tree_files[base_key] = path
+	if tree == null:
+		last_error = "BTFileTreeSource: failed to build tree from '%s'" % path
+		return null
+
+	# Remember the resolved file so a later save_tree by basename updates
+	# this file instead of creating a new one in the source directory.
+	var base_key := path.get_file().get_basename()
+	if not _tree_files.has(base_key):
+		_tree_files[base_key] = path
+	last_error = ""
 	return tree
 
 func save_tree(identifier: String, tree: BTTree) -> bool:
@@ -93,6 +108,9 @@ func save_tree(identifier: String, tree: BTTree) -> bool:
 		push_error("BTFileTreeSource: refusing to save tree '%s': %s" % [identifier, "; ".join(errors)])
 		return false
 	var path := _resolve_save_path(identifier)
+	var dir := path.get_base_dir()
+	if dir != "" and not DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		var err_msg := "BTFileTreeSource: failed to open file for writing at '%s'" % path
