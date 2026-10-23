@@ -1,0 +1,19 @@
+[package]
+name = "godot_bt_native"
+version = "0.1.0"
+edition = "2021"
+description = "Native Rust runtime for the godot_bt behavior tree addon (GDExtension)"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+godot = { package = "godot", version = "0.5" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+
+[profile.dev]
+opt-level = 1

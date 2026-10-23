@@ -7,6 +7,10 @@
 data_*/
 mono_crash.*.json
 
+# Rust GDExtension port
+rust/target/
+addons/godot_bt_native/bin/
+
 # System / editor files
 .DS_Store
 Thumbs.db
