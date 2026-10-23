@@ -155,6 +155,30 @@ Roadmap items no longer open: Undo/Redo, New/Open workflows, and real filtering 
 - Stopping or freeing a runner clears `task.owner` on its tasks, so a tree that outlives its runner (actor pooling, subtree reloads) no longer errors on freed-instance checks in time-based decorators.
 - In the interactive demo (`demo/demo.tscn`), toggling "has_target" drives the "Can See Target?" condition (node 5, threshold 0.5): when `has_target` is true, execution enters the combat sequence; toggling it to false causes the condition to fail, switching execution to the patrol sequence.
 
+## Complex demos
+
+Advanced game-mechanics showcase scenes demonstrating production AI patterns built with `godot_bt`:
+
+- **Hub Launcher (`res://demo/complex/complex_demo.tscn`)**:
+  Interactive showcase hub providing one-click switching between the complex AI demos and the standard demo.
+
+- **Boss AI (`res://demo/complex/boss_demo.tscn`)**:
+  3-phase boss encounter with interactive HP damage and incoming danger triggers. Demonstrates multi-stage transitions (100% -> 70% -> 30% HP), telegraphed combat patterns (melee combo, ranged beam, expanding AoE), and defensive evasions.
+  *BT features*: `LOWER_PRIORITY` conditional aborts for emergency dodge preemption, `SELF` aborts on phase guards, `BTCooldown` decorator gating, and lifecycle `on_abort` cleanup.
+
+- **Squad Coordination AI (`res://demo/complex/squad_demo.tscn`)**:
+  4-agent tactical fireteam coordinating against a target dummy on a 2D canvas. Agents maintain strict mutual exclusion over combat roles (Attacker, Flanker, Reloader, Reserve) and dynamically rebalance roles when ammo runs out or when an agent is killed.
+  *BT features*: Multi-runner architecture (4 `BTRunner`s) sharing one `BTBlackboard`, atomic role synchronization without race conditions, and dynamic priority rebalance upon agent death or reload.
+
+- **Guard Stealth AI (`res://demo/complex/guard_stealth_demo.tscn`)**:
+  Stealth perception system featuring a 90° field-of-view cone and an interactive WASD/arrow player with cover toggle. Demonstrates alert escalation (Patrol -> Curious -> Search -> Chase), timed search sweeps, and gradual memory decay returning to patrol.
+  *BT features*: Vector FOV perception gating, monotonic runner time-based memory decay, `BTTimeLimit` decorator bounding search sweeps, and clean fallback to patrol.
+
+To run the regression suite headlessly:
+```bash
+~/.local/bin/godot --headless --path . -s res://tests/test_complex_demo_regressions.gd
+```
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
