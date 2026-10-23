@@ -174,6 +174,14 @@ Advanced game-mechanics showcase scenes demonstrating production AI patterns bui
   Stealth perception system featuring a 90° field-of-view cone and an interactive WASD/arrow player with cover toggle. Demonstrates alert escalation (Patrol -> Curious -> Search -> Chase), timed search sweeps, and gradual memory decay returning to patrol.
   *BT features*: Vector FOV perception gating, monotonic runner time-based memory decay, `BTTimeLimit` decorator bounding search sweeps, and clean fallback to patrol.
 
+- **Colony Life-Sim (`res://demo/complex/villager_demo.tscn`)**:
+  Six villagers with decaying needs (hunger/energy/social/safety) living on a day/night schedule with jobs (farmer, guard, merchant, cook). Wolf attacks at night preempt work and trigger flee/alert behavior; the HUD shows per-villager needs, current subtree, lifecycle counters, and live executed-node coverage.
+  *BT features*: 416 nodes across main trees plus 8 reusable job/routine subtrees loaded from JSON via `BTSubTree`, demonstrating shared (`is_shared: true`) vs private blackboard scoping side by side.
+
+- **RTS Commander (`res://demo/complex/rts_demo.tscn`)**:
+  Large-tree showcase: an 850-node strategic commander tree (persisted to `demo/complex/rts_data/commander_800_tree.json`, generator scales to 2000 nodes for stress testing) managing economy, production, tech unlocks, and five strategic stances (Expand/Defend/Push/Harass/Retreat), plus four squads running combat-micro subtrees with shared-blackboard target mutex. A live perf overlay reports node count, µs/tick p50/p99, and executions per tick vs the budget cap.
+  *BT features*: Very large tree composition and execution, multi-runner subtree coordination, execution budget enforcement, and headless viewer scaling to 2000-node trees.
+
 To run the regression suite headlessly:
 ```bash
 ~/.local/bin/godot --headless --path . -s res://tests/test_complex_demo_regressions.gd
