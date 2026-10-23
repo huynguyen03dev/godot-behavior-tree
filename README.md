@@ -1,14 +1,14 @@
 # Godot Behavior Tree (`godot_bt`)
 
-A Behavior Tree addon and visual editor for **Godot 4** (4.3+).
+A high-performance Behavior Tree addon and visual editor for **Godot 4** (4.6+, verified on 4.7.2).
 
-It provides a lightweight runtime engine for behavior trees along with a built-in bottom panel editor featuring visual graph editing, node inspector property configuration, and direct JSON view.
+It features a high-performance **native runtime engine (Rust / GDExtension)** for behavior tree execution, while preserving an ergonomic **GDScript authoring model** for custom tasks and game logic, along with a built-in bottom panel visual editor.
 
 ## Features
 
-- **Visual Editor**: Bottom panel editor using Godot's GraphEdit to create, connect, and arrange nodes.
+- **Visual Editor**: Bottom panel editor using Godot's GraphEdit to create, connect, and arrange nodes (editor-only; omitted from exported game builds).
 - **Dual Editing**: Configure nodes via the Inspector panel or edit the underlying JSON representation directly with two-way sync.
-- **Blackboard**: Key-value blackboard with change signals for sharing state across tasks.
+- **Blackboard**: Fast key-value blackboard with change signals for sharing state across tasks.
 - **Core Nodes**:
   - **Composites**: Sequence, Selector, Parallel, RandomSelector, RandomSequence. Conditional aborts support Self on Sequence and Lower Priority on Selector; Both combines those supported checks. This is not full external-sibling observer or Behavior Designer abort parity. Runtime abort checks reevaluate the guard prefix; conditions can provide a pure `evaluate_condition(runner)` probe (recommended), while legacy `Condition` tasks using `on_update()` remain supported.
   - **Decorators**: Inverter, Repeater, ReturnSuccess, ReturnFailure, UntilSuccess, UntilFailure, TimeLimit, Cooldown — with typed Inspector controls for their configuration.
@@ -17,16 +17,43 @@ It provides a lightweight runtime engine for behavior trees along with a built-i
 - **Dynamic Parameters & Blackboard**: Dual-mode parameters supporting literal values or dynamic blackboard variable bindings (`@var_name` / `$var_name`). An unresolvable binding returns the parameter default, and `@@` / `$$` escape a literal leading `@` / `$`.
 - **Task Lifecycle**: Hooks include `on_awake`, `on_reset`, `on_start`, `on_update`, `on_end`, `on_abort`, `on_pause`, and `on_event`. Signals: `tree_finished`, `task_started`, `task_finished`, and `task_aborted` (fires when a running task ends because its branch was aborted).
 - **Pluggable Storage**: Load and save trees using JSON files on disk (`BTFileTreeSource`) or in-memory dictionaries (`BTMemoryTreeSource`). Saving validates the tree first and refuses invalid data.
-- **Decoupled**: Pure GDScript runtime with no external dependencies.
+- **High Performance Native Core**: Native GDExtension execution engine (Rust) with GDScript facade wrapping, achieving 1.6x – 2.0x tick throughput and tail-latency reduction compared to pure script execution. See [rust/README.md](rust/README.md) for full architecture and benchmark details.
 
 The runner update budget bounds dispatched leaf task updates per tick only: set `max_task_executions_per_tick` (0 = unlimited; the legacy `ExecutionsPerTick` enum is deprecated and ignored). Condition reevaluation/probes (including legacy condition `on_update()` checks) are additional work outside `task_executions` and are not bounded by this budget; keep condition evaluation cheap and side-effect-free, preferably via `evaluate_condition(runner)`. When the budget is exhausted, traversal yields and resumes on a later tick. Task update hooks can use the runner's `actor`, `delta`, and monotonic `time` (advanced by each tick's delta). `TimeLimit` and `Cooldown` run on this simulated time, so pausing the runner, manual ticking, or `Engine.time_scale` behaves predictably.
 
+## Requirements / Build
+
+- **Godot**: Godot 4.6+ (verified on 4.7.2).
+- **Rust Toolchain**: `rustup` with cargo (stable) to compile the native GDExtension runtime.
+
+### Building GDExtension Runtime
+
+Compile the native binaries into `addons/godot_bt_native/bin/` (gitignored, built locally):
+
+```bash
+# Build both debug and release binaries
+bash rust/build.sh
+
+# Or build release profile only (recommended for benchmarks and exported games)
+bash rust/build.sh --release-only
+```
+
+Once built, Godot automatically loads `addons/godot_bt_native/godot_bt_native.gdextension`.
+
 ## Installation
 
-1. Copy the `addons/godot_bt` folder into your project's `addons/` directory.
-2. In Godot, go to **Project -> Project Settings -> Plugins**.
-3. Enable **Godot Behavior Tree**.
-4. The **Behavior Tree** tab will appear in the bottom panel of the editor.
+1. Ensure the native runtime is built via `bash rust/build.sh --release-only`.
+2. Copy `addons/godot_bt` and `addons/godot_bt_native` into your project's `addons/` directory.
+3. In Godot, go to **Project -> Project Settings -> Plugins**.
+4. Enable **Godot Behavior Tree**. The editor plugin is editor-only and will not bloat runtime game exports.
+5. The **Behavior Tree** tab will appear in the bottom panel of the editor.
+
+## Architecture & Authoring Model
+
+The addon uses a **Native Engine + GDScript Authoring** architecture:
+- **Core Engine (Rust GDExtension)**: The execution loop, tree traversal, node storage, serialization (`from_dict` / `to_dict`), budget management, and signal triggers run in high-performance native code.
+- **User Tasks (GDScript)**: Developers continue writing custom tasks, conditions, and actions in plain GDScript by extending `BTTask` and overriding lifecycle methods (`on_update`, `on_start`, `on_end`, etc.). The native engine seamlessly dispatches into your GDScript overrides.
+- Detailed architecture, class layout, and benchmarks are documented in [rust/README.md](rust/README.md).
 
 ## Getting Started
 
@@ -123,7 +150,12 @@ Optional playtest telemetry: append `-- --playtest-state=/absolute/path.json` af
 
 An interactive demo scene is included under `demo/demo.tscn`. **Step BT Tick** executes exactly one tick and reports the result: demo actions report RUNNING on their first tick in an activation and complete on the second, and a finished runner restarts on the next press so every press runs a real tick. The demo registers its own Condition/Action leaf tasks and re-binds the runner automatically when you apply JSON in the embedded viewer.
 
-Run the headless suites from the project root. Godot 4.3+ is the target; these suites were verified with Godot 4.7.2.
+Run the test suite via the orchestrator:
+```bash
+bash tests/run_tests.sh
+```
+
+Or run individual headless suites from the project root:
 
 ```bash
 godot --headless --path . -s res://tests/test_runner.gd
