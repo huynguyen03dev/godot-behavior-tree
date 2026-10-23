@@ -360,6 +360,8 @@ func _test_group2_autosave_and_ctrl_s() -> void:
 	viewer.select_node_by_id(1)
 	var name_edit := _find_line_edit(viewer._inspector_form_container, "EditedAutoRoot")
 	if name_edit != null:
+		name_edit.grab_focus()
+		await process_frame
 		name_edit.text = "InFlightEditedName"
 		name_edit.text_changed.emit("InFlightEditedName")
 		# Người dùng KHÔNG ấn Enter và focus chưa thoát, nhưng thực hiện Save / Ctrl+S
@@ -375,6 +377,8 @@ func _test_group2_autosave_and_ctrl_s() -> void:
 		)
 
 		# 2.2b: Test in-flight LineEdit text is committed on Ctrl+S shortcut
+		name_edit.grab_focus()
+		await process_frame
 		name_edit.text = "InFlightViaCtrlS"
 		name_edit.text_changed.emit("InFlightViaCtrlS")
 		var ctrl_s_ev := InputEventKey.new()
@@ -398,6 +402,8 @@ func _test_group2_autosave_and_ctrl_s() -> void:
 		viewer._update_inspector()
 		var le_spin := _find_line_edit(viewer._inspector_form_container, "10")
 		if le_spin != null:
+			le_spin.grab_focus()
+			await process_frame
 			le_spin.text = "77"
 			le_spin.text_changed.emit("77")
 			viewer.save_current_tree()
@@ -1279,7 +1285,7 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(TEST_BASE_DIR)
 
 	_test_group1_naming_and_save_as()
-	_test_group2_autosave_and_ctrl_s()
+	await _test_group2_autosave_and_ctrl_s()
 	_test_group3_undo_redo()
 	_test_group4_json_view()
 	_test_group5_deletion()

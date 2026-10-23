@@ -24,6 +24,16 @@ echo " Engine: $($GODOT --version 2>/dev/null || echo "$GODOT")"
 echo " Path:   $REPO_ROOT"
 echo "================================================================================"
 
+# Load minimum baseline check counts if configured
+BASELINES_FILE="$SCRIPT_DIR/suite_baselines.txt"
+declare -A suite_baselines
+if [ -f "$BASELINES_FILE" ]; then
+    while read -r b_name b_count || [ -n "$b_name" ]; do
+        [[ -z "$b_name" || "$b_name" =~ ^# ]] && continue
+        suite_baselines["$b_name"]="$b_count"
+    done < "$BASELINES_FILE"
+fi
+
 # Discover all test suites dynamically via globbing (do not hardcode)
 suites=()
 for suite_path in "$SCRIPT_DIR"/test_*.gd; do
@@ -86,21 +96,48 @@ for suite in "${suites[@]}"; do
         detail=$(echo "$output" | grep -oE "[0-9]+ passed, [0-9]+ failed" | tail -n 1)
     fi
 
-    # Determine pass/fail relying primarily on exit code, corroborated by output
+    # Determine pass/fail relying on exit code, output errors, and baseline checks
+    has_script_error=false
+    if echo "$output" | grep -qE "(SCRIPT ERROR|Parse Error)"; then
+        has_script_error=true
+    fi
+
     has_output_failures=false
     if echo "$output" | grep -qE "([1-9][0-9]* failures?|[1-9][0-9]* failed|❌ FAIL)"; then
         has_output_failures=true
     fi
 
-    if [ $exit_code -eq 0 ] && [ "$has_output_failures" = false ]; then
+    below_baseline=false
+    baseline_expected=""
+    actual_checks=0
+    if [ -n "${suite_baselines[$suite_name]:-}" ]; then
+        baseline_expected="${suite_baselines[$suite_name]}"
+        if [[ "$detail" =~ ^([0-9]+) ]]; then
+            actual_checks="${BASH_REMATCH[1]}"
+            if [ "$actual_checks" -lt "$baseline_expected" ]; then
+                below_baseline=true
+            fi
+        else
+            below_baseline=true
+        fi
+    fi
+
+    if [ $exit_code -eq 0 ] && [ "$has_output_failures" = false ] && [ "$has_script_error" = false ] && [ "$below_baseline" = false ]; then
         status="PASS"
         ((passed_suites++))
         echo "PASS ($exit_code)"
     else
         status="FAIL"
         ((failed_suites++))
-        echo "FAIL (exit $exit_code)"
-        failure_logs+=("=== FAIL: $suite_name (exit $exit_code) ===\n$output\n")
+        fail_reasons=()
+        [ $exit_code -ne 0 ] && fail_reasons+=("exit $exit_code")
+        [ "$has_output_failures" = true ] && fail_reasons+=("failures in output")
+        [ "$has_script_error" = true ] && fail_reasons+=("SCRIPT/Parse ERROR")
+        [ "$below_baseline" = true ] && fail_reasons+=("checks $actual_checks < baseline $baseline_expected")
+
+        reasons_str=$(IFS=", "; echo "${fail_reasons[*]}")
+        echo "FAIL ($reasons_str)"
+        failure_logs+=("=== FAIL: $suite_name ($reasons_str) ===\n$output\n")
     fi
 
     if [ -z "$detail" ]; then
@@ -108,6 +145,12 @@ for suite in "${suites[@]}"; do
             detail="completed successfully"
         else
             detail="failed (exit $exit_code)"
+        fi
+    elif [ "$status" = "FAIL" ]; then
+        if [ "$below_baseline" = true ]; then
+            detail="$detail (below baseline $baseline_expected)"
+        elif [ "$has_script_error" = true ]; then
+            detail="$detail (SCRIPT/Parse ERROR)"
         fi
     fi
 

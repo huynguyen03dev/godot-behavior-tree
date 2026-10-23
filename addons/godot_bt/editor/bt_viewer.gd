@@ -13,7 +13,6 @@ const COLOR_DECORATOR := Color(0.06, 0.46, 0.43, 1.0)   # Teal
 const COLOR_ACTION := Color(0.02, 0.47, 0.34, 1.0)      # Emerald Green
 const COLOR_CONDITION := Color(0.71, 0.33, 0.04, 1.0)   # Amber / Orange
 const COLOR_PLACEHOLDER := Color(0.73, 0.11, 0.11, 1.0) # Red
-const COLOR_PANEL_BG := Color(0.12, 0.13, 0.16, 1.0)
 
 const GRAPH_X_GAP := 310.0
 const GRAPH_Y_GAP := 130.0
@@ -82,9 +81,6 @@ var _inspector_container: VBoxContainer
 var _inspector_title: Label
 var _inspector_content: RichTextLabel
 var _inspector_form_container: VBoxContainer
-var _task_name_edit: LineEdit
-var _params_container: VBoxContainer
-var _bb_container: VBoxContainer
 
 func _init() -> void:
 	name = "BTViewer"
@@ -398,9 +394,6 @@ func set_placeholder_filter(only_placeholders: bool) -> void:
 	_filter_placeholders_only = only_placeholders
 	_apply_filters()
 	_render_hierarchy()
-
-func get_current_tree_stats() -> Dictionary:
-	return _stats.duplicate()
 
 # ---------------------------------------------------------------- UI Construction
 func _build_ui() -> void:
@@ -835,15 +828,12 @@ func _flush_inspector_focus() -> void:
 		return
 	if _inspector_form_container != null:
 		_apply_spinboxes(_inspector_form_container)
-	var focus_owner: Control = null
 	if is_inside_tree() and get_viewport() != null:
-		focus_owner = get_viewport().gui_get_focus_owner()
+		var focus_owner: Control = get_viewport().gui_get_focus_owner()
 		if focus_owner != null:
 			if (_inspector_form_container != null and _inspector_form_container.is_ancestor_of(focus_owner)) or \
 			   (_inspector_panel != null and _inspector_panel.is_ancestor_of(focus_owner)):
 				focus_owner.release_focus()
-	if _inspector_form_container != null:
-		_flush_container_inputs(_inspector_form_container, focus_owner)
 
 func _apply_spinboxes(node: Node) -> void:
 	for child in node.get_children():
@@ -851,16 +841,6 @@ func _apply_spinboxes(node: Node) -> void:
 			if child is SpinBox:
 				child.apply()
 			_apply_spinboxes(child)
-
-func _flush_container_inputs(node: Node, exclude: Control = null) -> void:
-	for child in node.get_children():
-		if child != exclude and is_instance_valid(child):
-			if child is SpinBox:
-				child.apply()
-				child.focus_exited.emit()
-			elif child is LineEdit or child is TextEdit:
-				child.focus_exited.emit()
-		_flush_container_inputs(child, exclude)
 
 func save_tree_as(target_path: String) -> bool:
 	if current_tree == null:
@@ -1581,8 +1561,8 @@ func _save_node_positions(record_undo: bool = false) -> void:
 		if is_instance_valid(gn):
 			new_positions[str(id)] = [gn.position_offset.x, gn.position_offset.y]
 
-	var old_positions: Dictionary
 	if record_undo:
+		var old_positions: Dictionary
 		if _is_dragging_nodes:
 			old_positions = _drag_start_positions.duplicate(true)
 		else:
@@ -1590,20 +1570,19 @@ func _save_node_positions(record_undo: bool = false) -> void:
 			old_positions = saved.duplicate(true) if saved is Dictionary else {}
 		_is_dragging_nodes = false
 		_drag_start_positions.clear()
+
+		if undo_redo != null and not _is_restoring_undo_redo:
+			if not _are_positions_equal(old_positions, new_positions):
+				current_tree.metadata["node_positions"] = old_positions.duplicate(true)
+				_record_mutation("Move Nodes", func():
+					current_tree.metadata["node_positions"] = new_positions.duplicate(true)
+				, true)
+				return
 	else:
 		if not _is_dragging_nodes:
 			_is_dragging_nodes = true
 			var saved = current_tree.metadata.get("node_positions", {})
 			_drag_start_positions = saved.duplicate(true) if saved is Dictionary else {}
-		old_positions = current_tree.metadata.get("node_positions", {})
-
-	if record_undo and undo_redo != null and not _is_restoring_undo_redo:
-		if not _are_positions_equal(old_positions, new_positions):
-			current_tree.metadata["node_positions"] = old_positions.duplicate(true)
-			_record_mutation("Move Nodes", func():
-				current_tree.metadata["node_positions"] = new_positions.duplicate(true)
-			, true)
-			return
 
 	current_tree.metadata["node_positions"] = new_positions
 
@@ -2140,6 +2119,7 @@ func _build_value_control(task: BTTask, key: String, value_type: String, expecte
 			le_int.text_submitted.connect(func(_t): commit_int.call())
 			le_int.focus_exited.connect(commit_int)
 			int_spin.focus_exited.connect(commit_int)
+			int_spin.value_changed.connect(func(_v): commit_int.call())
 			int_spin.gui_input.connect(func(event: InputEvent):
 				if event is InputEventMouseButton and not event.pressed:
 					commit_int.call()
@@ -2167,6 +2147,7 @@ func _build_value_control(task: BTTask, key: String, value_type: String, expecte
 			le_float.text_submitted.connect(func(_t): commit_float.call())
 			le_float.focus_exited.connect(commit_float)
 			float_spin.focus_exited.connect(commit_float)
+			float_spin.value_changed.connect(func(_v): commit_float.call())
 			float_spin.gui_input.connect(func(event: InputEvent):
 				if event is InputEventMouseButton and not event.pressed:
 					commit_float.call()

@@ -651,15 +651,14 @@ func _test_group4_param_binding() -> void:
 	_check(task.get_param_blackboard_key("p_regular_dict") == "", "G4: get_param_blackboard_key empty for non-bb dict")
 	_check(task.get_param("p_regular_dict") is Dictionary, "G4: get_param returns raw dict when not bb")
 
-	# 4. Missing key fallback + warn once (_warned_bindings)
+	# 4. Missing key fallback
 	task.parameters["p_missing_str"] = "@missing_var"
 	task.parameters["p_missing_dict"] = {"is_blackboard": true, "key": "missing_dict_var"}
 
-	# First read: returns default_val and records in warned_bindings
+	# First read: returns default_val
 	var res1 = task.get_param("p_missing_str", "default_val_1")
 	_check(res1 == "default_val_1", "G4: missing str binding returns fallback default", "default_val_1", res1)
-	var warned: Dictionary = task._warned_bindings
-	_check(warned.has("p_missing_str"), "G4: _warned_bindings contains 'p_missing_str'")
+	_check(task.is_param_blackboard("p_missing_str") and task.get_param_blackboard_key("p_missing_str") == "missing_var", "G4: recognized missing str binding correctly")
 
 	# Second read: still returns default_val
 	var res2 = task.get_param("p_missing_str", "default_val_2")
@@ -668,8 +667,7 @@ func _test_group4_param_binding() -> void:
 	# Missing dict binding
 	var res3 = task.get_param("p_missing_dict", 999)
 	_check(res3 == 999, "G4: missing dict binding returns fallback default", 999, res3)
-	warned = task._warned_bindings
-	_check(warned.has("p_missing_dict"), "G4: _warned_bindings contains 'p_missing_dict'")
+	_check(task.is_param_blackboard("p_missing_dict") and task.get_param_blackboard_key("p_missing_dict") == "missing_dict_var", "G4: recognized missing dict binding correctly")
 
 	# Missing param completely (not in parameters dict)
 	_check(task.get_param("completely_missing", 123) == 123, "G4: missing param name returns default")

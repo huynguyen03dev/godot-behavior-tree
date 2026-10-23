@@ -70,11 +70,6 @@ pub fn oid<T: GodotClass>(obj: &Gd<T>) -> i64 {
     obj.instance_id().to_i64()
 }
 
-/// True when a `Variant` holds a non-null object.
-pub fn is_null_variant(v: &Variant) -> bool {
-    matches!(v.get_type(), VariantType::NIL)
-}
-
 /// Coerces a Variant to bool with the same rules as `BTTask.coerce_bool`:
 /// bool as-is, numbers by non-zero, "true"/"1"/"false"/"0" (trimmed, any case)
 /// by literal, everything else falls back.

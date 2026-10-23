@@ -119,31 +119,31 @@ class RoundRobinSelector extends BTComposite:
 	func on_start() -> void:
 		super.on_start()
 		if children.is_empty():
-			_execution_status = BTStatus.FAILURE
+			last_status = BTStatus.FAILURE
 			return
 		rr_cursor = (rr_cursor + 1) % children.size()
 		current_child_index = rr_cursor
 		_children_tried = 0
-		_execution_status = BTStatus.RUNNING
+		last_status = BTStatus.RUNNING
 
 	func can_execute() -> bool:
-		return _children_tried < children.size() and _execution_status == BTStatus.RUNNING
+		return _children_tried < children.size() and last_status == BTStatus.RUNNING
 
 	func on_child_executed(child_index: int, child_status: int) -> void:
 		super.on_child_executed(child_index, child_status)
 		_children_tried += 1
 		if child_status == BTStatus.SUCCESS:
-			_execution_status = BTStatus.SUCCESS
+			last_status = BTStatus.SUCCESS
 		elif child_status == BTStatus.FAILURE:
 			if _children_tried >= children.size():
-				_execution_status = BTStatus.FAILURE
+				last_status = BTStatus.FAILURE
 			else:
 				current_child_index = (current_child_index + 1) % children.size()
 		elif child_status == BTStatus.RUNNING:
-			_execution_status = BTStatus.RUNNING
+			last_status = BTStatus.RUNNING
 
 	func override_status(_status: int) -> int:
-		return _execution_status
+		return last_status
 
 
 # --- Commander Tree Specific Tasks ---

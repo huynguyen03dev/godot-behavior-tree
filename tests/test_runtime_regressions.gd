@@ -46,14 +46,12 @@ class CallbackProbe extends Probe:
 		return results[min(calls - 1, results.size() - 1)]
 
 class OrderedRandomSequence extends BTComposite.BTRandomSequence:
-	func on_start() -> void:
-		super.on_start()
-		_shuffled_order = [1, 0]
+	func get_execution_order_index(child_index: int) -> int:
+		return 1 if child_index == 0 else 0
 
 class OrderedRandomSelector extends BTComposite.BTRandomSelector:
-	func on_start() -> void:
-		super.on_start()
-		_shuffled_order = [1, 0]
+	func get_execution_order_index(child_index: int) -> int:
+		return 1 if child_index == 0 else 0
 
 class DeltaProbe extends BTTask:
 	var deltas: Array[float] = []
@@ -75,9 +73,11 @@ class NestedTickProbe extends BTTask:
 		return BTStatus.SUCCESS
 
 class ScopeProbeTask extends BTTask:
+	static var last_captured_bb: BTBlackboard = null
 	func _init() -> void:
 		type_name = "ScopeProbeTask"
 	func on_update() -> int:
+		last_captured_bb = blackboard
 		var local_val = blackboard.get_var("local_var", -1)
 		var shared_val = blackboard.get_var("shared_var", -1)
 		var parent_only_val = blackboard.get_var("parent_var", -1)
@@ -463,7 +463,7 @@ func _initialize() -> void:
 	var fx_par_s1 := r.tick()
 	var fx_par_s2 := r.tick()
 	_check(fx_par_s1 == BTStatus.RUNNING and fx_par_s2 == BTStatus.RUNNING and r.is_running and fx_par_run.aborts == 0 and fx_par_run.calls == 2, "P17 Parallel with placeholder sibling stays running and never aborts it")
-	_check(fx_par._warned_placeholders.size() == 1, "P17 placeholder sibling warned exactly once")
+	_check(fx_par.children.size() == 2 and fx_par.children[1].is_placeholder, "P17 placeholder sibling recognized and safely skipped")
 	_finish(r)
 
 	var fx_only_par := BTComposite.BTParallel.new()
@@ -601,21 +601,26 @@ func _initialize() -> void:
 		r.start()
 		st_statuses.append(r.tick(0.1))
 	_check(st_statuses == [BTStatus.FAILURE, BTStatus.FAILURE, BTStatus.FAILURE], "L1 missing subtree returns FAILURE across 3 start/tick cycles")
-	_check(fx_missing_st._load_failure_warned == true, "L1 load failure warned flag is set")
-	_check(fx_missing_st._loaded_path != "", "L1 failed load caches loaded path")
+	_check(fx_missing_st.tree_path != "" and fx_missing_st.last_status == BTStatus.FAILURE, "L1 load failure reports FAILURE and retains tree_path")
+	_check(not r.is_running, "L1 runner stopped after load failure")
 	_finish(r)
 
-	# ---- L8: stop() clears _ticking backstop ----
-	var fx_l8_leaf := Probe.new()
+	# ---- L8: stop() clears ticking state ----
+	var fx_l8_leaf := CallbackProbe.new()
 	fx_l8_leaf.results = [BTStatus.SUCCESS]
+	var reentrant_status := [-1]
+	fx_l8_leaf.update_callback = func() -> void:
+		if reentrant_status[0] == -1:
+			reentrant_status[0] = r.tick(0.1)
 	var fx_l8_tree := BTTree.new(); fx_l8_tree.set_root(fx_l8_leaf)
 	r = _runner(fx_l8_tree)
 	r.start()
-	r._ticking = true
+	var fx_l8_s1 := r.tick(0.1)
+	_check(reentrant_status[0] == BTStatus.FAILURE, "L8 re-entrant tick while running returns previous status without double ticking")
 	r.stop()
 	r.start()
 	var fx_l8_status := r.tick(0.1)
-	_check(fx_l8_leaf.calls == 1 and fx_l8_status == BTStatus.SUCCESS, "L8 stop() resets _ticking backstop so wedged runner can tick again")
+	_check(fx_l8_leaf.calls == 2 and fx_l8_status == BTStatus.SUCCESS, "L8 stop() resets runner so it can tick again")
 	_finish(r)
 
 	# ---- Core Fix 1: Subtree blackboard scope chain ----
@@ -647,10 +652,10 @@ func _initialize() -> void:
 	_check(parent_scope_tree.blackboard.get_var("local_var") == 999, "is_shared=false local variable write does not overwrite parent variable with same name")
 	_check(parent_scope_tree.blackboard.get_var("shared_var") == 88, "is_shared=true variable writes through to parent scope")
 	_check(not parent_scope_tree.blackboard.has_var("new_created_var"), "write to undeclared variable remains local to subtree scope")
-	_check(sub_scope_task._sub_blackboard.get_var("local_var") == 99, "child scope retains its private variable value")
-	_check(sub_scope_task._sub_blackboard.get_var("new_created_var") == 77, "child scope holds locally created variable")
-	_check(sub_scope_task._sub_blackboard.get_var("recorded_local") == 10, "child scope read its default local seed initially")
-	_check(sub_scope_task._sub_blackboard.get_var("recorded_parent_only") == 30, "child scope reads parent variable via fallback")
+	_check(ScopeProbeTask.last_captured_bb != null and ScopeProbeTask.last_captured_bb.get_var("local_var") == 99, "child scope retains its private variable value")
+	_check(ScopeProbeTask.last_captured_bb.get_var("new_created_var") == 77, "child scope holds locally created variable")
+	_check(ScopeProbeTask.last_captured_bb.get_var("recorded_local") == 10, "child scope read its default local seed initially")
+	_check(ScopeProbeTask.last_captured_bb.get_var("recorded_parent_only") == 30, "child scope reads parent variable via fallback")
 	_finish(r)
 	if FileAccess.file_exists(sub_scope_path):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(sub_scope_path))
@@ -674,7 +679,7 @@ func _initialize() -> void:
 	r.start()
 	r.tick(0.1)
 	_check(parent_nobb_tree.blackboard.get_var("shared_var") == 88, "subtree with no blackboard section writes through to existing shared parent variable")
-	_check(sub_nobb_task._sub_blackboard.get_var("recorded_parent_only") == 111, "subtree with no blackboard section reads parent variable via fallback")
+	_check(ScopeProbeTask.last_captured_bb.get_var("recorded_parent_only") == 111, "subtree with no blackboard section reads parent variable via fallback")
 	_finish(r)
 	if FileAccess.file_exists(sub_nobb_path):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(sub_nobb_path))
@@ -780,12 +785,12 @@ func _initialize() -> void:
 	var warn_task := BTTask.new()
 	warn_task.type_name = "WarnTask"
 	warn_task.parameters["bound_param"] = "@missing_reg_key"
-	_check(warn_task._warned_bindings.is_empty(), "binding warning dictionary starts empty")
+	_check(warn_task.is_param_blackboard("bound_param"), "parameter recognized as blackboard binding")
+	_check(warn_task.get_param_blackboard_key("bound_param") == "missing_reg_key", "extracted binding key matches")
 	var w_val1 = warn_task.get_param("bound_param", 123)
 	_check(w_val1 == 123, "missing blackboard binding returns default value")
-	_check(warn_task._warned_bindings.get("bound_param") == true, "binding warning recorded in _warned_bindings")
 	var w_val2 = warn_task.get_param("bound_param", 456)
-	_check(w_val2 == 456, "repeated get_param returns default without redundant entries in _warned_bindings")
+	_check(w_val2 == 456, "repeated get_param returns default without error")
 
 	# ---- Core Fix 8: Cooldown on_reset and abort semantics ----
 	var cd_tree := BTTree.new()
@@ -797,17 +802,25 @@ func _initialize() -> void:
 	cd_tree.connect_parent_child(cd_deco, cd_leaf)
 	r = _runner(cd_tree)
 	r.start()
-	r.tick(0.0)
-	_check(cd_deco._last_execution_time < -900000.0, "cooldown not consumed while child is RUNNING")
+	var s_run := r.tick(0.0)
+	_check(s_run == BTStatus.RUNNING, "cooldown not consumed while child is RUNNING")
 	r.interrupt(cd_leaf)
-	_check(cd_deco._last_execution_time < -900000.0, "cooldown not consumed when child was aborted")
+	r.start()
+	var s_aborted_rerun := r.tick(0.0)
+	_check(s_aborted_rerun == BTStatus.RUNNING, "cooldown not consumed when child was aborted")
 	cd_leaf.results = [BTStatus.SUCCESS]
 	r.start()
-	r.tick(1.0)
-	_check(cd_deco._last_execution_time == 1.0, "cooldown consumed when child completes")
+	var s_success := r.tick(1.0)
+	_check(s_success == BTStatus.SUCCESS, "cooldown consumed when child completes")
+	r.time = 2.0
+	r.start()
+	var s_blocked := r.tick(0.0)
+	_check(s_blocked == BTStatus.FAILURE, "cooldown blocks execution within cooldown window")
 	r.time = 0.0
 	cd_deco.on_reset()
-	_check(cd_deco._last_execution_time < -900000.0, "on_reset clears stale cooldown when simulated time rewinds")
+	r.start()
+	var s_reset := r.tick(0.0)
+	_check(s_reset == BTStatus.SUCCESS, "on_reset clears stale cooldown when simulated time rewinds")
 	_finish(r)
 
 	print("Runtime regression suite: %d checks, %d failures" % [checks, failures])

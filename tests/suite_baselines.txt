@@ -1,0 +1,17 @@
+# Minimum baseline check counts for test suites.
+# A suite fails if its actual executed check count is strictly less than its baseline.
+# Note: test_fuzz.gd outputs tree counts rather than assertion checks, so it is omitted.
+test_complex_demo_regressions.gd 74
+test_coverage_gaps.gd 57
+test_demo_regressions.gd 22
+test_e2e_editor_deep.gd 67
+test_e2e_gameplay_deep.gd 39
+test_e2e_model_deep.gd 414
+test_e2e_runtime_deep.gd 76
+test_editor_regressions.gd 232
+test_minigame_regressions.gd 13
+test_model_regressions.gd 157
+test_rts_demo_regressions.gd 49
+test_runner.gd 46
+test_runtime_regressions.gd 105
+test_villager_demo_regressions.gd 62

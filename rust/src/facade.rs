@@ -25,7 +25,6 @@ pub const TREE_SCRIPT: &str = "res://addons/godot_bt/core/bt_tree.gd";
 pub const BLACKBOARD_SCRIPT: &str = "res://addons/godot_bt/core/bt_blackboard.gd";
 pub const REGISTRY_SCRIPT: &str = "res://addons/godot_bt/core/bt_task_registry.gd";
 pub const RUNNER_SCRIPT: &str = "res://addons/godot_bt/core/bt_runner.gd";
-pub const SUBTREE_SCRIPT: &str = "res://addons/godot_bt/core/bt_subtree.gd";
 
 thread_local! {
     static CACHE: RefCell<HashMap<String, Option<Gd<Script>>>> = RefCell::new(HashMap::new());
@@ -83,13 +82,4 @@ pub fn new_runner(tree: Option<Gd<BTTreeNative>>) -> Option<Gd<Node>> {
         node.set("tree", &tree.to_variant());
     }
     Some(node)
-}
-
-pub fn new_subtree(path: &GString) -> Option<Gd<BTTaskNative>> {
-    let value = instantiate(SUBTREE_SCRIPT)?;
-    let mut task = value.try_to::<Gd<BTTaskNative>>().ok()?;
-    if !path.is_empty() {
-        task.set("tree_path", &path.to_variant());
-    }
-    Some(task)
 }

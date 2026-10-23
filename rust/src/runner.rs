@@ -161,12 +161,6 @@ pub struct BTRunnerNative {
     stopped_at_placeholder: PhantomVar<GString>,
     #[var(get = get_subtree_path_stack, set = set_subtree_path_stack)]
     subtree_path_stack: PhantomVar<VarArray>,
-    #[var(rename = _paused, get = get_paused_prop, no_set)]
-    paused_prop: PhantomVar<bool>,
-    #[var(rename = _started, get = get_started_prop, no_set)]
-    started_prop: PhantomVar<VarDictionary>,
-    #[var(rename = _ticking, get = get_ticking_prop, set = set_ticking_prop)]
-    ticking_prop: PhantomVar<bool>,
 }
 
 #[godot_api]
@@ -252,33 +246,6 @@ impl BTRunnerNative {
     #[func]
     pub fn set_time_prop(&self, value: f64) {
         self.core.borrow_mut().time = value;
-    }
-
-    #[func]
-    pub fn get_paused_prop(&self) -> bool {
-        self.core.borrow().paused
-    }
-
-    #[func]
-    pub fn get_ticking_prop(&self) -> bool {
-        self.core.borrow().ticking
-    }
-
-    #[func]
-    pub fn set_ticking_prop(&self, value: bool) {
-        self.core.borrow_mut().ticking = value;
-    }
-
-    #[func]
-    pub fn get_started_prop(&self) -> VarDictionary {
-        let ids = self.core.borrow().started_order.clone();
-        let mut out = VarDictionary::new();
-        for id in ids {
-            if let Ok(task) = Gd::<BTTaskNative>::try_from_instance_id(InstanceId::from_i64(id)) {
-                out.set(&task.to_variant(), true);
-            }
-        }
-        out
     }
 
     #[func]
@@ -484,7 +451,7 @@ impl BTRunnerNative {
         self.core.borrow_mut().is_running = true;
 
         if self.actor_ref.borrow().is_none() {
-            let mut me = self.to_gd();
+            let me = self.to_gd();
             if let Some(parent) = me.get_parent() {
                 *self.actor_ref.borrow_mut() = Some(parent);
             }

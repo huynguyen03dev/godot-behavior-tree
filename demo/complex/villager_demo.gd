@@ -647,7 +647,7 @@ func _init_colony() -> void:
 			if task is BTSubTree:
 				var sub: BTSubTree = task as BTSubTree
 				v.current_subtree_name = sub.tree_path.get_file().get_basename()
-				var sub_run: BTRunner = sub.get("_sub_runner")
+				var sub_run: BTRunner = sub.get("sub_runner")
 				if sub_run != null and not sub_run.task_started.is_connected(_on_sub_runner_task_started):
 					sub_run.task_started.connect(_on_sub_runner_task_started.bind(v.current_subtree_name))
 		)

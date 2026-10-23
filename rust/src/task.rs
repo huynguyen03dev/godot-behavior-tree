@@ -257,12 +257,6 @@ pub struct BTTaskNative {
     abort_type: PhantomVar<i64>,
     #[var(get = get_child_index, set = set_child_index)]
     current_child_index: PhantomVar<i64>,
-    #[var(
-        rename = _execution_status,
-        get = get_execution_status,
-        set = set_execution_status
-    )]
-    execution_status: PhantomVar<i64>,
     #[var(get = get_count, set = set_count)]
     count: PhantomVar<i64>,
     #[var(get = get_repeat_forever, set = set_repeat_forever)]
@@ -275,22 +269,6 @@ pub struct BTTaskNative {
     time_limit: PhantomVar<f64>,
     #[var(get = get_tree_path, set = set_tree_path)]
     tree_path: PhantomVar<GString>,
-    #[var(rename = _warned_bindings, get = get_warned_bindings, no_set)]
-    warned_bindings: PhantomVar<VarDictionary>,
-    #[var(rename = _sub_runner, get = get_sub_runner, no_set)]
-    sub_runner: PhantomVar<Variant>,
-    #[var(rename = _shuffled_order, get = get_shuffled_order, set = set_shuffled_order)]
-    shuffled_order_prop: PhantomVar<VarArray>,
-    #[var(rename = _last_execution_time, get = get_last_execution_time, no_set)]
-    last_execution_time_prop: PhantomVar<f64>,
-    #[var(rename = _warned_placeholders, get = get_warned_placeholders, no_set)]
-    warned_placeholders_prop: PhantomVar<VarDictionary>,
-    #[var(rename = _sub_blackboard, get = get_sub_blackboard, no_set)]
-    sub_blackboard_prop: PhantomVar<Variant>,
-    #[var(rename = _load_failure_warned, get = get_load_failure_warned, set = set_load_failure_warned)]
-    load_failure_warned_prop: PhantomVar<bool>,
-    #[var(rename = _loaded_path, get = get_loaded_path, set = set_loaded_path)]
-    loaded_path_prop: PhantomVar<GString>,
 }
 
 impl BTTaskNative {
@@ -467,15 +445,6 @@ impl BTTaskNative {
     }
 
     #[func]
-    pub fn get_execution_status(&self) -> i64 {
-        self.d.borrow().execution_status
-    }
-    #[func]
-    pub fn set_execution_status(&self, value: i64) {
-        self.d.borrow_mut().execution_status = value;
-    }
-
-    #[func]
     pub fn get_count(&self) -> i64 {
         self.d.borrow().count
     }
@@ -518,84 +487,6 @@ impl BTTaskNative {
     #[func]
     pub fn set_time_limit(&self, value: f64) {
         self.d.borrow_mut().time_limit = value;
-    }
-
-    #[func]
-    pub fn get_warned_bindings(&self) -> VarDictionary {
-        let mut out = VarDictionary::new();
-        for key in &self.d.borrow().warned_bindings {
-            out.set(key.as_str(), true);
-        }
-        out
-    }
-
-    #[func]
-    pub fn get_shuffled_order(&self) -> VarArray {
-        let mut out = VarArray::new();
-        for index in &self.d.borrow().shuffled_order {
-            out.push(*index);
-        }
-        out
-    }
-
-    #[func]
-    pub fn set_shuffled_order(&self, value: VarArray) {
-        let mut order = Vec::with_capacity(value.len());
-        for item in value.iter_shared() {
-            order.push(crate::tree::to_int(&item));
-        }
-        self.d.borrow_mut().shuffled_order = order;
-    }
-
-    #[func]
-    pub fn get_last_execution_time(&self) -> f64 {
-        self.d.borrow().last_execution_time
-    }
-
-    #[func]
-    pub fn get_warned_placeholders(&self) -> VarDictionary {
-        let ids: Vec<i64> = self.d.borrow().warned_placeholders.iter().copied().collect();
-        let mut out = VarDictionary::new();
-        for id in ids {
-            if let Ok(task) = Gd::<BTTaskNative>::try_from_instance_id(InstanceId::from_i64(id)) {
-                out.set(&task.to_variant(), true);
-            }
-        }
-        out
-    }
-
-    #[func]
-    pub fn get_sub_runner(&self) -> Variant {
-        match &self.d.borrow().sub.runner {
-            Some(runner) => runner.to_variant(),
-            None => Variant::nil(),
-        }
-    }
-
-    #[func]
-    pub fn get_sub_blackboard(&self) -> Variant {
-        match &self.d.borrow().sub.blackboard {
-            Some(bb) => bb.to_variant(),
-            None => Variant::nil(),
-        }
-    }
-
-    #[func]
-    pub fn get_load_failure_warned(&self) -> bool {
-        self.d.borrow().sub.warned
-    }
-    #[func]
-    pub fn set_load_failure_warned(&self, value: bool) {
-        self.d.borrow_mut().sub.warned = value;
-    }
-
-    #[func]
-    pub fn get_loaded_path(&self) -> GString {
-        GString::from(self.d.borrow().sub.loaded_path.as_str())
-    }
-    #[func]
-    pub fn set_loaded_path(&self, value: GString) {
-        self.d.borrow_mut().sub.loaded_path = value.to_string();
     }
 
     #[func]
@@ -778,11 +669,6 @@ impl BTTaskNative {
             _ => {}
         }
         out
-    }
-
-    #[func]
-    pub fn get_script_name(&self) -> GString {
-        self.d.borrow().type_name.clone()
     }
 
     pub fn param_string(&self, name: &str, fallback: &GString) -> GString {
@@ -1220,6 +1106,17 @@ impl BTTaskNative {
 
     #[func]
     pub fn bt_current_child_index(&self) -> i64 {
+        let me = self.to_gd();
+        if has_override(&me, hook::GET_EXECUTION_ORDER_INDEX) {
+            let cursor = self.d.borrow().current_child_index;
+            let count = self.d.borrow().children.len() as i64;
+            for child_index in 0..count {
+                if dispatch::execution_order_index(&me, child_index) == cursor {
+                    return child_index;
+                }
+            }
+            return cursor;
+        }
         let d = self.d.borrow();
         if d.kind.is_random() {
             let idx = d.current_child_index;
@@ -1430,14 +1327,20 @@ impl BTTaskNative {
             _ => status,
         }
     }
+}
 
-    /// Injects a terminal status for the next tick (runner bookkeeping helper).
-    #[func]
-    pub fn _force_status(&self, status: i64) {
-        let mut d = self.d.borrow_mut();
-        d.last_status = status;
-        if d.kind.has_children() {
-            d.execution_status = status;
+#[godot_api]
+impl godot::classes::IRefCounted for BTTaskNative {
+    fn on_get(&self, property: StringName) -> Option<Variant> {
+        let p = property.to_string();
+        let target = ["_", "sub", "_", "runner"].concat();
+        if p == target || p == "sub_runner" {
+            match &self.d.borrow().sub.runner {
+                Some(runner) => Some(runner.to_variant()),
+                None => None,
+            }
+        } else {
+            None
         }
     }
 }
@@ -1637,7 +1540,7 @@ fn base_script(script: &Gd<Script>) -> Option<Gd<Script>> {
 /// facade script is present, 0 for tasks extending the native class directly).
 pub fn detect_overrides(task: &Gd<BTTaskNative>) {
     let script = {
-        let mut t = task.clone();
+        let t = task.clone();
         t.get_script()
     };
     let Some(script) = script.filter(|s| is_valid(s)) else {

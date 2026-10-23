@@ -7,13 +7,12 @@ const VIEWER_SCENE := preload("res://addons/godot_bt/editor/bt_viewer.tscn")
 const DOCK_TITLE := "Behavior Tree"
 
 var _viewer_instance: Control = null
-var _dock_button: Button = null
 
 func _enter_tree() -> void:
 	if not Engine.is_editor_hint():
 		return
 	_viewer_instance = VIEWER_SCENE.instantiate()
-	_dock_button = add_control_to_bottom_panel(_viewer_instance, DOCK_TITLE)
+	add_control_to_bottom_panel(_viewer_instance, DOCK_TITLE)
 
 	# Configure project setting for custom BT provider if not already set
 	if not ProjectSettings.has_setting("behavior_tree/custom_source_provider"):

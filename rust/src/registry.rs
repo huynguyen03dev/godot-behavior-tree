@@ -6,7 +6,6 @@ use godot::classes::{RefCounted, Script};
 use godot::prelude::*;
 
 use crate::common::is_valid;
-use crate::facade;
 use crate::task::{detect_overrides, BTTaskNative};
 
 #[derive(Default)]
@@ -83,7 +82,7 @@ impl BTTaskRegistryNative {
             let mut instance: Option<Gd<BTTaskNative>> = None;
             match factory.get_type() {
                 VariantType::CALLABLE => {
-                    let mut callable = factory.to::<Callable>();
+                    let callable = factory.to::<Callable>();
                     let value = callable.callv(&VarArray::new());
                     instance = value.try_to::<Gd<BTTaskNative>>().ok();
                 }
@@ -118,7 +117,7 @@ impl BTTaskRegistryNative {
             .ok()
             .filter(|t| is_valid(t))
             .unwrap_or_else(|| {
-                let mut task = BTTaskNative::new_gd();
+                let task = BTTaskNative::new_gd();
                 task.bind()._make_placeholder(p_type.clone());
                 task
             });

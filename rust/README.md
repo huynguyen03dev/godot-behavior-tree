@@ -79,7 +79,7 @@ The Godot GDExtension configuration (`addons/godot_bt_native/godot_bt_native.gde
 ## Running Tests & Benchmarks
 
 ### 1. Regression & Integration Test Suite
-Run all 11 headless test suites via the orchestrator:
+Run all 15 headless test suites via the orchestrator:
 ```bash
 bash tests/run_tests.sh
 ```

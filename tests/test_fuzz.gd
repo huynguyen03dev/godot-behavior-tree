@@ -163,6 +163,7 @@ var signal_task_started: Dictionary = {} # task -> int
 var signal_task_finished: Dictionary = {} # task -> int
 var signal_task_aborted: Dictionary = {} # task -> int
 var signal_tree_finished: Array = [] # Array[int]
+var active_tasks: Dictionary = {}
 
 func _init() -> void:
 	print("================================================================================")
@@ -246,6 +247,7 @@ func _run_fuzz_tree(tree_idx: int, ticks_per_tree: int) -> bool:
 	signal_task_finished.clear()
 	signal_task_aborted.clear()
 	signal_tree_finished.clear()
+	active_tasks.clear()
 
 	# Tree generation: bounded depth <= 8, bounded width <= 6
 	var max_depth := rng.randi_range(3, 7)
@@ -259,17 +261,22 @@ func _run_fuzz_tree(tree_idx: int, ticks_per_tree: int) -> bool:
 	var runner := BTRunnerScript.new(tree)
 	runner.task_started.connect(func(t):
 		signal_task_started[t] = signal_task_started.get(t, 0) + 1
+		active_tasks[t] = true
 	)
 	runner.task_finished.connect(func(t, st):
 		signal_task_finished[t] = signal_task_finished.get(t, 0) + 1
 		if not (st in [BTStatusScript.INACTIVE, BTStatusScript.FAILURE, BTStatusScript.SUCCESS, BTStatusScript.RUNNING]):
 			_fail("task_finished emitted with invalid status %d" % st, tree_idx, runner.ticks, tree)
+		if st != BTStatusScript.RUNNING:
+			active_tasks.erase(t)
 	)
 	runner.task_aborted.connect(func(t):
 		signal_task_aborted[t] = signal_task_aborted.get(t, 0) + 1
+		active_tasks.erase(t)
 	)
 	runner.tree_finished.connect(func(st):
 		signal_tree_finished.append(st)
+		active_tasks.clear()
 	)
 
 	# Budget configuration: mix 0 (unlimited) and bounded budgets (1 to 10)
@@ -309,12 +316,12 @@ func _run_fuzz_tree(tree_idx: int, ticks_per_tree: int) -> bool:
 		if rng.randf() < 0.03:
 			if runner.is_running:
 				runner.pause(true)
-			elif runner._paused:
+			else:
 				runner.pause(false)
 
 		# 4. Random task interrupt
-		if rng.randf() < 0.03 and not runner._started.is_empty():
-			var started_list := runner._started.keys()
+		if rng.randf() < 0.03 and not active_tasks.is_empty():
+			var started_list := active_tasks.keys()
 			var target: BTTask = started_list[rng.randi_range(0, started_list.size() - 1)]
 			runner.interrupt(target)
 
@@ -398,6 +405,7 @@ func _run_fuzz_tree(tree_idx: int, ticks_per_tree: int) -> bool:
 	signal_task_finished.clear()
 	signal_task_aborted.clear()
 	signal_tree_finished.clear()
+	active_tasks.clear()
 
 	runner.free()
 	runner = null

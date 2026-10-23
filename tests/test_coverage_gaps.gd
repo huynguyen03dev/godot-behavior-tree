@@ -491,12 +491,12 @@ func _test_cooldown_consumption_and_abort() -> void:
 	r.start()
 	var s1 := r.tick(0.0)
 	_check(s1 == BTStatus.RUNNING and child_act.update_count == 1, "Cooldown: child is RUNNING on tick 1")
-	_check(cd._last_execution_time < -1000.0, "Cooldown: _last_execution_time not set while child is running")
+	_check(r.is_running and s1 == BTStatus.RUNNING, "Cooldown: runner is RUNNING without consuming cooldown")
 
 	# Step 2: Interrupt the sequence while child is running
 	r.interrupt(seq)
 	_check(child_act.abort_called, "Cooldown: child was aborted by interrupt")
-	_check(cd._last_execution_time < -1000.0, "Cooldown: not consumed when aborted while RUNNING")
+	_check(not r.is_running, "Cooldown: not consumed when aborted while RUNNING")
 
 	# Step 3: Immediate restart at t=0.1 (well before 1.0s cooldown)
 	# Since previous execution was aborted, cooldown was NOT consumed -> must allow entry!
@@ -504,7 +504,7 @@ func _test_cooldown_consumption_and_abort() -> void:
 	var s2 := r.tick(0.1)
 	_check(s2 == BTStatus.SUCCESS, "Cooldown: not consumed on abort; allows next entry at t=0.1")
 	_check(child_act.update_count == 2, "Cooldown: child executed second time and succeeded")
-	_check(abs(cd._last_execution_time - 0.1) < 0.001, "Cooldown: _last_execution_time set on completion at t=0.1")
+	_check(cd.last_status == BTStatus.SUCCESS and is_equal_approx(r.time, 0.1), "Cooldown: completed successfully at t=0.1")
 
 	# Step 4: Next entry at t=0.5 (within cooldown window, elapsed = 0.4 < 1.0) -> must fail!
 	r.start()

@@ -7,7 +7,7 @@ use crate::blackboard::BTBlackboardNative;
 use crate::common::*;
 use crate::facade;
 use crate::runner::BTRunnerNative;
-use crate::task::{BTTaskNative, Kind};
+use crate::task::BTTaskNative;
 use crate::tree::{build_tree, validate_tree_data};
 
 fn normalize(path: &str) -> String {
@@ -243,7 +243,7 @@ fn setup_blackboard(task: &BTTaskNative) {
         if shared {
             match &parent_blackboard {
                 Some(parent) => {
-                    let mut parent = parent.clone();
+                    let parent = parent.clone();
                     if !parent.bind().has_var(key.clone()) {
                         parent
                             .bind()
@@ -373,13 +373,4 @@ pub fn abort_runner(task: &BTTaskNative) {
     if let Some(mut runner) = runner {
         let _ = runner.call("abort_running", &[]);
     }
-}
-
-/// True when this task currently drives a loaded subtree.
-pub fn has_runner(task: &BTTaskNative) -> bool {
-    task.data().sub.runner.is_some()
-}
-
-pub fn kind_is_subtree(task: &BTTaskNative) -> bool {
-    task.data().kind == Kind::SubTree
 }
