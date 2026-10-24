@@ -63,14 +63,14 @@ bash rust/build.sh --debug-only
 
 ### Cross-platform Target & File Mapping
 
-The Godot GDExtension configuration (`addons/godot_bt_native/godot_bt_native.gdextension`) expects the following library artifacts in `addons/godot_bt_native/bin/`:
+The Godot GDExtension configuration (`addons/godot_bt_native/godot_bt_native.gdextension`) maps editor builds directly to the release binary (`*.editor.* = ...release.*`), so building release only (`bash rust/build.sh --release-only`) is fully sufficient to run tests, games, and the editor:
 
 | Platform | Feature Tag | Cargo Target Artifact | Addon Destination File |
 |---|---|---|---|
-| **Linux (x86_64)** | `linux.debug.x86_64`<br>`linux.release.x86_64` | `target/<profile>/libgodot_bt_native.so` | `libgodot_bt_native.debug.so`<br>`libgodot_bt_native.release.so` |
+| **Linux (x86_64)** | `linux.editor.x86_64`<br>`linux.debug.x86_64`<br>`linux.release.x86_64` | `target/<profile>/libgodot_bt_native.so` | `libgodot_bt_native.release.so`<br>`libgodot_bt_native.debug.so` |
 | **Linux (ARM64)** | `linux.debug.arm64`<br>`linux.release.arm64` | `target/<profile>/libgodot_bt_native.so` | `libgodot_bt_native.debug.so`<br>`libgodot_bt_native.release.so` |
-| **Windows (x86_64)** | `windows.debug.x86_64`<br>`windows.release.x86_64` | `target/<profile>/godot_bt_native.dll` | `libgodot_bt_native.debug.dll`<br>`libgodot_bt_native.release.dll` |
-| **macOS (Universal / Host)** | `macos.debug`<br>`macos.release` | `target/<profile>/libgodot_bt_native.dylib` | `libgodot_bt_native.debug.dylib`<br>`libgodot_bt_native.release.dylib` |
+| **Windows (x86_64)** | `windows.editor.x86_64`<br>`windows.debug.x86_64`<br>`windows.release.x86_64` | `target/<profile>/godot_bt_native.dll` | `libgodot_bt_native.release.dll`<br>`libgodot_bt_native.debug.dll` |
+| **macOS (Universal / Host)** | `macos.editor`<br>`macos.debug`<br>`macos.release` | `target/<profile>/libgodot_bt_native.dylib` | `libgodot_bt_native.release.dylib`<br>`libgodot_bt_native.debug.dylib` |
 
 > **Current Build Limits:** Pre-built cross-platform binaries are not yet published to a public release repository. When distributing or running on Windows or macOS, users/developers must build the extension locally on their respective target operating system (or via a GitHub Actions CI matrix) using `bash rust/build.sh`. Godot safely ignores missing platform entries when running on a different platform (e.g., Windows/macOS entries are ignored on Linux).
 

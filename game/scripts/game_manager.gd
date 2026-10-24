@@ -278,11 +278,8 @@ func _spawn_trash_cans() -> void:
 func _spawn_initial_rats() -> void:
 	if not rats_container:
 		return
-	# 13 initial rats scattered across Backyard, Basement, Ground Floor, and 2nd Floor
+	# 11 initial rats scattered across Basement, Ground Floor, and 2nd Floor
 	var rat_spawns = [
-		# Backyard (2 rats)
-		Vector3(-3.0, 0.2, -15.0),
-		Vector3(3.0, 0.2, -18.0),
 		# Basement (4 rats)
 		Vector3(0.0, -2.6, 0.0),
 		Vector3(4.0, -2.6, 2.0),

@@ -4,17 +4,27 @@ A first-person cooperative horror gameplay implementation in Godot 4.7.2 inspire
 
 ---
 
-## 1. Quick Start
+## 1. Requirements & Run
 
-Run the standalone game scene directly (leaves `project.godot` demo scene untouched):
+- **Engine:** Godot 4.6+ (tested on Godot 4.7.2).
+- **Rust GDExtension:** Requires `rustup` to build the native runtime. Only the release build is required to play:
+  ```bash
+  bash rust/build.sh --release-only
+  ```
+- **Recommended Launcher:** Run via `bash game/run.sh` instead of invoking `godot` directly. The launcher runs automated preflight checks (`game/tools/check_env.gd`) to verify engine version, extension loading, and required assets before starting:
+  ```bash
+  # Play mode (windowed GUI with preflight check)
+  bash game/run.sh
 
-```bash
-# Play mode (windowed GUI)
-godot --path . res://game/scenes/main.tscn
-
-# Headless verification (300 frames without crash or script error)
-godot --headless --path . --quit-after 300 res://game/scenes/main.tscn
-```
+  # Headless verification
+  bash game/run.sh --headless --quit-after 300
+  ```
+- **Troubleshooting:** If the GDExtension has not been built or cannot load, launching Godot directly outputs ~84 confusing parser errors:
+  ```
+  Could not resolve super class inheritance from "BTTask"
+  Could not resolve class "BTTree", because of a parser error
+  ```
+  *Fix:* Run `bash rust/build.sh --release-only` and start via `bash game/run.sh`.
 
 ---
 

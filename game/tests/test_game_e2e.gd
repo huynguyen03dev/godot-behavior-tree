@@ -162,22 +162,81 @@ func _run_gameplay_tests() -> void:
 	var pickup3 = rat3.interact(player)
 	_check(not pickup3 and player.rat_count == 3 and not rat3.is_caught, "INV-14: Fourth rat pickup rejected when inventory full (capacity 3)")
 
+	# Drop rat via key G -> rat leaves inventory and flees from player
+	var pre_drop_rat_count = player.get_rat_count()
+	var pre_container_rats = rats_container.get_child_count()
+	var ev_g = InputEventKey.new()
+	ev_g.keycode = KEY_G
+	ev_g.pressed = true
+	player._unhandled_input(ev_g)
+
+	var post_container_rats = rats_container.get_child_count()
+	var dropped_rat: Node3D = null
+	if post_container_rats > pre_container_rats:
+		dropped_rat = rats_container.get_child(post_container_rats - 1) as Node3D
+
+	var dropped_ok = dropped_rat != null and player.get_rat_count() == pre_drop_rat_count - 1
+	var is_fleeing = dropped_rat != null and "locomotion_state" in dropped_rat and dropped_rat.locomotion_state == "flee"
+	_check(dropped_ok and is_fleeing, "INV-14: Pressing [G] drops rat from inventory, rat spawns in world with locomotion_state == 'flee'")
+
+	var flee_start_pos = dropped_rat.global_position if dropped_rat else Vector3.ZERO
+	var flee_timer := 0.0
+	while flee_timer < 1.0:
+		await create_timer(0.1).timeout
+		flee_timer += 0.1
+
+	var flee_dist = flee_start_pos.distance_to(dropped_rat.global_position) if dropped_rat else 0.0
+	_check(flee_dist > 1.0, "INV-14: Dropped rat flees from player (> 1.0m in 1.0s, actual: %.2fm)" % flee_dist)
+
 	# ==========================================================================
-	# INV-15: Altar Rat Burn & Count
+	# INV-15: SacrificePit 3-Step Ritual & Burn Count
 	# ==========================================================================
-	print("\n--- Testing INV-15: Altar Rat Burn & Count ---")
-	var pre_burn_count = altar.burnt_count
+	print("\n--- Testing INV-15: SacrificePit 3-Step Ritual & Burn Count ---")
+	var pre_burn_count = pit.burnt_count
 	var pre_player_rats = player.rat_count
-	var burn_res = altar.interact(player)
 
-	_check(burn_res, "INV-15: Player successfully offered rat to Altar")
-	_check(altar.burnt_count == pre_burn_count + 1, "INV-15: altar.burnt_count incremented to %d" % altar.burnt_count)
-	_check(gm.burnt_rats == altar.burnt_count, "INV-15: game_manager.burnt_rats synchronized with altar (%d)" % gm.burnt_rats)
-	_check(player.rat_count == pre_player_rats - 1, "INV-15: Player held rat consumed (%d -> %d)" % [pre_player_rats, player.rat_count])
+	# Step 1: Place rat onto pit
+	var place_res = pit.interact(player)
+	_check(place_res and pit.has_rat_placed and not pit.has_fuel,
+		"INV-15: Step 1 - Player placed rat onto SacrificePit (has_rat_placed == true, has_fuel == false)")
+	_check(player.rat_count == pre_player_rats - 1,
+		"INV-15: Player held rat consumed on placement (%d -> %d)" % [pre_player_rats, player.rat_count])
 
-	altar._process(0.1)
-	var flame_active = altar._burn_effect_timer > 0.0 and altar.flame_particles and altar.flame_particles.visible
-	_check(flame_active, "INV-15: Altar burn flame visual effect is active/visible")
+	# Negative Check: Rat placed without gasoline cannot burn
+	var neg_burn_res = pit.interact(player)
+	_check(not neg_burn_res and not pit.is_burning and pit.burnt_count == pre_burn_count,
+		"INV-15: Negative Check - Placing rat without gasoline cannot burn (interact returns false, burnt_count unchanged)")
+
+	# Step 2: Pour gasoline into pit
+	player.add_gasoline()
+	_check(player.has_gasoline(), "INV-15: Player acquired Gasoline Canister (has_gasoline == true)")
+
+	var pour_res = pit.interact(player)
+	_check(pour_res and pit.has_fuel and not player.has_gasoline(),
+		"INV-15: Step 2 - Player poured gasoline into SacrificePit (has_fuel == true, fuel consumed)")
+
+	# Step 3: Ignite sacrificial offering
+	var ignite_res = pit.interact(player)
+	_check(ignite_res and pit.is_burning,
+		"INV-15: Step 3 - Player ignited sacrifice (is_burning == true)")
+
+	var flame_active = pit.flame_light and pit.flame_light.visible
+	_check(flame_active, "INV-15: SacrificePit flame visual effect is active/visible during burn")
+
+	# Wait for burn to complete in real time (~1.5s, max timeout 4.0s)
+	var burn_wait := 0.0
+	while pit.is_burning and burn_wait < 4.0:
+		await create_timer(0.1).timeout
+		burn_wait += 0.1
+
+	_check(not pit.is_burning and pit.burnt_count == pre_burn_count + 1 and not pit.has_rat_placed and not pit.has_fuel,
+		"INV-15: Offering burned after 1.5s -> burnt_count == %d, pit state reset" % pit.burnt_count)
+	_check(gm.burnt_rats == pit.burnt_count,
+		"INV-15: game_manager.burnt_rats synchronized with sacrifice pit (%d)" % gm.burnt_rats)
+
+	# Verify indoor Altar is decorative
+	var altar_interact = altar.interact(player)
+	_check(not altar_interact, "INV-15: Indoor Altar is purely decorative and rejects interaction")
 
 	# ==========================================================================
 	# INV-17: Locked Door & Key
@@ -383,12 +442,29 @@ func _run_gameplay_tests() -> void:
 	if hud.loss_panel:
 		hud.loss_panel.visible = false
 
-	# Burn rats until 9 total
-	while altar.burnt_count < 9:
+	# Burn rats until 9 total via SacrificePit 3-step sequence
+	var loop_limit := 20
+	var total_loops := 0
+	while pit.burnt_count < 9 and total_loops < loop_limit:
+		total_loops += 1
 		player.rat_count = 1
-		altar.interact(player)
+		player.gasoline_count = 1
 
-	_check(altar.burnt_count == 9 and gm.burnt_rats == 9, "Altar reached ritual target of 9 burnt rats")
+		# Step 1: Place rat
+		pit.interact(player)
+		# Step 2: Pour gasoline
+		pit.interact(player)
+		# Step 3: Ignite
+		pit.interact(player)
+
+		# Wait for burn to finish (1.5s real-time, max 3.0s timeout per burn)
+		var loop_wait := 0.0
+		while pit.is_burning and loop_wait < 3.0:
+			await create_timer(0.1).timeout
+			loop_wait += 0.1
+
+	_check(pit.burnt_count == 9 and gm.burnt_rats == 9, "SacrificePit reached ritual target of 9 burnt rats")
+	_check(pit.is_ritual_ready(), "INV-16: pit.is_ritual_ready() == true at 9 burnt rats")
 	_check(gm.is_game_over and gm.is_win, "INV-16: Ritual completion sets is_game_over == true and is_win == true")
 
 	var win_shown = hud.win_panel and hud.win_panel.visible
