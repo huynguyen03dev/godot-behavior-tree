@@ -48,29 +48,10 @@ func is_ritual_ready() -> bool:
 	return burnt_count >= required_rats
 
 func get_interaction_text(player: Node = null) -> String:
-	if is_ritual_ready():
-		return "Altar Purified! Molly has been banished!"
-	if player and player.has_method("get_rat_count") and player.get_rat_count() > 0:
-		return "Press [E] to burn Rat (%d/%d Sacrificed)" % [burnt_count, required_rats]
-	return "Altar of Banishment (%d/%d Rats Sacrificed). Catch rats to burn!" % [burnt_count, required_rats]
+	return "Ancient Altar (Decorative) — The Sacrifice Pit is in the Backyard!"
 
 func interact(player: Node) -> bool:
-	if is_ritual_ready():
-		emit_signal("ritual_complete")
-		return true
-
-	# Sacrifice rat
-	if player and player.has_method("get_rat_count") and player.get_rat_count() > 0:
-		if player.consume_rat():
-			burnt_count += 1
-			_burn_effect_timer = 1.2
-			_update_visuals()
-			emit_signal("rat_burnt", burnt_count)
-			print("[Altar] Rat sacrificed! Burnt count: %d/%d" % [burnt_count, required_rats])
-			if burnt_count >= required_rats:
-				emit_signal("ritual_complete")
-			return true
-
+	# Altar is now purely decorative. Ritual takes place at Sacrifice Pit in Backyard.
 	return false
 
 func _update_visuals() -> void:

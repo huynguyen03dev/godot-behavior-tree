@@ -4,6 +4,7 @@ extends CanvasLayer
 @onready var prompt_label: Label = $CenterContainer/PromptLabel
 @onready var rats_burnt_label: Label = $TopLeftMargin/VBox/OfferingsLabel
 @onready var rat_bag_label: Label = $TopLeftMargin/VBox/BookLabel
+@onready var gasoline_label: Label = $TopLeftMargin/VBox/GasolineLabel
 @onready var keys_label: Label = $TopLeftMargin/VBox/InventoryLabel
 @onready var lives_label: Label = $TopLeftMargin/VBox/LivesLabel
 
@@ -36,11 +37,15 @@ func set_prompt(text: String) -> void:
 
 func update_rats_burnt(burnt: int, max_val: int = 9) -> void:
 	if rats_burnt_label:
-		rats_burnt_label.text = "Rats Sacrificed: %d / %d" % [burnt, max_val]
+		rats_burnt_label.text = "Rats: %d/%d burnt" % [burnt, max_val]
 
 func update_rat_inventory(carried: int, max_carried: int = 3) -> void:
 	if rat_bag_label:
-		rat_bag_label.text = "Rats in Bag: %d / %d" % [carried, max_carried]
+		rat_bag_label.text = "Bag: %d/%d" % [carried, max_carried]
+
+func update_gasoline(count: int) -> void:
+	if gasoline_label:
+		gasoline_label.text = "Gasoline: %d" % count
 
 func update_keys(keys_list: Array) -> void:
 	if keys_label:

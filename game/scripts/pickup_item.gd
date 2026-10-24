@@ -1,7 +1,7 @@
 class_name PickupItem
 extends Area3D
 
-enum ItemType { KEY, FUSE, BATTERY, FIRST_AID, FOOD }
+enum ItemType { KEY, FUSE, BATTERY, FIRST_AID, FOOD, GASOLINE }
 
 @export var item_type: ItemType = ItemType.KEY
 @export var key_id: String = ""
@@ -31,6 +31,8 @@ func _setup_visual() -> void:
 			glb_path = "res://game/assets/models/first_aid.glb"
 		ItemType.FOOD:
 			glb_path = "res://game/assets/models/food.glb"
+		ItemType.GASOLINE:
+			glb_path = "res://game/assets/models/gasoline.glb"
 
 	if glb_path != "" and ResourceLoader.exists(glb_path):
 		var sc = load(glb_path)
@@ -73,6 +75,26 @@ func _setup_visual() -> void:
 			b.size = Vector3(0.15, 0.1, 0.15)
 			mat.albedo_color = Color(0.6, 0.4, 0.2) # Brown ration
 			mesh_inst.mesh = b
+		ItemType.GASOLINE:
+			# TODO: Replace primitive gasoline can with gasoline.glb once produced by Blender agent
+			var b := BoxMesh.new()
+			b.size = Vector3(0.22, 0.30, 0.14)
+			mat.albedo_color = Color(0.85, 0.12, 0.12) # Bright red fuel can
+			mat.roughness = 0.5
+			mesh_inst.mesh = b
+			# Jerrycan spout
+			var spout := MeshInstance3D.new()
+			var spout_mesh := CylinderMesh.new()
+			spout_mesh.top_radius = 0.025
+			spout_mesh.bottom_radius = 0.025
+			spout_mesh.height = 0.08
+			var spout_mat := StandardMaterial3D.new()
+			spout_mat.albedo_color = Color(0.1, 0.1, 0.1)
+			spout.mesh = spout_mesh
+			spout.material_override = spout_mat
+			spout.position = Vector3(0.06, 0.18, 0.0)
+			spout.rotation.z = deg_to_rad(-20.0)
+			mesh_inst.add_child(spout)
 
 	mesh_inst.material_override = mat
 	mesh_root.add_child(mesh_inst)
@@ -112,6 +134,11 @@ func interact(player: Node) -> bool:
 		ItemType.FOOD:
 			if player.has_method("restore_stamina"):
 				player.restore_stamina()
+				queue_free()
+				return true
+		ItemType.GASOLINE:
+			if player.has_method("add_gasoline"):
+				player.add_gasoline()
 				queue_free()
 				return true
 	return false

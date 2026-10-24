@@ -1,0 +1,1131 @@
+{
+  "tree_name": "SurvivalRat_42189",
+  "description": "Devour Survival Rat Behavior Tree ported to Godot BT Addon",
+  "root_id": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": -1,
+      "children_ids": [
+        2,
+        3,
+        4,
+        5,
+        53,
+        54,
+        71
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 2,
+      "friendly_name": "Set SeekHay State",
+      "type_name": "SetLocomotionState",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [],
+      "parameters": {
+        "StateName": "SeekHay",
+        "Activate": false
+      }
+    },
+    {
+      "id": 3,
+      "friendly_name": "Slow Down",
+      "type_name": "StartStopAbility",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [],
+      "parameters": {
+        "AbilityType": "Opsive.UltimateCharacterController.Character.Abilities.SpeedChange",
+        "PriorityIndex": -1,
+        "Start": false,
+        "AlwaysReturnSuccess": true
+      }
+    },
+    {
+      "id": 4,
+      "friendly_name": "Set Shared Bool",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [],
+      "parameters": {
+        "targetValue": false,
+        "targetVariable": false
+      }
+    },
+    {
+      "id": 5,
+      "friendly_name": "Parallel Selector",
+      "type_name": "ParallelSelector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [
+        6,
+        8
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 6,
+      "friendly_name": "Interrupt",
+      "type_name": "Interrupt",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 5,
+      "children_ids": [
+        7
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 7,
+      "friendly_name": "Goat Wander",
+      "type_name": "GoatWander",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 6,
+      "children_ids": [],
+      "parameters": {
+        "minWanderDistance": 1,
+        "maxWanderDistance": 3,
+        "wanderRate": 360,
+        "minPauseDuration": 0,
+        "maxPauseDuration": 0,
+        "targetRetries": 1,
+        "idleMin": 3,
+        "idleMax": 8,
+        "timeToIdleMin": 3,
+        "timeToIdleMax": 10,
+        "disableMovement": false,
+        "disableIdling": false,
+        "recalculatePath": false,
+        "disableMovementOnce": false,
+        "disableAntiWanderColliderSupport": false,
+        "overrideGraphMask": -1,
+        "speed": 0.4,
+        "arriveDistance": 0.4,
+        "stopOnTaskEnd": true
+      }
+    },
+    {
+      "id": 8,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 5,
+      "children_ids": [
+        9
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 9,
+      "friendly_name": "Selector",
+      "type_name": "Selector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 8,
+      "children_ids": [
+        10,
+        50
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 10,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 9,
+      "children_ids": [
+        11,
+        12,
+        14,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        32,
+        33,
+        34,
+        42,
+        47,
+        48,
+        49
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 11,
+      "friendly_name": "Set SeekHay State",
+      "type_name": "SetLocomotionState",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "StateName": "SeekHay",
+        "Activate": false
+      }
+    },
+    {
+      "id": 12,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [
+        13
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 13,
+      "friendly_name": "Is Eating",
+      "type_name": "IsAbilityActive",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 12,
+      "children_ids": [],
+      "parameters": {
+        "AbilityType": "EatingHay",
+        "PriorityIndex": 0
+      }
+    },
+    {
+      "id": 14,
+      "friendly_name": "Selector",
+      "type_name": "Selector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [
+        15,
+        16
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 15,
+      "friendly_name": "Unknown Near Hay",
+      "type_name": "UnknownTask",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 14,
+      "children_ids": [],
+      "parameters": {
+        "StringJSONSerialization": "{\"Type\":\"BehaviorDesigner.Runtime.Tasks.Movement.GoatWithinDistance\",\"NodeData\":{\"Offset\":\"(-40,170)\"},\"ID\":15,\"Name\":\"Near Hay\",\"Instant\":true,\"BooleanusePhysics2D\":false,\"SharedGameObjecttargetObject\":{\"Type\":\"BehaviorDesigner.Runtime.SharedGameObject\",\"Name\":\"\"},\"SharedStringtargetTag\":{\"Type\":\"BehaviorDesigner.Runtime.SharedString\",\"Name\":\"\",\"StringmValue\":\"\"},\"LayerMaskobjectLayerMask\":16777216,\"SharedFloatmagnitude\":{\"Type\":\"BehaviorDesigner.Runtime.SharedFloat\",\"Name\":\"\",\"SinglemValue\":5},\"SharedBoollineOfSight\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":\"\",\"BooleanmValue\":true},\"LayerMaskignoreLayerMask\":-17828554,\"SharedVector3offset\":{\"Type\":\"BehaviorDesigner.Runtime.SharedVector3\",\"Name\":\"\",\"Vector3mValue\":\"(0,0.8,0)\"},\"SharedVector3targetOffset\":{\"Type\":\"BehaviorDesigner.Runtime.SharedVector3\",\"Name\":\"\",\"Vector3mValue\":\"(0,0.2,0)\"},\"SharedGameObjectreturnedObject\":{\"Type\":\"BehaviorDesigner.Runtime.SharedGameObject\",\"Name\":\"Hay\",\"IsShared\":true},\"SharedBoolhayMode\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":null,\"BooleanmValue\":true},\"SharedBoolplayersMode\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":null,\"BooleanmValue\":false}}",
+        "List`1fieldNameHash": [],
+        "List`1startIndex": [],
+        "List`1dataPosition": [],
+        "List`1unityObjects": [],
+        "List`1byteData": []
+      }
+    },
+    {
+      "id": 16,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 14,
+      "children_ids": [
+        17,
+        18
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 17,
+      "friendly_name": "Wander has been interrupted",
+      "type_name": "BoolComparison",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 16,
+      "children_ids": [],
+      "parameters": {
+        "bool1": false,
+        "bool2": true
+      }
+    },
+    {
+      "id": 18,
+      "friendly_name": "Restart Behavior Tree",
+      "type_name": "RestartBehaviorTree",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 16,
+      "children_ids": [],
+      "parameters": {
+        "group": 0
+      }
+    },
+    {
+      "id": 19,
+      "friendly_name": "Get dropped by player",
+      "type_name": "GetBoolStateValue",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "entityObject": "$Hay",
+        "stateName": "DroppedByPlayer",
+        "returnedBoolValue": false,
+        "isEntity": true
+      }
+    },
+    {
+      "id": 20,
+      "friendly_name": "Hay dropped by player",
+      "type_name": "BoolComparison",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "bool1": false,
+        "bool2": true
+      }
+    },
+    {
+      "id": 21,
+      "friendly_name": "Interrupt Wander",
+      "type_name": "PerformInterruption",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "errupt[]interruptTasks": [
+          6
+        ],
+        "interruptSuccess": false
+      }
+    },
+    {
+      "id": 22,
+      "friendly_name": "Set Shared Bool",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "targetValue": true,
+        "targetVariable": false
+      }
+    },
+    {
+      "id": 23,
+      "friendly_name": "Set SeekHay State",
+      "type_name": "SetLocomotionState",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "StateName": "SeekHay",
+        "Activate": true
+      }
+    },
+    {
+      "id": 24,
+      "friendly_name": "Parallel Complete",
+      "type_name": "ParallelComplete",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [
+        25,
+        26,
+        30
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 25,
+      "friendly_name": "Unknown Goat Seek",
+      "type_name": "UnknownTask",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 24,
+      "children_ids": [],
+      "parameters": {
+        "StringJSONSerialization": "{\"Type\":\"BehaviorDesigner.Runtime.Tasks.Movement.AstarPathfindingProject.GoatSeek\",\"NodeData\":{\"Offset\":\"(-440.434937,158.231689)\"},\"ID\":25,\"Name\":\"Goat Seek\",\"Instant\":true,\"SharedGameObjecttarget\":{\"Type\":\"BehaviorDesigner.Runtime.SharedGameObject\",\"Name\":\"Hay\",\"IsShared\":true},\"SharedVector3targetPosition\":{\"Type\":\"BehaviorDesigner.Runtime.SharedVector3\",\"Name\":\"\",\"Vector3mValue\":\"(0,0,0)\"},\"SharedBoolreturnFailureIfPathNotPossible\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":null,\"BooleanmValue\":false},\"SharedFloatspeed\":{\"Type\":\"BehaviorDesigner.Runtime.SharedFloat\",\"Name\":\"\",\"SinglemValue\":10},\"SharedFloatarriveDistance\":{\"Type\":\"BehaviorDesigner.Runtime.SharedFloat\",\"Name\":\"\",\"SinglemValue\":0.5},\"SharedBoolstopOnTaskEnd\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":\"\",\"BooleanmValue\":true}}",
+        "List`1fieldNameHash": [],
+        "List`1startIndex": [],
+        "List`1dataPosition": [],
+        "List`1unityObjects": [],
+        "List`1byteData": []
+      }
+    },
+    {
+      "id": 26,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 24,
+      "children_ids": [
+        27
+      ],
+      "parameters": {
+        "count": 1,
+        "repeatForever": true,
+        "endOnFailure": false
+      }
+    },
+    {
+      "id": 27,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 26,
+      "children_ids": [
+        28,
+        29
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 28,
+      "friendly_name": "Is Hay Null?",
+      "type_name": "CompareSharedGameObject",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 27,
+      "children_ids": [],
+      "parameters": {
+        "variable": "$Hay"
+      }
+    },
+    {
+      "id": 29,
+      "friendly_name": "Restart Behavior Tree",
+      "type_name": "RestartBehaviorTree",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 27,
+      "children_ids": [],
+      "parameters": {
+        "group": 0
+      }
+    },
+    {
+      "id": 30,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 24,
+      "children_ids": [
+        31
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 31,
+      "friendly_name": "Wait",
+      "type_name": "Wait",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 30,
+      "children_ids": [],
+      "parameters": {
+        "waitTime": 30,
+        "randomWait": false,
+        "randomWaitMin": 1,
+        "randomWaitMax": 1
+      }
+    },
+    {
+      "id": 32,
+      "friendly_name": "Set SeekHay State",
+      "type_name": "SetLocomotionState",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "StateName": "SeekHay",
+        "Activate": false
+      }
+    },
+    {
+      "id": 33,
+      "friendly_name": "Start Eating",
+      "type_name": "StartStopEatingHayAbility",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "PriorityIndex": -1,
+        "Start": true,
+        "AlwaysReturnSuccess": false,
+        "Hay": "$Hay"
+      }
+    },
+    {
+      "id": 34,
+      "friendly_name": "Parallel Complete",
+      "type_name": "ParallelComplete",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [
+        35,
+        39
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 35,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 34,
+      "children_ids": [
+        36
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 36,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 35,
+      "children_ids": [
+        37,
+        38
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 37,
+      "friendly_name": "Is Hay Null?",
+      "type_name": "CompareSharedGameObject",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "variable": "$Hay"
+      }
+    },
+    {
+      "id": 38,
+      "friendly_name": "Do Not Destroy Hay",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "targetValue": false,
+        "targetVariable": false
+      }
+    },
+    {
+      "id": 39,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 34,
+      "children_ids": [
+        40,
+        41
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 40,
+      "friendly_name": "Wait",
+      "type_name": "Wait",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 39,
+      "children_ids": [],
+      "parameters": {
+        "waitTime": 10,
+        "randomWait": false,
+        "randomWaitMin": 1,
+        "randomWaitMax": 1
+      }
+    },
+    {
+      "id": 41,
+      "friendly_name": "Destroy Hay",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 39,
+      "children_ids": [],
+      "parameters": {
+        "targetValue": true,
+        "targetVariable": false
+      }
+    },
+    {
+      "id": 42,
+      "friendly_name": "Return Success",
+      "type_name": "ReturnSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [
+        43
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 43,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 42,
+      "children_ids": [
+        44,
+        45,
+        46
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 44,
+      "friendly_name": "Should destroy hay?",
+      "type_name": "BoolComparison",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 43,
+      "children_ids": [],
+      "parameters": {
+        "bool1": false,
+        "bool2": true
+      }
+    },
+    {
+      "id": 45,
+      "friendly_name": "Execute OnHayEaten Event",
+      "type_name": "ExecuteEvent",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 43,
+      "children_ids": [],
+      "parameters": {
+        "EventName": "OnHayEaten"
+      }
+    },
+    {
+      "id": 46,
+      "friendly_name": "Bolt Detach",
+      "type_name": "BoltDetach",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 43,
+      "children_ids": [],
+      "parameters": {
+        "targetGameObject": "$Hay"
+      }
+    },
+    {
+      "id": 47,
+      "friendly_name": "Clear Hay",
+      "type_name": "SetSharedGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "targetVariable": "$Hay",
+        "valueCanBeNull": true
+      }
+    },
+    {
+      "id": 48,
+      "friendly_name": "Stop Eating",
+      "type_name": "StartStopAbility",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "AbilityType": "EatingHay",
+        "PriorityIndex": 0,
+        "Start": false,
+        "AlwaysReturnSuccess": false
+      }
+    },
+    {
+      "id": 49,
+      "friendly_name": "Restart Behavior Tree",
+      "type_name": "RestartBehaviorTree",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 10,
+      "children_ids": [],
+      "parameters": {
+        "group": 0
+      }
+    },
+    {
+      "id": 50,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 9,
+      "children_ids": [
+        51,
+        52
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 51,
+      "friendly_name": "Wander is running",
+      "type_name": "BoolComparison",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 50,
+      "children_ids": [],
+      "parameters": {
+        "bool1": false,
+        "bool2": false
+      }
+    },
+    {
+      "id": 52,
+      "friendly_name": "Unknown Near Player",
+      "type_name": "UnknownTask",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 50,
+      "children_ids": [],
+      "parameters": {
+        "StringJSONSerialization": "{\"Type\":\"BehaviorDesigner.Runtime.Tasks.Movement.GoatWithinDistance\",\"NodeData\":{\"Offset\":\"(21.89746,179.867188)\"},\"ID\":52,\"Name\":\"Near Player\",\"Instant\":true,\"BooleanusePhysics2D\":false,\"SharedGameObjecttargetObject\":{\"Type\":\"BehaviorDesigner.Runtime.SharedGameObject\",\"Name\":\"\"},\"SharedStringtargetTag\":{\"Type\":\"BehaviorDesigner.Runtime.SharedString\",\"Name\":\"\",\"StringmValue\":\"\"},\"LayerMaskobjectLayerMask\":-2147483648,\"SharedFloatmagnitude\":{\"Type\":\"BehaviorDesigner.Runtime.SharedFloat\",\"Name\":\"\",\"SinglemValue\":2},\"SharedBoollineOfSight\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":\"\",\"BooleanmValue\":true},\"LayerMaskignoreLayerMask\":2146432310,\"SharedVector3offset\":{\"Type\":\"BehaviorDesigner.Runtime.SharedVector3\",\"Name\":\"\",\"Vector3mValue\":\"(0,0.8,0)\"},\"SharedVector3targetOffset\":{\"Type\":\"BehaviorDesigner.Runtime.SharedVector3\",\"Name\":\"TargetOffset\",\"IsShared\":true,\"IsGlobal\":true,\"Vector3mValue\":\"(0,1.4,0)\"},\"SharedGameObjectreturnedObject\":{\"Type\":\"BehaviorDesigner.Runtime.SharedGameObject\",\"Name\":\"PlayerWithinDistance\",\"IsShared\":true},\"SharedBoolhayMode\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":null,\"BooleanmValue\":false},\"SharedBoolplayersMode\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":null,\"BooleanmValue\":true}}",
+        "List`1fieldNameHash": [],
+        "List`1startIndex": [],
+        "List`1dataPosition": [],
+        "List`1unityObjects": [],
+        "List`1byteData": []
+      }
+    },
+    {
+      "id": 53,
+      "friendly_name": "Speed Up",
+      "type_name": "StartStopAbility",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [],
+      "parameters": {
+        "AbilityType": "Opsive.UltimateCharacterController.Character.Abilities.SpeedChange",
+        "PriorityIndex": -1,
+        "Start": true,
+        "AlwaysReturnSuccess": true
+      }
+    },
+    {
+      "id": 54,
+      "friendly_name": "Parallel Complete",
+      "type_name": "ParallelComplete",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [
+        55,
+        65
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 55,
+      "friendly_name": "Interrupt",
+      "type_name": "Interrupt",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 54,
+      "children_ids": [
+        56
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 56,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 55,
+      "children_ids": [
+        57
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 57,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 56,
+      "children_ids": [
+        58,
+        62,
+        63
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 58,
+      "friendly_name": "Return Success",
+      "type_name": "ReturnSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 57,
+      "children_ids": [
+        59
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 59,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 58,
+      "children_ids": [
+        60,
+        61
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 60,
+      "friendly_name": "Has flee target DC'd?",
+      "type_name": "CompareSharedBool",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 59,
+      "children_ids": [],
+      "parameters": {
+        "variable": false,
+        "compareTo": true
+      }
+    },
+    {
+      "id": 61,
+      "friendly_name": "Restart Behavior Tree",
+      "type_name": "RestartBehaviorTree",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 59,
+      "children_ids": [],
+      "parameters": {
+        "group": 0
+      }
+    },
+    {
+      "id": 62,
+      "friendly_name": "Goat Flee",
+      "type_name": "GoatFlee",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 57,
+      "children_ids": [],
+      "parameters": {
+        "fleedDistance": 5,
+        "lookAheadDistance": 0.3,
+        "target": "$PlayerWithinDistance",
+        "targetDisconnected": false,
+        "overrideGraphMask": -1,
+        "disableRandomTargetAfterConsecutiveNormalFlees": false,
+        "speed": 2,
+        "arriveDistance": 0.2,
+        "stopOnTaskEnd": true
+      }
+    },
+    {
+      "id": 63,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 57,
+      "children_ids": [
+        64
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 64,
+      "friendly_name": "Unknown Near Player",
+      "type_name": "UnknownTask",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 63,
+      "children_ids": [],
+      "parameters": {
+        "StringJSONSerialization": "{\"Type\":\"BehaviorDesigner.Runtime.Tasks.Movement.GoatWithinDistance\",\"NodeData\":{\"Offset\":\"(-0.6640625,121.527344)\"},\"ID\":64,\"Name\":\"Near Player\",\"Instant\":true,\"BooleanusePhysics2D\":false,\"SharedGameObjecttargetObject\":{\"Type\":\"BehaviorDesigner.Runtime.SharedGameObject\",\"Name\":\"\"},\"SharedStringtargetTag\":{\"Type\":\"BehaviorDesigner.Runtime.SharedString\",\"Name\":\"\",\"StringmValue\":\"\"},\"LayerMaskobjectLayerMask\":-2147483648,\"SharedFloatmagnitude\":{\"Type\":\"BehaviorDesigner.Runtime.SharedFloat\",\"Name\":\"\",\"SinglemValue\":2},\"SharedBoollineOfSight\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":\"\",\"BooleanmValue\":true},\"LayerMaskignoreLayerMask\":2146432310,\"SharedVector3offset\":{\"Type\":\"BehaviorDesigner.Runtime.SharedVector3\",\"Name\":\"\",\"Vector3mValue\":\"(0,0.8,0)\"},\"SharedVector3targetOffset\":{\"Type\":\"BehaviorDesigner.Runtime.SharedVector3\",\"Name\":\"TargetOffset\",\"IsShared\":true,\"IsGlobal\":true,\"Vector3mValue\":\"(0,1.4,0)\"},\"SharedGameObjectreturnedObject\":{\"Type\":\"BehaviorDesigner.Runtime.SharedGameObject\",\"Name\":\"PlayerWithinDistance\",\"IsShared\":true},\"SharedBoolhayMode\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":null,\"BooleanmValue\":false},\"SharedBoolplayersMode\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":null,\"BooleanmValue\":true}}",
+        "List`1fieldNameHash": [],
+        "List`1startIndex": [],
+        "List`1dataPosition": [],
+        "List`1unityObjects": [],
+        "List`1byteData": []
+      }
+    },
+    {
+      "id": 65,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 54,
+      "children_ids": [
+        66
+      ],
+      "parameters": {
+        "count": 1,
+        "repeatForever": true,
+        "endOnFailure": false
+      }
+    },
+    {
+      "id": 66,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 65,
+      "children_ids": [
+        67,
+        68,
+        69,
+        70
+      ],
+      "parameters": {
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 67,
+      "friendly_name": "Unknown Near Hay",
+      "type_name": "UnknownTask",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 66,
+      "children_ids": [],
+      "parameters": {
+        "StringJSONSerialization": "{\"Type\":\"BehaviorDesigner.Runtime.Tasks.Movement.GoatWithinDistance\",\"NodeData\":{\"Offset\":\"(-1.17590332,161.176025)\"},\"ID\":67,\"Name\":\"Near Hay\",\"Instant\":true,\"BooleanusePhysics2D\":false,\"SharedGameObjecttargetObject\":{\"Type\":\"BehaviorDesigner.Runtime.SharedGameObject\",\"Name\":\"\"},\"SharedStringtargetTag\":{\"Type\":\"BehaviorDesigner.Runtime.SharedString\",\"Name\":\"\",\"StringmValue\":\"Hay\"},\"LayerMaskobjectLayerMask\":16777216,\"SharedFloatmagnitude\":{\"Type\":\"BehaviorDesigner.Runtime.SharedFloat\",\"Name\":\"\",\"SinglemValue\":5},\"SharedBoollineOfSight\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":\"\",\"BooleanmValue\":true},\"LayerMaskignoreLayerMask\":-17828554,\"SharedVector3offset\":{\"Type\":\"BehaviorDesigner.Runtime.SharedVector3\",\"Name\":\"\",\"Vector3mValue\":\"(0,0.8,0)\"},\"SharedVector3targetOffset\":{\"Type\":\"BehaviorDesigner.Runtime.SharedVector3\",\"Name\":\"\",\"Vector3mValue\":\"(0,0.2,0)\"},\"SharedGameObjectreturnedObject\":{\"Type\":\"BehaviorDesigner.Runtime.SharedGameObject\",\"Name\":\"Hay\",\"IsShared\":true},\"SharedBoolhayMode\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":null,\"BooleanmValue\":false},\"SharedBoolplayersMode\":{\"Type\":\"BehaviorDesigner.Runtime.SharedBool\",\"Name\":null,\"BooleanmValue\":false}}",
+        "List`1fieldNameHash": [],
+        "List`1startIndex": [],
+        "List`1dataPosition": [],
+        "List`1unityObjects": [],
+        "List`1byteData": []
+      }
+    },
+    {
+      "id": 68,
+      "friendly_name": "Get dropped by player",
+      "type_name": "GetBoolStateValue",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 66,
+      "children_ids": [],
+      "parameters": {
+        "entityObject": "$Hay",
+        "stateName": "DroppedByPlayer",
+        "returnedBoolValue": false,
+        "isEntity": true
+      }
+    },
+    {
+      "id": 69,
+      "friendly_name": "Hay dropped by player",
+      "type_name": "BoolComparison",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 66,
+      "children_ids": [],
+      "parameters": {
+        "bool1": false,
+        "bool2": true
+      }
+    },
+    {
+      "id": 70,
+      "friendly_name": "Perform Interruption",
+      "type_name": "PerformInterruption",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 66,
+      "children_ids": [],
+      "parameters": {
+        "errupt[]interruptTasks": [
+          55
+        ],
+        "interruptSuccess": false
+      }
+    },
+    {
+      "id": 71,
+      "friendly_name": "Restart Behavior Tree",
+      "type_name": "RestartBehaviorTree",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [],
+      "parameters": {
+        "group": 0
+      }
+    }
+  ],
+  "blackboard": {
+    "PlayerWithinDistance": {
+      "type_name": "object",
+      "value": null,
+      "is_shared": true,
+      "description": "Player node detected within fear distance"
+    },
+    "Hay": {
+      "type_name": "object",
+      "value": null,
+      "is_shared": true,
+      "description": "Hay bait object detected nearby"
+    },
+    "DestroyHay": {
+      "type_name": "bool",
+      "value": false,
+      "is_shared": true,
+      "description": "Whether the eaten hay should be destroyed"
+    },
+    "DroppedByPlayer": {
+      "type_name": "bool",
+      "value": false,
+      "is_shared": true,
+      "description": "True if hay was dropped by a player"
+    },
+    "RecalculatePath": {
+      "type_name": "bool",
+      "value": false,
+      "is_shared": false,
+      "description": "Flag to recalculate path"
+    },
+    "InterruptedWander": {
+      "type_name": "bool",
+      "value": false,
+      "is_shared": true,
+      "description": "Flag indicating wander was interrupted"
+    },
+    "PlayerWithinDistanceDisconnected": {
+      "type_name": "bool",
+      "value": false,
+      "is_shared": true,
+      "description": "True if tracked player disconnected"
+    },
+    "WanderSpeed": {
+      "type_name": "float",
+      "value": 1.0,
+      "is_shared": true,
+      "description": "Wander movement speed (m/s)"
+    },
+    "FleeSpeed": {
+      "type_name": "float",
+      "value": 3.2,
+      "is_shared": true,
+      "description": "Flee movement speed (m/s)"
+    },
+    "SeekSpeed": {
+      "type_name": "float",
+      "value": 0.4,
+      "is_shared": true,
+      "description": "Seek movement speed (m/s)"
+    },
+    "FoodArriveDistance": {
+      "type_name": "float",
+      "value": 0.25,
+      "is_shared": false,
+      "description": "Distance threshold to reach food"
+    },
+    "Players": {
+      "type_name": "array",
+      "value": [],
+      "is_shared": true,
+      "description": "List of player nodes in game"
+    },
+    "FleeDistance": {
+      "type_name": "float",
+      "value": 5.0,
+      "is_shared": true,
+      "description": "Distance to flee away from player"
+    },
+    "DisableHayDroppedByPlayerCheck": {
+      "type_name": "bool",
+      "value": false,
+      "is_shared": false,
+      "description": "Override check for hay dropped by player"
+    }
+  },
+  "metadata": {
+    "author": "hazeruno",
+    "source": "Devour SurvivalRat_42189.json",
+    "node_count": 71,
+    "variable_count": 14
+  }
+}

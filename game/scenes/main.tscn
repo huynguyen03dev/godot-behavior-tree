@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://c7xaltardevour01" path="res://game/scenes/altar.tscn" id="5_altar_scene"]
 [ext_resource type="NavigationMesh" path="res://game/scenes/farmhouse_navmesh.tres" id="6_farmhouse_navmesh"]
 [ext_resource type="PackedScene" path="res://game/scenes/fusebox.tscn" id="7_fusebox_scene"]
+[ext_resource type="PackedScene" uid="uid://c7xsacrificepitdev01" path="res://game/scenes/sacrifice_pit.tscn" id="8_pit_scene"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.015, 0.02, 0.04, 1)
@@ -74,6 +75,9 @@ navigation_mesh = ExtResource("6_farmhouse_navmesh")
 
 [node name="Altar" parent="." instance=ExtResource("5_altar_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.5)
+
+[node name="SacrificePit" parent="." instance=ExtResource("8_pit_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -17.0)
 
 [node name="FuseBox" parent="." instance=ExtResource("7_fusebox_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.8, 1.2, 0.0)

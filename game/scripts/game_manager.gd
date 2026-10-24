@@ -18,6 +18,7 @@ var _ghost_respawn_timer: float = 0.0
 @onready var player: PlayerController = $Player
 @onready var ghost: GhostActor = $Ghost
 @onready var altar: Altar = $Altar
+@onready var sacrifice_pit: SacrificePit = $SacrificePit
 @onready var hud: UIHUD = $UIHUD
 @onready var nav_region: NavigationRegion3D = $NavigationRegion3D
 @onready var level_root: Node3D = $NavigationRegion3D/LevelRoot
@@ -52,13 +53,18 @@ func _ready() -> void:
 func _connect_signals() -> void:
 	if player and hud:
 		player.rat_count_changed.connect(func(c): hud.update_rat_inventory(c))
+		player.gasoline_count_changed.connect(func(c): hud.update_gasoline(c))
 		player.keys_changed.connect(func(k): hud.update_keys(k))
 		player.stamina_changed.connect(func(c, m): hud.update_stamina(c, m))
 		player.uv_battery_changed.connect(func(c, m): hud.update_uv_battery(c, m))
 		player.flashlight_state_changed.connect(func(on, uv): hud.update_flashlight(on, uv))
 		player.interaction_prompt_changed.connect(func(t): hud.set_prompt(t))
 
-	if altar:
+	if sacrifice_pit:
+		sacrifice_pit.rat_burnt.connect(_on_rat_burnt)
+		sacrifice_pit.ritual_complete.connect(_on_ritual_complete)
+	elif altar:
+		# Fallback if sacrifice_pit not present
 		altar.rat_burnt.connect(_on_rat_burnt)
 		altar.ritual_complete.connect(_on_ritual_complete)
 
@@ -69,6 +75,7 @@ func _update_initial_hud() -> void:
 	if hud:
 		hud.update_rats_burnt(0, target_rats)
 		hud.update_rat_inventory(0)
+		hud.update_gasoline(0)
 		hud.update_keys([])
 		hud.update_lives(0, max_grabs)
 		hud.update_stamina(100.0, 100.0)
@@ -162,6 +169,11 @@ func _exit_tree() -> void:
 			ghost.ghost_banished.disconnect(_on_ghost_banished_signal)
 		if ghost.has_method("stop_brain"):
 			ghost.stop_brain()
+	if sacrifice_pit and is_instance_valid(sacrifice_pit):
+		if sacrifice_pit.rat_burnt.is_connected(_on_rat_burnt):
+			sacrifice_pit.rat_burnt.disconnect(_on_rat_burnt)
+		if sacrifice_pit.ritual_complete.is_connected(_on_ritual_complete):
+			sacrifice_pit.ritual_complete.disconnect(_on_ritual_complete)
 	if altar and is_instance_valid(altar):
 		if altar.rat_burnt.is_connected(_on_rat_burnt):
 			altar.rat_burnt.disconnect(_on_rat_burnt)
@@ -194,6 +206,8 @@ func _spawn_doors() -> void:
 		return
 	# Front Porch Door
 	_create_door(Vector3(0.0, 0.0, 6.0), 0.0, false, "", "Front Door")
+	# Back Door leading to Backyard (Sacrifice Pit)
+	_create_door(Vector3(0.0, 0.0, -10.0), 0.0, false, "", "Back Door")
 	# Basement Cellar Door (Locked by Basement Key)
 	_create_door(Vector3(4.0, 0.0, 0.0), 0.0, true, "basement_key", "Cellar Door")
 	# Master Bedroom Door (Locked by Bedroom Key)
@@ -217,6 +231,12 @@ func _spawn_pickups() -> void:
 	_create_pickup(Vector3(-6.0, 0.2, 2.0), PickupItem.ItemType.KEY, "basement_key", "Basement Key")
 	_create_pickup(Vector3(2.0, -2.8, -2.0), PickupItem.ItemType.KEY, "bedroom_key", "Master Bedroom Key")
 	
+	# Gasoline Canisters (for Sacrifice Pit ritual)
+	_create_pickup(Vector3(-6.0, 0.2, -15.0), PickupItem.ItemType.GASOLINE, "", "Gasoline Can")
+	_create_pickup(Vector3(6.0, 0.2, -19.0), PickupItem.ItemType.GASOLINE, "", "Gasoline Can")
+	_create_pickup(Vector3(-2.0, -2.8, -1.0), PickupItem.ItemType.GASOLINE, "", "Gasoline Can")
+	_create_pickup(Vector3(5.0, 0.2, -2.0), PickupItem.ItemType.GASOLINE, "", "Gasoline Can")
+
 	# Fuses (for electrical boxes / lighting)
 	_create_pickup(Vector3(6.0, 0.2, -4.0), PickupItem.ItemType.FUSE, "", "Fuse")
 	_create_pickup(Vector3(-2.0, 3.2, -4.0), PickupItem.ItemType.FUSE, "", "Fuse")
@@ -258,8 +278,11 @@ func _spawn_trash_cans() -> void:
 func _spawn_initial_rats() -> void:
 	if not rats_container:
 		return
-	# 11 initial rats scattered across Basement, Ground Floor, and 2nd Floor
+	# 13 initial rats scattered across Backyard, Basement, Ground Floor, and 2nd Floor
 	var rat_spawns = [
+		# Backyard (2 rats)
+		Vector3(-3.0, 0.2, -15.0),
+		Vector3(3.0, 0.2, -18.0),
 		# Basement (4 rats)
 		Vector3(0.0, -2.6, 0.0),
 		Vector3(4.0, -2.6, 2.0),

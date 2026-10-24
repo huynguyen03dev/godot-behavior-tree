@@ -15,7 +15,7 @@
 - **Mục tiêu cốt lõi:** Tái hiện trung thực 1:1 hành vi của con ma (Ghost/Demon Molly) từ game Devour (nguồn: reverse-engineering cây `Ghost_42115.json` 203 node với 3 nhánh song song).
 
 ### Tóm tắt Trải nghiệm (Elevator Pitch)
-Người chơi thức tỉnh tại căn nhà gỗ nông trại hẻo lánh trong đêm mưa bão. Nơi đây từng diễn ra lễ tế tà giáo của Molly, biến cô thành một quỷ hồn khát máu tuần tra khắp các tầng lầu. Để phá giải lời nguyền và trục xuất Molly, người chơi phải lẻn qua các phòng, tìm chìa khóa mở các khu vực bị niêm phong, lắp cầu chì bật điện, lùng sục các thùng rác ở tầng hầm và ngóc ngách để **bắt những con chuột bị nguyền rủa (Cursed Rats)** mang về thiêu đốt tại Lò thiêu / Bàn thờ (Altar). Khi đủ 9 con chuột được hiến tế thành tro bụi, lời nguyền tan biến và Molly bị trục xuất vĩnh viễn. Nếu để Molly áp sát bắt đủ 3 lần, người chơi sẽ bỏ mạng.
+Người chơi thức tỉnh tại căn nhà gỗ nông trại hẻo lánh trong đêm mưa bão. Nơi đây từng diễn ra lễ tế tà giáo của Molly, biến cô thành một quỷ hồn khát máu tuần tra khắp các tầng lầu. Để phá giải lời nguyền và trục xuất Molly, người chơi phải lẻn qua các phòng, tìm chìa khóa mở các khu vực bị niêm phong, lắp cầu chì bật điện, lùng sục các thùng rác ở tầng hầm và ngóc ngách để **bắt những con chuột bị nguyền rủa (Cursed Rats)** mang ra **Hố hiến tế ở sân sau (Sacrifice Pit in Backyard)**, đổ xăng và châm lửa thiêu đốt (Bàn thờ Altar trong sảnh chỉ là vật trang trí cổ xưa). Khi đủ 9 con chuột được hiến tế thành tro bụi, lời nguyền tan biến và Molly bị trục xuất vĩnh viễn. Nếu để Molly áp sát bắt đủ 3 lần, người chơi sẽ bỏ mạng.
 
 ---
 
@@ -45,25 +45,34 @@ Map được thiết kế theo kiến trúc nhà gỗ 2 tầng + 1 tầng hầm 
 │                              │     └───────────────┘  │                │
 │                              ▼                        ▼                │
 │                 Hành lang tầng trệt ──────── Cửa tầng hầm (Khoá)       │
+│                              │                                         │
+│                              ▼ Cửa sau (Back Door Opening)             │
+├────────────────────────────────────────────────────────────────────────┤
+│                          SÂN SAU (BACKYARD)                            │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │  HỐ HIẾN TẾ (SACRIFICE PIT)                                      │  │
+│  │  - Nơi đặt chuột, đổ xăng và châm lửa thiêu đốt (Cơ chế 3 bước). │  │
+│  │  - Bao quanh bởi hàng rào gỗ, đèn dầu, thùng gỗ và cây thông gai.│  │
+│  └──────────────────────────────────────────────────────────────────┘  │
 ├────────────────────────────────────────────────────────────────────────┤
 │                          TẦNG HẦM (BASEMENT)                           │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │  LÒ THIÊU TẾ LỄ (ALTAR / FURNACE)                                │  │
-│  │  - Nơi thả chuột vào thiêu đốt hiến tế.                          │  │
+│  │  HẦM ĐÁ VÀ CÁC THÙNG RÁC                                         │  │
 │  │  - Các dãy thùng rác (Trash Cans) chứa chuột ẩn nấp.             │  │
+│  │  - Chứa can xăng (Gasoline Canister) và điểm hồi sinh của Molly. │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Các phòng tối thiểu cần có:
+### Các khu vực cần có:
 1. **Hiên trước (Front Porch):** Điểm khởi đầu (Player Spawn), có cửa chính dẫn vào sảnh khách.
-2. **Sảnh khách (Living Room / Foyer):** Không gian mở rộng nối liền cầu thang lên tầng 2 và lối đi xuống bếp.
-3. **Bếp (Kitchen):** Chứa Hộp cầu chì (Fusebox) tổng của ngôi nhà và 1 thùng rác.
-4. **Hành lang tầng trệt (Hallway):** Nối sảnh khách, nhà tắm và cửa xuống tầng hầm.
-5. **Nhà tắm (Bathroom):** Phòng nhỏ, ngóc ngách dễ nhặt pin hoặc chuột chạy trốn.
-6. **2 Phòng ngủ tầng 2 (Bedrooms 1 & 2):** Ban đầu bị khóa cửa (`is_locked = true`), cần tìm đúng Chìa khóa (Keys) rải rác dưới tầng 1 để mở. Bên trong chứa chuột và vật phẩm phụ.
-7. **Tầng hầm (Basement):** Khu vực u ám nhất, đặt **Bàn thờ / Lò thiêu tế lễ (Altar/Furnace)**. Chứa nhiều thùng rác chứa chuột bị nguyền rủa nhất.
-8. *(Tùy chọn)* **Gác xép (Attic):** Dành cho bản mở rộng nếu team dựng kịp.
+2. **Sảnh khách (Living Room / Foyer):** Không gian mở rộng nối liền cầu thang lên tầng 2 và lối đi xuống bếp. Đặt bàn thờ Altar mang tính trang trí, hướng dẫn người chơi ra sân sau.
+3. **Bếp (Kitchen):** Chứa Hộp cầu chì (Fusebox) tổng của ngôi nhà, can xăng và 1 thùng rác.
+4. **Hành lang tầng trệt & Cửa sau (Back Door):** Lối đi mở ra khu sân sau phía sau ngôi nhà.
+5. **Sân sau & Hố hiến tế (Backyard & Sacrifice Pit):** Khu vực đất/sỏi rộng Z[-10, -24], hàng rào gỗ bao quanh và 4 cột đèn dầu. Hố đá Sacrifice Pit nằm ở trung tâm (0, 0, -17) là nơi duy nhất thực hiện nghi thức thiêu chuột.
+6. **Nhà tắm (Bathroom):** Phòng nhỏ, ngóc ngách dễ nhặt pin hoặc chuột chạy trốn.
+7. **2 Phòng ngủ tầng 2 (Bedrooms 1 & 2):** Ban đầu bị khóa cửa (`is_locked = true`), cần tìm đúng Chìa khóa (Keys) rải rác dưới tầng 1 để mở. Bên trong chứa chuột và vật phẩm phụ.
+8. **Tầng hầm (Basement):** Khu vực u ám nhất, khóa sau Cửa hầm (cần Basement Key). Chứa nhiều thùng rác chứa chuột bị nguyền rủa nhất và can xăng dự trữ.
 
 ---
 
@@ -90,14 +99,19 @@ Thời lượng một ván: **6 – 10 phút**.
 │                      TÌM KEY MỞ CỬA & BẮT CHUỘT                        │
 │  - Tìm Key mở cửa tầng hầm và 2 phòng ngủ lầu 2.                      │
 │  - Mở các thùng rác (Trash Cans) để chuột chạy ra, đuổi bắt chuột.    │
-│  - Mỗi lần người chơi chỉ ôm được 1 con chuột trên tay.               │
+│  - Người chơi mang tối đa 3 con chuột trong túi (Bag 0/3).             │
+│  - Bấm phím [G] để thả chuột rơi xuống đất -> chuột bỏ chạy trốn!      │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│                      MANG CHUỘT VỀ ĐỐT TẠI ALTAR                       │
-│  - Đem chuột xuống lò thiêu Altar ở tầng hầm, nhấn E để thiêu đốt.    │
-│  - Mỗi con chuột bị đốt:                                               │
+│                  NGHI THỨC 3 BƯỚC TẠI HỐ HIẾN TẾ SÂN SAU               │
+│  - Bước 1: Mang chuột ra Hố hiến tế sân sau, bấm [E] để đặt chuột lên  │
+│    hố đá (`is_placed_on_pit = true`).                                  │
+│  - Bước 2: Tìm Can xăng (Gasoline Canister), bấm [E] đổ xăng vào hố    │
+│    (`has_fuel = true`, tiêu hao 1 can xăng).                           │
+│  - Bước 3: Bấm [E] châm lửa (`is_burning = true`, cháy 1.5s).          │
+│  - Mỗi con chuột bị thiêu đốt thành công:                              │
 │    + `burnt_count += 1`.                                               │
 │    + Ghost Molly hú lên dữ dội, tốc độ rượt đuổi tăng dần.            │
 │    + Kích hoạt spawn thêm chuột từ các hang hốc (tối đa 20 con tổng).  │
@@ -108,7 +122,7 @@ Thời lượng một ván: **6 – 10 phút**.
 ┌──────────────────────────────────┐ ┌──────────────────────────────────┐
 │      ĐIỀU KIỆN THẮNG (WIN)       │ │       ĐIỀU KIỆN THUA (LOSS)      │
 │  - Đốt thành công ĐỦ 9 CON CHUỘT │ │  - Người chơi bị Molly áp sát    │
-│    tại Altar (`burnt_count >= 9`).│ │    bắt đủ 3 lần (Downed 3/3).   │
+│    tại Hố tế (`burnt_count >= 9`).│ │    bắt đủ 3 lần (Downed 3/3).   │
 │  - Molly bị thiêu rụi hoàn toàn, │ │  - Màn hình tối sầm, linh hồn    │
 │    cây AI dừng (`runner.stop()`).│ │    bị hiến tế (Game Over).       │
 └──────────────────────────────────┘ └──────────────────────────────────┘
@@ -122,7 +136,8 @@ Dựa trên dữ liệu gốc của Devour Level 2 (Molly Farmhouse), danh mục
 
 | Vật phẩm | Trạng thái trong Game | Vị trí xuất hiện | Tác dụng Gameplay & Cơ chế |
 |---|---|---|---|
-| **Chuột (Cursed Rat)** | **BẮT BUỘC (CORE)** | Thùng rác tầng hầm, bếp, góc phòng ngủ (11 con ban đầu + 9 con spawn bổ sung) | Mục tiêu chính. Chuột chạy nhảy ngẫu nhiên trên NavMesh. Người chơi đến gần bấm E để bắt vào tay (chỉ giữ được 1 con một lúc). Mang tới Altar bấm E để thiêu đốt. |
+| **Chuột (Cursed Rat)** | **BẮT BUỘC (CORE)** | Thùng rác tầng hầm, bếp, góc phòng ngủ (11 con ban đầu + 9 con spawn bổ sung) | Mục tiêu chính. Chuột chạy nhảy ngẫu nhiên trên NavMesh. Người chơi đến gần bấm E để bắt vào túi (tối đa 3 con). Bấm G để thả chuột ra, chuột sẽ hoảng sợ bỏ chạy trốn. Mang tới Hố hiến tế sân sau bấm E để đặt lên đĩa tế. |
+| **Can xăng (Gasoline Canister)** | **BẮT BUỘC (CORE)** | Bếp, hầm đá, sân sau (ít nhất 2 can ban đầu) | Nhiên liệu tế lễ. Bấm E để đổ vào Hố hiến tế sau khi đặt chuột. Mỗi lần đổ tiêu hao 1 can xăng. |
 | **Chìa khóa (Key)** | **BẮT BUỘC (CORE)** | 2–3 chìa rải ngẫu nhiên trên bàn/kệ | Mở các cửa phòng khóa: Chìa khóa Tầng hầm (Basement Key), Chìa khóa Phòng ngủ 1 (Bedroom 1 Key). Dùng 1 lần mở vĩnh viễn. |
 | **Cầu chì (Fuse)** | **BẮT BUỘC (CORE)** | 1–2 cầu chì trong ngăn kéo hoặc phòng tắm | Cầm đặt vào Fusebox ở phòng Bếp để bật hệ thống đèn chiếu sáng hành lang. Khi có điện, người chơi dễ quan sát và đỡ tốn pin đèn pin. |
 | **Pin đèn (Battery)** | **BẮT BUỘC (CORE)** | Rải rác 2–3 cục trên kệ sách/bàn | Khi nhặt, hồi phục ngay lập tức 100% năng lượng pin đèn UV. |
@@ -161,7 +176,8 @@ Ghost Molly sử dụng nguyên vẹn cây Behavior Tree đã đặc tả trong 
 | **Ctrl (Giữ/Toggle)** | Ngồi khẽ (Crouch) | `1.8 m/s`, chiều cao camera 0.9m. Không phát ra tiếng động bước chân (`crouchHearingRadius = 0m`). |
 | **F** | Đèn pin thường | Chiếu sáng cơ bản. |
 | **Chuột Phải / Trái (Giữ)** | Rọi đèn UV tập trung (Fry) | Chùm sáng UV tím làm chậm và đốt Molly. Tiêu hao pin UV (tối đa 5s liên tục). |
-| **E** | Tương tác đa năng | Nhặt Key/Fuse/Battery; mở nắp thùng rác; vồ bắt chuột; cắm Fuse vào Fusebox; ném chuột vào Altar lò thiêu. |
+| **E** | Tương tác đa năng | Nhặt Key/Fuse/Battery/Can xăng; mở nắp thùng rác; bắt chuột; cắm Fuse vào Fusebox; đặt chuột / đổ xăng / châm lửa Hố hiến tế. |
+| **G** | Thả chuột | Thả 1 con chuột đang mang trong túi rơi xuống sàn; chuột hoảng sợ chạy trốn khỏi người chơi (3.5 m/s). |
 
 ---
 

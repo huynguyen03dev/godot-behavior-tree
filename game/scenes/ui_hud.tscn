@@ -45,11 +45,15 @@ text = "DEVOUR: THE FARMHOUSE (MOLLY)"
 
 [node name="OfferingsLabel" type="Label" parent="TopLeftMargin/VBox"]
 layout_mode = 2
-text = "Rats Sacrificed: 0 / 9"
+text = "Rats: 0/9 burnt"
 
 [node name="BookLabel" type="Label" parent="TopLeftMargin/VBox"]
 layout_mode = 2
-text = "Rats in Bag: 0 / 3"
+text = "Bag: 0/3"
+
+[node name="GasolineLabel" type="Label" parent="TopLeftMargin/VBox"]
+layout_mode = 2
+text = "Gasoline: 0"
 
 [node name="InventoryLabel" type="Label" parent="TopLeftMargin/VBox"]
 layout_mode = 2

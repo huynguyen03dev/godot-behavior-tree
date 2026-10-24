@@ -69,6 +69,7 @@ func _run_gameplay_tests() -> void:
 	var player = main.get_node_or_null("Player") as PlayerController
 	var ghost = main.get_node_or_null("Ghost") as GhostActor
 	var altar = main.get_node_or_null("Altar") as Altar
+	var pit = main.get_node_or_null("SacrificePit") as SacrificePit
 	var hud = main.get_node_or_null("UIHUD") as UIHUD
 	var rats_container = main.get_node_or_null("RatsContainer")
 
@@ -76,9 +77,10 @@ func _run_gameplay_tests() -> void:
 	_check(player != null, "PlayerController instance valid")
 	_check(ghost != null, "GhostActor instance valid")
 	_check(altar != null, "Altar instance valid")
+	_check(pit != null, "SacrificePit instance valid")
 	_check(rats_container != null, "RatsContainer instance valid")
 
-	if not (gm and player and ghost and altar and rats_container):
+	if not (gm and player and ghost and altar and pit and rats_container):
 		print("Critical nodes missing, aborting scene tests.")
 		main.queue_free()
 		return

@@ -61,6 +61,9 @@ func _construct(root: Node3D) -> void:
 	# 5. Interior Walls & Props
 	_build_interior_features(house)
 
+	# 6. Backyard (Sân sau) with perimeter fence, dirt terrain, lanterns & props
+	_build_backyard(house)
+
 func _build_floor_level(parent: Node3D, level_name: String, y_pos: float, min_x: int, max_x: int, min_z: int, max_z: int) -> void:
 	var level = Node3D.new()
 	level.name = level_name
@@ -123,6 +126,10 @@ func _build_floor_level(parent: Node3D, level_name: String, y_pos: float, min_x:
 	# North walls (Z = min_z - 0.5)
 	for x in range(min_x, max_x + 1):
 		var pos = Vector3(x * GRID_SIZE, 0, min_z * GRID_SIZE - GRID_SIZE * 0.5)
+		if level_name == "GroundFloor" and x == 0:
+			# Opening for back entrance to backyard, but keep top beam/cornice
+			_place_cornice(level, Vector3(pos.x, WALL_HEIGHT - 0.05, pos.z + 0.12), 0.0)
+			continue
 		_place_wall(level, pos, 0.0)
 		_place_cornice(level, Vector3(pos.x, WALL_HEIGHT - 0.05, pos.z + 0.12), 0.0)
 	
@@ -366,11 +373,153 @@ func _build_interior_features(parent: Node3D) -> void:
 	_spawn_prop(parent, barrel_scene, Vector3(-6.0, 0.0, -6.0), Vector3.ZERO)
 	_spawn_prop(parent, barrel_scene, Vector3(-5.2, 0.0, -6.2), Vector3.ZERO)
 	_spawn_prop(parent, rug_scene, Vector3(0.0, 0.02, 0.0), Vector3.ZERO)
-	_spawn_prop(parent, painting_scene, Vector3(0.0, 1.8, -9.8), Vector3.ZERO) # Placed against North wall
+	_spawn_prop(parent, painting_scene, Vector3(4.0, 1.8, -9.8), Vector3.ZERO) # Placed against North wall away from back door
 	
 	# Basement clutter
 	_spawn_prop(parent, barrel_scene, Vector3(2.0, -3.0, 0.0), Vector3.ZERO)
 	_spawn_prop(parent, crate_scene, Vector3(-2.0, -3.0, -2.0), Vector3.ZERO)
+
+func _build_backyard(parent: Node3D) -> void:
+	var yard = Node3D.new()
+	yard.name = "Backyard"
+	parent.add_child(yard)
+
+	var yard_mat = StandardMaterial3D.new()
+	yard_mat.albedo_color = Color(0.16, 0.13, 0.10) # Dark muddy dirt / gravel
+	yard_mat.roughness = 0.95
+
+	var fence_mat = StandardMaterial3D.new()
+	fence_mat.albedo_color = Color(0.24, 0.17, 0.11) # Weathered dark wood fence
+	fence_mat.roughness = 0.9
+
+	# 1. Dirt / gravel ground slab: X[-10, 10], Z[-10, -24] -> size (20.0, 0.2, 14.0), center (0.0, -0.1, -17.0)
+	var ground_mi = MeshInstance3D.new()
+	var ground_bm = BoxMesh.new()
+	ground_bm.size = Vector3(20.0, 0.2, 14.0)
+	ground_mi.mesh = ground_bm
+	ground_mi.material_override = yard_mat
+	ground_mi.position = Vector3(0.0, -0.1, -17.0)
+	yard.add_child(ground_mi)
+
+	var ground_sb = StaticBody3D.new()
+	ground_sb.collision_layer = 1
+	ground_sb.collision_mask = 0
+	var ground_col = CollisionShape3D.new()
+	var ground_shape = BoxShape3D.new()
+	ground_shape.size = ground_bm.size
+	ground_col.shape = ground_shape
+	ground_sb.add_child(ground_col)
+	ground_sb.position = ground_mi.position
+	yard.add_child(ground_sb)
+
+	# 2. Perimeter Wooden Fence (North, West, East)
+	# North fence at Z = -24.0, length 20.0, height 1.8
+	_build_fence_segment(yard, Vector3(0.0, 0.9, -24.0), Vector3(20.0, 1.8, 0.2), fence_mat)
+	# West fence at X = -10.0, length 14.0, height 1.8
+	_build_fence_segment(yard, Vector3(-10.0, 0.9, -17.0), Vector3(0.2, 1.8, 14.0), fence_mat)
+	# East fence at X = +10.0, length 14.0, height 1.8
+	_build_fence_segment(yard, Vector3(10.0, 0.9, -17.0), Vector3(0.2, 1.8, 14.0), fence_mat)
+
+	# 3. Lantern Posts with warm oil lights
+	_build_lantern_post(yard, Vector3(-4.0, 0.0, -14.0))
+	_build_lantern_post(yard, Vector3(4.0, 0.0, -14.0))
+	_build_lantern_post(yard, Vector3(-4.0, 0.0, -20.0))
+	_build_lantern_post(yard, Vector3(4.0, 0.0, -20.0))
+
+	# 4. Props (Crates, Barrels, Dead Trees)
+	_spawn_prop(yard, barrel_scene, Vector3(-7.0, 0.0, -13.0), Vector3.ZERO)
+	_spawn_prop(yard, barrel_scene, Vector3(-6.2, 0.0, -13.2), Vector3.ZERO)
+	_spawn_prop(yard, crate_scene, Vector3(7.0, 0.0, -13.0), Vector3.ZERO)
+	_spawn_prop(yard, crate_scene, Vector3(7.2, 0.0, -21.0), Vector3(0, 0.5, 0))
+	_spawn_prop(yard, barrel_scene, Vector3(-7.0, 0.0, -21.0), Vector3.ZERO)
+
+	# Dead trees / logs
+	_build_tree_trunk(yard, Vector3(-7.5, 0.0, -17.0))
+	_build_tree_trunk(yard, Vector3(8.0, 0.0, -18.0))
+
+func _build_fence_segment(parent: Node3D, pos: Vector3, size: Vector3, mat: Material) -> void:
+	var mi = MeshInstance3D.new()
+	var bm = BoxMesh.new()
+	bm.size = size
+	mi.mesh = bm
+	mi.material_override = mat
+	mi.position = pos
+	parent.add_child(mi)
+
+	var sb = StaticBody3D.new()
+	sb.collision_layer = 1
+	sb.collision_mask = 0
+	var col = CollisionShape3D.new()
+	var shape = BoxShape3D.new()
+	shape.size = size
+	col.shape = shape
+	sb.add_child(col)
+	sb.position = pos
+	parent.add_child(sb)
+
+func _build_lantern_post(parent: Node3D, pos: Vector3) -> void:
+	var post_mat = StandardMaterial3D.new()
+	post_mat.albedo_color = Color(0.2, 0.15, 0.1)
+	post_mat.roughness = 0.9
+
+	var mi = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 0.08
+	cm.bottom_radius = 0.1
+	cm.height = 2.4
+	mi.mesh = cm
+	mi.material_override = post_mat
+	mi.position = pos + Vector3(0.0, 1.2, 0.0)
+	parent.add_child(mi)
+
+	var light = OmniLight3D.new()
+	light.light_color = Color(1.0, 0.72, 0.38) # Warm lantern
+	light.light_energy = 1.8
+	light.omni_range = 10.0
+	light.shadow_enabled = true
+	light.position = pos + Vector3(0.0, 2.2, 0.0)
+	parent.add_child(light)
+
+	var lamp_mi = MeshInstance3D.new()
+	var lamp_sm = SphereMesh.new()
+	lamp_sm.radius = 0.12
+	lamp_sm.height = 0.22
+	var lamp_mat = StandardMaterial3D.new()
+	lamp_mat.albedo_color = Color(1.0, 0.85, 0.45)
+	lamp_mat.emission_enabled = true
+	lamp_mat.emission = Color(1.0, 0.78, 0.35)
+	lamp_mat.emission_energy_multiplier = 3.0
+	lamp_mi.mesh = lamp_sm
+	lamp_mi.material_override = lamp_mat
+	lamp_mi.position = pos + Vector3(0.0, 2.2, 0.0)
+	parent.add_child(lamp_mi)
+
+func _build_tree_trunk(parent: Node3D, pos: Vector3) -> void:
+	var trunk_mat = StandardMaterial3D.new()
+	trunk_mat.albedo_color = Color(0.14, 0.11, 0.08)
+	trunk_mat.roughness = 0.95
+
+	var mi = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 0.3
+	cm.bottom_radius = 0.45
+	cm.height = 4.0
+	mi.mesh = cm
+	mi.material_override = trunk_mat
+	mi.position = pos + Vector3(0.0, 2.0, 0.0)
+	parent.add_child(mi)
+
+	var sb = StaticBody3D.new()
+	sb.collision_layer = 1
+	sb.collision_mask = 0
+	var col = CollisionShape3D.new()
+	var shape = CylinderShape3D.new()
+	shape.radius = 0.45
+	shape.height = 4.0
+	col.shape = shape
+	sb.add_child(col)
+	sb.position = mi.position
+	parent.add_child(sb)
 
 func _spawn_prop(parent: Node3D, packed: PackedScene, pos: Vector3, rot: Vector3) -> void:
 	if not packed:

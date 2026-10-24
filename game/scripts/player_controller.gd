@@ -2,6 +2,7 @@ class_name PlayerController
 extends CharacterBody3D
 
 signal rat_count_changed(count: int)
+signal gasoline_count_changed(count: int)
 signal keys_changed(keys_list: Array)
 signal stamina_changed(current: float, max_val: float)
 signal uv_battery_changed(current: float, max_val: float)
@@ -45,8 +46,11 @@ var flashlight_uv: bool = false
 # Farmhouse Inventory
 const MAX_RATS_CARRIED: int = 3
 var rat_count: int = 0
+var gasoline_count: int = 0
 var collected_keys: Array[String] = []
 var fuse_count: int = 0
+
+var rat_scene: PackedScene = preload("res://game/scenes/rat.tscn")
 
 # Footsteps
 var _footstep_timer: float = 0.0
@@ -91,6 +95,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			emit_signal("flashlight_state_changed", flashlight_on, flashlight_uv)
 		elif event.keycode == KEY_E:
 			_try_interact()
+		elif event.keycode == KEY_G:
+			drop_rat()
 		elif event.keycode == KEY_ESCAPE:
 			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -212,7 +218,7 @@ func _update_prompt() -> void:
 	if _current_target_interactable:
 		var text := ""
 		if _current_target_interactable.has_method("get_interaction_text"):
-			if _current_target_interactable is Altar:
+			if _current_target_interactable is Altar or _current_target_interactable.is_in_group("SacrificePit") or _current_target_interactable.has_method("get_interaction_text_with_player"):
 				text = _current_target_interactable.get_interaction_text(self)
 			else:
 				text = _current_target_interactable.get_interaction_text()
@@ -244,6 +250,58 @@ func consume_rat() -> bool:
 	if rat_count > 0:
 		rat_count -= 1
 		emit_signal("rat_count_changed", rat_count)
+		return true
+	return false
+
+func drop_rat() -> bool:
+	if rat_count <= 0:
+		return false
+	rat_count -= 1
+	emit_signal("rat_count_changed", rat_count)
+	if rat_scene:
+		var rat_inst = rat_scene.instantiate() as Node3D
+		var spawn_pos = global_position - global_transform.basis.z * 1.2
+		spawn_pos.y = global_position.y
+		
+		var container: Node = null
+		if is_inside_tree():
+			container = get_tree().get_first_node_in_group("RatsContainer")
+			if not container:
+				var current = get_tree().current_scene
+				if current:
+					container = current.get_node_or_null("RatsContainer")
+			if not container and get_parent():
+				container = get_parent().get_node_or_null("RatsContainer")
+		
+		if container:
+			container.add_child(rat_inst)
+		elif get_parent():
+			get_parent().add_child(rat_inst)
+		elif is_inside_tree() and get_tree().root:
+			get_tree().root.add_child(rat_inst)
+
+		rat_inst.global_position = spawn_pos
+		if rat_inst.has_method("flee_from"):
+			rat_inst.flee_from(self)
+		print("[Player] Dropped rat! Rat is fleeing!")
+		return true
+	return false
+
+func get_gasoline_count() -> int:
+	return gasoline_count
+
+func has_gasoline() -> bool:
+	return gasoline_count > 0
+
+func add_gasoline() -> void:
+	gasoline_count += 1
+	emit_signal("gasoline_count_changed", gasoline_count)
+	print("[Player] Acquired Gasoline Canister! (Total: %d)" % gasoline_count)
+
+func consume_gasoline() -> bool:
+	if gasoline_count > 0:
+		gasoline_count -= 1
+		emit_signal("gasoline_count_changed", gasoline_count)
 		return true
 	return false
 
