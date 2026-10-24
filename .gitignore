@@ -17,3 +17,8 @@ Thumbs.db
 *.tmp
 *.swp
 *~
+
+# Devour clone: generated artifacts (rebuild with game/assets/blender/build_all.py)
+__pycache__/
+*.pyc
+game/assets/previews/

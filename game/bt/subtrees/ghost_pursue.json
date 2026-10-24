@@ -1,0 +1,141 @@
+{
+  "tree_name": "GhostPursueSubTree",
+  "description": "Reusable Pursue and Attack subtree",
+  "root_id": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "friendly_name": "Pursue Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": -1,
+      "children_ids": [
+        2,
+        3,
+        6
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 2,
+      "friendly_name": "Set AbilityIndex Pursue",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [],
+      "parameters": {
+        "parameter_name": "AbilityIndex",
+        "int_value": 202
+      }
+    },
+    {
+      "id": 3,
+      "friendly_name": "Parallel Selector (D\u00ed & Ch\u1ea1m)",
+      "type_name": "ParallelSelector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [
+        4,
+        5
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 4,
+      "friendly_name": "Ghost Pursue",
+      "type_name": "GhostPursue",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "arrive_distance": 0.2,
+        "rotation_speed": 720.0,
+        "sway_distance": 0.25
+      }
+    },
+    {
+      "id": 5,
+      "friendly_name": "Player Touching Me",
+      "type_name": "PlayerTouchingMe",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "touching_distance": 0.2
+      }
+    },
+    {
+      "id": 6,
+      "friendly_name": "Attack Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [
+        7,
+        8
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 7,
+      "friendly_name": "Set AbilityIndex Attack",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 6,
+      "children_ids": [],
+      "parameters": {
+        "parameter_name": "AbilityIndex",
+        "int_value": 201
+      }
+    },
+    {
+      "id": 8,
+      "friendly_name": "Rotate Towards Player",
+      "type_name": "RotateTowards",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 6,
+      "children_ids": [],
+      "parameters": {
+        "target_variable": "$PlayerToChase",
+        "max_rotation_delta": 5.0
+      }
+    }
+  ],
+  "blackboard": {
+    "PlayerToChase": {
+      "type_name": "object",
+      "value": null,
+      "is_shared": true,
+      "description": "Ng\u01b0\u1eddi ch\u01a1i m\u1ee5c ti\u00eau \u0111ang b\u1ecb r\u01b0\u1ee3t \u0111u\u1ed5i"
+    },
+    "Speed": {
+      "type_name": "float",
+      "value": 1.0,
+      "is_shared": true,
+      "description": "T\u1ed1c \u0111\u1ed9 di chuy\u1ec3n"
+    },
+    "DistanceToPursuedPlayer": {
+      "type_name": "float",
+      "value": 0.0,
+      "is_shared": false,
+      "description": "Kho\u1ea3ng c\u00e1ch \u0111o \u0111\u1ea1c n\u1ed9i b\u1ed9"
+    },
+    "AbilityIndex": {
+      "type_name": "int",
+      "value": 0,
+      "is_shared": true,
+      "description": "K\u00eanh tr\u1ea1ng th\u00e1i"
+    }
+  },
+  "metadata": {
+    "author": "hazeruno"
+  }
+}

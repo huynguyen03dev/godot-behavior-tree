@@ -1,0 +1,49 @@
+[gd_scene load_steps=4 format=3 uid="uid://c7xplayerdev01"]
+
+[ext_resource type="Script" path="res://game/scripts/player_controller.gd" id="1_player_script"]
+[ext_resource type="PackedScene" uid="uid://ckmtmhtg61pnm" path="res://game/assets/models/flashlight.glb" id="2_flashlight_glb"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.35
+height = 1.75
+
+[node name="Player" type="CharacterBody3D" groups=["Player", "player"]]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1_player_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="Head" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Head"]
+current = true
+fov = 80.0
+
+[node name="InteractRayCast" type="RayCast3D" parent="Head/Camera3D"]
+target_position = Vector3(0, 0, -2.5)
+collision_mask = 8
+collide_with_areas = true
+collide_with_bodies = true
+
+[node name="HandSocket" type="Marker3D" parent="Head/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, -0.22, -0.55)
+
+[node name="FlashlightMount" type="Node3D" parent="Head/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.22, -0.18, -0.3)
+
+[node name="SpotLight3D" type="SpotLight3D" parent="Head/Camera3D/FlashlightMount"]
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 2.5
+spot_range = 22.0
+spot_angle = 38.0
+
+[node name="FlashlightMesh" type="Node3D" parent="Head/Camera3D/FlashlightMount"]
+
+[node name="FlashlightModel" parent="Head/Camera3D/FlashlightMount/FlashlightMesh" instance=ExtResource("2_flashlight_glb")]
+
+[node name="FootstepPlayer" type="AudioStreamPlayer3D" parent="."]
+bus = &"Master"

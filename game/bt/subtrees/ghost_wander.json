@@ -1,0 +1,80 @@
+{
+  "tree_name": "GhostWanderSubTree",
+  "description": "Reusable Wander patrol subtree",
+  "root_id": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "friendly_name": "Wander Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": -1,
+      "children_ids": [
+        2,
+        3,
+        4
+      ],
+      "parameters": {}
+    },
+    {
+      "id": 2,
+      "friendly_name": "Ghost Get Wander Destination",
+      "type_name": "GhostGetWanderDestination",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [],
+      "parameters": {
+        "min_distance": 5.0,
+        "max_distance": 10.0
+      }
+    },
+    {
+      "id": 3,
+      "friendly_name": "Ghost Move Towards",
+      "type_name": "GhostMoveTowards",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [],
+      "parameters": {
+        "speed": 1.0,
+        "arrive_distance": 0.2,
+        "look_at_target": true,
+        "target_variable": "$WanderDestination"
+      }
+    },
+    {
+      "id": 4,
+      "friendly_name": "Idle Wait",
+      "type_name": "Wait",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [],
+      "parameters": {
+        "random_wait": true,
+        "random_wait_min": 3.0,
+        "random_wait_max": 8.0
+      }
+    }
+  ],
+  "blackboard": {
+    "WanderDestination": {
+      "type_name": "vector3",
+      "value": "(0, 0, 0)",
+      "is_shared": false,
+      "description": "T\u1ecda \u0111\u1ed9 \u0111i\u1ec3m \u0111\u1ebfn tu\u1ea7n tra"
+    },
+    "Speed": {
+      "type_name": "float",
+      "value": 1.0,
+      "is_shared": true,
+      "description": "T\u1ed1c \u0111\u1ed9 di chuy\u1ec3n"
+    }
+  },
+  "metadata": {
+    "author": "hazeruno"
+  }
+}

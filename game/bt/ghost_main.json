@@ -1,0 +1,3526 @@
+{
+  "tree_name": "Ghost_42115",
+  "description": "Devour Ghost AI Behavior Tree ported to Godot BT Addon",
+  "root_id": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "friendly_name": "Parallel",
+      "type_name": "Parallel",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": -1,
+      "children_ids": [
+        2,
+        167,
+        187
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 2,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [
+        3
+      ],
+      "parameters": {
+        "Instant": true,
+        "count": 0,
+        "repeatForever": true,
+        "endOnFailure": false,
+        "repeat_forever": true,
+        "end_on_failure": false
+      }
+    },
+    {
+      "id": 3,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 2,
+      "children_ids": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        75,
+        76,
+        77,
+        164,
+        165,
+        166
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 4,
+      "friendly_name": "SetLookAtEntity Event",
+      "type_name": "ExecuteLocalEventGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "EventName": "SetLookAtEntity"
+      }
+    },
+    {
+      "id": 5,
+      "friendly_name": "OnGhostPursue Event",
+      "type_name": "ExecuteLocalEventGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "EventName": "OnGhostPursue"
+      }
+    },
+    {
+      "id": 6,
+      "friendly_name": "Set Is Not Fleeing",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetValue": false,
+        "targetVariable": "IsFleeing",
+        "variable_name": "IsFleeing"
+      }
+    },
+    {
+      "id": 7,
+      "friendly_name": "Reset AbilityIntData",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIntData",
+        "intValue": 0,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 8,
+      "friendly_name": "Reset AbilityIndex",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 0,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 9,
+      "friendly_name": "Selector",
+      "type_name": "Selector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [
+        10,
+        11
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 2
+      }
+    },
+    {
+      "id": 10,
+      "friendly_name": "Player Flashlight On Me",
+      "type_name": "PlayerFlashlightOnMe",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 9,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayerMode": false,
+        "GameObjectListplayers": [],
+        "returnedPlayer": "$PlayerToChase",
+        "viewDistance": 15,
+        "layerMask": 5,
+        "fryOnly": true,
+        "fryCount": 0,
+        "returnPlayerFryOnly": true,
+        "startedFrying": false
+      }
+    },
+    {
+      "id": 11,
+      "friendly_name": "Parallel Selector",
+      "type_name": "ParallelSelector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 9,
+      "children_ids": [
+        12,
+        21,
+        36
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 12,
+      "friendly_name": "Interrupt",
+      "type_name": "Interrupt",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 11,
+      "children_ids": [
+        13
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 13,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 12,
+      "children_ids": [
+        14
+      ],
+      "parameters": {
+        "Instant": true,
+        "count": 0,
+        "repeatForever": true,
+        "endOnFailure": false,
+        "repeat_forever": true,
+        "end_on_failure": false
+      }
+    },
+    {
+      "id": 14,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 13,
+      "children_ids": [
+        15,
+        17
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 15,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 14,
+      "children_ids": [
+        16
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 16,
+      "friendly_name": "Is Not Near Ritual Book",
+      "type_name": "CompareSharedBool",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 15,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "variable": "NearRitualBook",
+        "compareTo": false,
+        "variable_name": "NearRitualBook"
+      }
+    },
+    {
+      "id": 17,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 14,
+      "children_ids": [
+        18,
+        19,
+        20
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 18,
+      "friendly_name": "Ghost Get Wander Destination",
+      "type_name": "GhostGetWanderDestination",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 17,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "GameObjectListcolliderGameObjects": [],
+        "minWanderDistance": 5,
+        "maxWanderDistance": 10,
+        "wanderRate": 5,
+        "targetRetries": 1,
+        "returnedDestination": "WanderDestination",
+        "constrainToGraph": false,
+        "returned_destination": "WanderDestination"
+      }
+    },
+    {
+      "id": 19,
+      "friendly_name": "Ghost Move Towards",
+      "type_name": "GhostMoveTowards",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 17,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "speed": 1,
+        "arriveDistance": 0.2,
+        "onlyYDistance": 0.4,
+        "lookAtTarget": true,
+        "rotationSpeed": 90,
+        "targetPosition": "(0,0,0)",
+        "slowWhenNotFacingTarget": true,
+        "returnFailureIfTargetBecomesNull": false,
+        "fleeing": false
+      }
+    },
+    {
+      "id": 20,
+      "friendly_name": "Idle",
+      "type_name": "Wait",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 17,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "Disabled": true,
+        "waitTime": 0,
+        "randomWait": true,
+        "randomWaitMin": 3,
+        "randomWaitMax": 8
+      }
+    },
+    {
+      "id": 21,
+      "friendly_name": "Interrupt",
+      "type_name": "Interrupt",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 11,
+      "children_ids": [
+        22
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 22,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 21,
+      "children_ids": [
+        23
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 23,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 22,
+      "children_ids": [
+        24,
+        26,
+        34
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 24,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 23,
+      "children_ids": [
+        25
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 25,
+      "friendly_name": "Is Not Near Ritual Book",
+      "type_name": "CompareSharedBool",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 24,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "variable": "NearRitualBook",
+        "compareTo": false,
+        "variable_name": "NearRitualBook"
+      }
+    },
+    {
+      "id": 26,
+      "friendly_name": "Selector",
+      "type_name": "Selector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 23,
+      "children_ids": [
+        27,
+        31,
+        32,
+        33
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 27,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 26,
+      "children_ids": [
+        28,
+        29
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 28,
+      "friendly_name": "Can See Player",
+      "type_name": "CanSeePlayer",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 27,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayerMode": false,
+        "GameObjectListtargetPlayers": [],
+        "objectLayerMask": 3,
+        "maxCollisionCount": 200,
+        "ignoreLayerMask": 3,
+        "fieldOfViewAngle": 75,
+        "viewDistance": 20,
+        "offset": "(0,1.4,0)",
+        "targetOffset": "(0,1.4,0)",
+        "headOffset": "(0,1.4,0)",
+        "crouchOffset": "(0,0.9,0)",
+        "additionalCrouchOffset": "(0,0,0)",
+        "useTargetBone": false,
+        "targetBone": "Hips",
+        "disableAgentColliderLayer": false,
+        "returnedObject": "$PlayerToChase",
+        "returnedBool": false,
+        "visionTolerance": 0.05,
+        "visionToleranceEdgeFrames": 2,
+        "playersInvisible": false,
+        "dynamicFOV": true,
+        "debug": false
+      }
+    },
+    {
+      "id": 29,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 27,
+      "children_ids": [
+        30
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 30,
+      "friendly_name": "Is Hiding",
+      "type_name": "CompareIntegerParameter",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 29,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "parameter": "AbilityIndex",
+        "compareTo": 108,
+        "animatorGameObject": "$PlayerToChase"
+      }
+    },
+    {
+      "id": 31,
+      "friendly_name": "Player Flashlight On Me",
+      "type_name": "PlayerFlashlightOnMe",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 26,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayerMode": false,
+        "GameObjectListplayers": [],
+        "returnedPlayer": "$PlayerToChase",
+        "viewDistance": 15,
+        "layerMask": 5,
+        "fryOnly": false,
+        "fryCount": 0,
+        "returnPlayerFryOnly": false,
+        "startedFrying": false
+      }
+    },
+    {
+      "id": 32,
+      "friendly_name": "Player Touching Me",
+      "type_name": "PlayerTouchingMe",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 26,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayerMode": false,
+        "GameObjectListplayers": [],
+        "returnedPlayer": "$PlayerToChase",
+        "touchingDistance": 0.8
+      }
+    },
+    {
+      "id": 33,
+      "friendly_name": "Can Hear Player",
+      "type_name": "CanHearPlayer",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 26,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayerMode": false,
+        "GameObjectListplayers": [],
+        "objectLayerMask": 3,
+        "maxCollisionCount": 200,
+        "hearingRadius": 1.5,
+        "walkingHearingRadius": 0,
+        "crouchingHearingRadius": 0,
+        "audibilityDistance": 15,
+        "offset": "(0,1.4,0)",
+        "playerHeard": "$PlayerToChase",
+        "playerHeardPosition": "(0,0,0)",
+        "hearingTolerance": 0.1,
+        "hearingToleranceEdgeFrames": 1,
+        "isPatrolTask": false
+      }
+    },
+    {
+      "id": 34,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 23,
+      "children_ids": [
+        35
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 35,
+      "friendly_name": "Is Hiding",
+      "type_name": "CompareIntegerParameter",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 34,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "parameter": "AbilityIndex",
+        "compareTo": 108,
+        "animatorGameObject": "$PlayerToChase"
+      }
+    },
+    {
+      "id": 36,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 11,
+      "children_ids": [
+        37,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 37,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [
+        38
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 38,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 37,
+      "children_ids": [
+        39
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 39,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 38,
+      "children_ids": [
+        40,
+        42
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 40,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 39,
+      "children_ids": [
+        41
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 41,
+      "friendly_name": "Near Ritual Book",
+      "type_name": "AdvancedWithinDistance",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 40,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "usePhysics2D": false,
+        "targetTag": "RitualBook",
+        "objectLayerMask": 10,
+        "magnitude": 5,
+        "lineOfSight": true,
+        "ignoreLayerMask": 10,
+        "offset": "(0,0.8,0)",
+        "targetOffset": "(0,0.1,0)",
+        "returnedObject": "$RitualBook",
+        "hayMode": false,
+        "playersMode": false,
+        "GameObjectListplayers": [],
+        "eggMode": false,
+        "ritualBooksMode": true
+      }
+    },
+    {
+      "id": 42,
+      "friendly_name": "Clear Near Ritual Book",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 39,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetValue": false,
+        "targetVariable": "NearRitualBook",
+        "variable_name": "NearRitualBook"
+      }
+    },
+    {
+      "id": 43,
+      "friendly_name": "Perform Interruption",
+      "type_name": "PerformInterruption",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "interrupt_tasks": [
+          12,
+          21
+        ],
+        "interruptSuccess": false
+      }
+    },
+    {
+      "id": 44,
+      "friendly_name": "Set AbilityIndex",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 206,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 45,
+      "friendly_name": "SetLookAtEntity Event",
+      "type_name": "ExecuteLocalEventGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "EventName": "SetLookAtEntity",
+        "GameObject": "$RitualBook"
+      }
+    },
+    {
+      "id": 46,
+      "friendly_name": "Ghost Move Towards",
+      "type_name": "GhostMoveTowards",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "speed": 1.5,
+        "arriveDistance": 0.4,
+        "onlyYDistance": 0.6,
+        "lookAtTarget": true,
+        "rotationSpeed": 90,
+        "target": "$RitualBook",
+        "targetPosition": "(0,0,0)",
+        "slowWhenNotFacingTarget": false,
+        "returnFailureIfTargetBecomesNull": true,
+        "fleeing": false
+      }
+    },
+    {
+      "id": 47,
+      "friendly_name": "Get Ritual Book Metadata",
+      "type_name": "GetStringStateValue",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "entityObject": "$RitualBook",
+        "stateName": "Metadata",
+        "returnedStringValue": "$RitualBookMetadata"
+      }
+    },
+    {
+      "id": 48,
+      "friendly_name": "Can Carry Interactable",
+      "type_name": "CanCarryInteractable",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "interactable": "$RitualBook"
+      }
+    },
+    {
+      "id": 49,
+      "friendly_name": "Execute OnRitualBookCarried",
+      "type_name": "ExecuteLocalEventGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "EventName": "OnRitualBookCarried",
+        "GameObject": "$RitualBook"
+      }
+    },
+    {
+      "id": 50,
+      "friendly_name": "Bolt Detach",
+      "type_name": "BoltDetach",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetGameObject": "$RitualBook"
+      }
+    },
+    {
+      "id": 51,
+      "friendly_name": "Set CarryObjectName",
+      "type_name": "SetStringStateValue",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "stateName": "CarryObjectName",
+        "stringValue": "$RitualBookMetadata"
+      }
+    },
+    {
+      "id": 52,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 36,
+      "children_ids": [
+        53
+      ],
+      "parameters": {
+        "Instant": true,
+        "count": 0,
+        "repeatForever": true,
+        "endOnFailure": false,
+        "repeat_forever": true,
+        "end_on_failure": false
+      }
+    },
+    {
+      "id": 53,
+      "friendly_name": "Parallel Complete",
+      "type_name": "ParallelComplete",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 52,
+      "children_ids": [
+        54
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 54,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 53,
+      "children_ids": [
+        55,
+        56,
+        64
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 55,
+      "friendly_name": "Reset AbilityIndex",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 54,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 0,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 56,
+      "friendly_name": "Parallel Complete",
+      "type_name": "ParallelComplete",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 54,
+      "children_ids": [
+        57,
+        62
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 57,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 56,
+      "children_ids": [
+        58
+      ],
+      "parameters": {
+        "Instant": true,
+        "count": 0,
+        "repeatForever": true,
+        "endOnFailure": false,
+        "repeat_forever": true,
+        "end_on_failure": false
+      }
+    },
+    {
+      "id": 58,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 57,
+      "children_ids": [
+        59,
+        60,
+        61
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 59,
+      "friendly_name": "Ghost Get Wander Destination",
+      "type_name": "GhostGetWanderDestination",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 58,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "GameObjectListcolliderGameObjects": [],
+        "minWanderDistance": 5,
+        "maxWanderDistance": 10,
+        "wanderRate": 5,
+        "targetRetries": 1,
+        "returnedDestination": "(0,0,0)",
+        "constrainToGraph": true
+      }
+    },
+    {
+      "id": 60,
+      "friendly_name": "Ghost Move Towards",
+      "type_name": "GhostMoveTowards",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 58,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "speed": 1,
+        "arriveDistance": 0.2,
+        "onlyYDistance": 0.4,
+        "lookAtTarget": true,
+        "rotationSpeed": 90,
+        "targetPosition": "(0,0,0)",
+        "slowWhenNotFacingTarget": true,
+        "returnFailureIfTargetBecomesNull": false,
+        "fleeing": false
+      }
+    },
+    {
+      "id": 61,
+      "friendly_name": "Idle",
+      "type_name": "Wait",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 58,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "Disabled": true,
+        "waitTime": 0,
+        "randomWait": true,
+        "randomWaitMin": 3,
+        "randomWaitMax": 8
+      }
+    },
+    {
+      "id": 62,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 56,
+      "children_ids": [
+        63
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 63,
+      "friendly_name": "Near Player",
+      "type_name": "AdvancedWithinDistance",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 62,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "usePhysics2D": false,
+        "targetTag": "",
+        "objectLayerMask": 10,
+        "magnitude": 5,
+        "lineOfSight": true,
+        "ignoreLayerMask": 10,
+        "offset": "(0,0.3,0)",
+        "targetOffset": "(0,0.3,0)",
+        "returnedObject": "$PlayerWithinDistance",
+        "hayMode": false,
+        "playersMode": true,
+        "GameObjectListplayers": [],
+        "eggMode": false,
+        "ritualBooksMode": false
+      }
+    },
+    {
+      "id": 64,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 54,
+      "children_ids": [
+        65
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 65,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 64,
+      "children_ids": [
+        66,
+        67,
+        68,
+        74
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 66,
+      "friendly_name": "Set Is Fleeing",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 65,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetValue": true,
+        "targetVariable": "IsFleeing",
+        "variable_name": "IsFleeing"
+      }
+    },
+    {
+      "id": 67,
+      "friendly_name": "Set AbilityIndex",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 65,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 203,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 68,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 65,
+      "children_ids": [
+        69
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 69,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 68,
+      "children_ids": [
+        70,
+        71,
+        72
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 70,
+      "friendly_name": "Ghost Get Flee Destination",
+      "type_name": "GhostGetFleeDestination",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 69,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "lookAheadDistance": 2.5,
+        "arriveDistance": 0.2,
+        "player": "$PlayerWithinDistance",
+        "playerDisconnected": false,
+        "targetRetries": 1,
+        "returnedDestination": "(0,0,0)"
+      }
+    },
+    {
+      "id": 71,
+      "friendly_name": "Ghost Move Towards",
+      "type_name": "GhostMoveTowards",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 69,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "speed": 0,
+        "arriveDistance": 0.2,
+        "onlyYDistance": 0.4,
+        "lookAtTarget": true,
+        "rotationSpeed": 360,
+        "targetPosition": "(0,0,0)",
+        "slowWhenNotFacingTarget": false,
+        "returnFailureIfTargetBecomesNull": false,
+        "fleeing": true
+      }
+    },
+    {
+      "id": 72,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 69,
+      "children_ids": [
+        73
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 73,
+      "friendly_name": "Near Player",
+      "type_name": "AdvancedWithinDistance",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 72,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "usePhysics2D": false,
+        "targetTag": "",
+        "objectLayerMask": 10,
+        "magnitude": 5,
+        "lineOfSight": true,
+        "ignoreLayerMask": 10,
+        "offset": "(0,0.3,0)",
+        "targetOffset": "(0,0.3,0)",
+        "returnedObject": "$PlayerWithinDistance",
+        "hayMode": false,
+        "playersMode": true,
+        "GameObjectListplayers": [],
+        "eggMode": false,
+        "ritualBooksMode": false
+      }
+    },
+    {
+      "id": 74,
+      "friendly_name": "Set Is Not Fleeing",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 65,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetValue": false,
+        "targetVariable": "IsFleeing",
+        "variable_name": "IsFleeing"
+      }
+    },
+    {
+      "id": 75,
+      "friendly_name": "Set Is Not Fleeing",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetValue": false,
+        "targetVariable": "IsFleeing",
+        "variable_name": "IsFleeing"
+      }
+    },
+    {
+      "id": 76,
+      "friendly_name": "Set AbilityIndex",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 202,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 77,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [
+        78
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 78,
+      "friendly_name": "Until Failure",
+      "type_name": "UntilFailure",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 77,
+      "children_ids": [
+        79
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 79,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 78,
+      "children_ids": [
+        80,
+        81,
+        162
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 80,
+      "friendly_name": "SetLookAtEntity Event",
+      "type_name": "ExecuteLocalEventGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 79,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "EventName": "SetLookAtEntity",
+        "GameObject": "$PlayerToChase"
+      }
+    },
+    {
+      "id": 81,
+      "friendly_name": "Parallel Complete",
+      "type_name": "ParallelComplete",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 79,
+      "children_ids": [
+        82,
+        87,
+        104,
+        144
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 82,
+      "friendly_name": "Until Failure",
+      "type_name": "UntilFailure",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 81,
+      "children_ids": [
+        83
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 83,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 82,
+      "children_ids": [
+        84
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 84,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 83,
+      "children_ids": [
+        85,
+        86
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 85,
+      "friendly_name": "Near Ritual Book",
+      "type_name": "AdvancedWithinDistance",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 84,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "usePhysics2D": false,
+        "targetTag": "RitualBook",
+        "objectLayerMask": 10,
+        "magnitude": 5,
+        "lineOfSight": true,
+        "ignoreLayerMask": 10,
+        "offset": "(0,0.8,0)",
+        "targetOffset": "(0,0.1,0)",
+        "returnedObject": "$RitualBook",
+        "hayMode": false,
+        "playersMode": false,
+        "eggMode": false,
+        "ritualBooksMode": true
+      }
+    },
+    {
+      "id": 86,
+      "friendly_name": "Set Near Ritual Book ",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 84,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetValue": true,
+        "targetVariable": "NearRitualBook",
+        "variable_name": "NearRitualBook"
+      }
+    },
+    {
+      "id": 87,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 81,
+      "children_ids": [
+        88
+      ],
+      "parameters": {
+        "Instant": true,
+        "count": 1,
+        "repeatForever": true,
+        "endOnFailure": false,
+        "repeat_forever": true,
+        "end_on_failure": false
+      }
+    },
+    {
+      "id": 88,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 87,
+      "children_ids": [
+        89,
+        101,
+        102,
+        103
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 89,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 88,
+      "children_ids": [
+        90
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 90,
+      "friendly_name": "Selector",
+      "type_name": "Selector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 89,
+      "children_ids": [
+        91,
+        95,
+        96,
+        100
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 91,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 90,
+      "children_ids": [
+        92,
+        93
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 92,
+      "friendly_name": "Can See Other Survival Player",
+      "type_name": "CanSeeOtherSurvivalPlayer",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 91,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "chasedPlayer": "$PlayerToChase",
+        "GameObjectListtargetObjects": [],
+        "objectLayerMask": 3,
+        "maxCollisionCount": 200,
+        "ignoreLayerMask": 3,
+        "fieldOfViewAngle": 75,
+        "viewDistance": 20,
+        "offset": "(0,1.4,0)",
+        "targetOffset": "(0,1.4,0)",
+        "crouchOffset": "(0,0.9,0)",
+        "additionalCrouchOffset": "(0,0,0)",
+        "headOffset": "(0,1.4,0)",
+        "angleOffset2D": 0,
+        "useTargetBone": false,
+        "targetBone": "Hips",
+        "disableAgentColliderLayer": false,
+        "otherPlayerToChase": "$OtherPlayerToChase",
+        "visionTolerance": 0.05,
+        "visionToleranceEdgeFrames": 2,
+        "playersInvisible": false,
+        "dynamicFOV": true,
+        "distanceTolerance": 0.5
+      }
+    },
+    {
+      "id": 93,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 91,
+      "children_ids": [
+        94
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 94,
+      "friendly_name": "Is Hiding",
+      "type_name": "CompareIntegerParameter",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 93,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "parameter": "AbilityIndex",
+        "compareTo": 108,
+        "animatorGameObject": "$OtherPlayerToChase"
+      }
+    },
+    {
+      "id": 95,
+      "friendly_name": "Other Player Flashlight On Me",
+      "type_name": "OtherPlayerFlashlightOnMe",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 90,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "chasedPlayer": "$PlayerToChase",
+        "GameObjectListplayers": [],
+        "otherPlayerToChase": "$OtherPlayerToChase",
+        "viewDistance": 15,
+        "layerMask": 5,
+        "fryOnly": false,
+        "distanceTolerance": 0.5
+      }
+    },
+    {
+      "id": 96,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 90,
+      "children_ids": [
+        97,
+        98
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 97,
+      "friendly_name": "Can Hear Other Player",
+      "type_name": "CanHearOtherPlayer",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 96,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "chasedPlayer": "$PlayerToChase",
+        "GameObjectListplayers": [],
+        "objectLayerMask": 3,
+        "maxCollisionCount": 200,
+        "hearingRadius": 1,
+        "walkingHearingRadius": 0,
+        "crouchingHearingRadius": 0,
+        "audibilityDistance": 15,
+        "offset": "(0,1.4,0)",
+        "otherPlayerToChase": "$OtherPlayerToChase",
+        "hearingTolerance": 0.2,
+        "hearingToleranceEdgeFrames": 1
+      }
+    },
+    {
+      "id": 98,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 96,
+      "children_ids": [
+        99
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 99,
+      "friendly_name": "Can See Player",
+      "type_name": "CanSeePlayer",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 98,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayer": "$PlayerToChase",
+        "targetPlayerMode": false,
+        "GameObjectListtargetPlayers": [],
+        "objectLayerMask": 3,
+        "maxCollisionCount": 200,
+        "ignoreLayerMask": 3,
+        "fieldOfViewAngle": 75,
+        "viewDistance": 20,
+        "offset": "(0,1.4,0)",
+        "targetOffset": "(0,1.4,0)",
+        "headOffset": "(0,1.4,0)",
+        "crouchOffset": "(0,0.9,0)",
+        "additionalCrouchOffset": "(0,0,0)",
+        "useTargetBone": false,
+        "targetBone": "Hips",
+        "disableAgentColliderLayer": false,
+        "returnedBool": false,
+        "visionTolerance": 0.05,
+        "visionToleranceEdgeFrames": 2,
+        "playersInvisible": false,
+        "dynamicFOV": true,
+        "debug": false
+      }
+    },
+    {
+      "id": 100,
+      "friendly_name": "Other Player Touching Me",
+      "type_name": "OtherPlayerTouchingMe",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 90,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "chasedPlayer": "$PlayerToChase",
+        "GameObjectListplayers": [],
+        "otherPlayerToChase": "$OtherPlayerToChase",
+        "touchingDistance": 0.8
+      }
+    },
+    {
+      "id": 101,
+      "friendly_name": "Chase Other Player",
+      "type_name": "SetSharedGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 88,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetValue": "$OtherPlayerToChase",
+        "targetVariable": "$PlayerToChase",
+        "valueCanBeNull": false
+      }
+    },
+    {
+      "id": 102,
+      "friendly_name": "SetLookAtEntity Event",
+      "type_name": "ExecuteLocalEventGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 88,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "EventName": "SetLookAtEntity",
+        "GameObject": "$PlayerToChase"
+      }
+    },
+    {
+      "id": 103,
+      "friendly_name": "OnGhostPursue Event",
+      "type_name": "ExecuteLocalEventGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 88,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "EventName": "OnGhostPursue",
+        "GameObject": "$PlayerToChase"
+      }
+    },
+    {
+      "id": 104,
+      "friendly_name": "Parallel",
+      "type_name": "Parallel",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 81,
+      "children_ids": [
+        105
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 105,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 104,
+      "children_ids": [
+        106,
+        142
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 1
+      }
+    },
+    {
+      "id": 106,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 105,
+      "children_ids": [
+        107
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 107,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 106,
+      "children_ids": [
+        108,
+        109,
+        110,
+        114
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 108,
+      "friendly_name": "Set AbilityIndex",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 107,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 202,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 109,
+      "friendly_name": "OnGhostPursue Event",
+      "type_name": "ExecuteLocalEventGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 107,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "EventName": "OnGhostPursue",
+        "GameObject": "$PlayerToChase"
+      }
+    },
+    {
+      "id": 110,
+      "friendly_name": "Parallel Selector",
+      "type_name": "ParallelSelector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 107,
+      "children_ids": [
+        111,
+        112
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 111,
+      "friendly_name": "Ghost Pursue",
+      "type_name": "GhostPursue",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 110,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "speed": 0,
+        "arriveDistance": 1,
+        "lookAtTarget": true,
+        "rotationSpeed": 720,
+        "target": "$PlayerToChase",
+        "targetPosition": "(0,0,0)",
+        "playerFryingMe": "$PlayerFryingMe",
+        "dodgeIntervalMin": 1,
+        "dodgeIntervalMax": 1.5,
+        "delayToDodgeMin": 0.25,
+        "delayToDodgeMax": 0.75,
+        "FloatListdodgeSpeeds": [
+          1.25,
+          1.4,
+          1.55,
+          1.7,
+          1.85,
+          2,
+          2.15,
+          2.3,
+          2.5,
+          2.5
+        ],
+        "rvoRadius": 0.75,
+        "rvoSpeed": 0.75,
+        "dodgeChance": 50,
+        "swayDistance": 0.25,
+        "swaySpeed": 1.5,
+        "targetOffset": "(0,0.8,0)",
+        "purgatoryGhost": false
+      }
+    },
+    {
+      "id": 112,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 110,
+      "children_ids": [
+        113
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 113,
+      "friendly_name": "Player Touching Me",
+      "type_name": "PlayerTouchingMe",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 112,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayer": "$PlayerToChase",
+        "targetPlayerMode": false,
+        "GameObjectListplayers": [],
+        "touchingDistance": 0.2
+      }
+    },
+    {
+      "id": 114,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 107,
+      "children_ids": [
+        115,
+        118
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 115,
+      "friendly_name": "Selector",
+      "type_name": "Selector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 114,
+      "children_ids": [
+        116,
+        117
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 116,
+      "friendly_name": "Is Being Focused",
+      "type_name": "CompareIntegerParameter",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 115,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "parameter": "AbilityIntData",
+        "compareTo": 666
+      }
+    },
+    {
+      "id": 117,
+      "friendly_name": "Attack",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 115,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 201,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 118,
+      "friendly_name": "Parallel",
+      "type_name": "Parallel",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 114,
+      "children_ids": [
+        119,
+        121,
+        127
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 119,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 118,
+      "children_ids": [
+        120
+      ],
+      "parameters": {
+        "Instant": true,
+        "count": 0,
+        "repeatForever": true,
+        "endOnFailure": true,
+        "repeat_forever": true,
+        "end_on_failure": true
+      }
+    },
+    {
+      "id": 120,
+      "friendly_name": "Rotate Towards",
+      "type_name": "RotateTowards",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 119,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "usePhysics2D": false,
+        "rotationEpsilon": 0.5,
+        "maxLookAtRotationDelta": 5,
+        "onlyY": true,
+        "target": "$PlayerToChase",
+        "targetRotation": "(0,0,0)"
+      }
+    },
+    {
+      "id": 121,
+      "friendly_name": "Until Failure",
+      "type_name": "UntilFailure",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 118,
+      "children_ids": [
+        122
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 122,
+      "friendly_name": "Parallel Complete",
+      "type_name": "ParallelComplete",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 121,
+      "children_ids": [
+        123,
+        125
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 123,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 122,
+      "children_ids": [
+        124
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 124,
+      "friendly_name": "Continue Attacking?",
+      "type_name": "FloatComparison",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 123,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "operation": "LessThanOrEqualTo",
+        "float1": 0,
+        "float2": 1.5
+      }
+    },
+    {
+      "id": 125,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 122,
+      "children_ids": [
+        126
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 126,
+      "friendly_name": "Wait",
+      "type_name": "Wait",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 125,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "waitTime": 0.8,
+        "randomWait": false,
+        "randomWaitMin": 1,
+        "randomWaitMax": 1
+      }
+    },
+    {
+      "id": 127,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 118,
+      "children_ids": [
+        128
+      ],
+      "parameters": {
+        "Instant": true,
+        "count": 0,
+        "repeatForever": true,
+        "endOnFailure": true,
+        "repeat_forever": true,
+        "end_on_failure": true
+      }
+    },
+    {
+      "id": 128,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 127,
+      "children_ids": [
+        129,
+        130,
+        131
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 129,
+      "friendly_name": "Distance To Player",
+      "type_name": "DistanceToGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 128,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "target": "$PlayerToChase",
+        "storeResult": 0,
+        "targetOffset": "(0,0.8,0)"
+      }
+    },
+    {
+      "id": 130,
+      "friendly_name": "Get AbilityIndex",
+      "type_name": "GetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 128,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "storeValue": 0
+      }
+    },
+    {
+      "id": 131,
+      "friendly_name": "Selector",
+      "type_name": "Selector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 128,
+      "children_ids": [
+        132,
+        135,
+        138
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 132,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 131,
+      "children_ids": [
+        133,
+        134
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 133,
+      "friendly_name": "Out of range?",
+      "type_name": "FloatComparison",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 132,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "operation": "GreaterThan",
+        "float1": 0,
+        "float2": 1.5
+      }
+    },
+    {
+      "id": 134,
+      "friendly_name": "Set AbilityIndex",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 132,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 0,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 135,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 131,
+      "children_ids": [
+        136,
+        137
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 136,
+      "friendly_name": "Is Being Focused",
+      "type_name": "CompareIntegerParameter",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 135,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "parameter": "AbilityIntData",
+        "compareTo": 666
+      }
+    },
+    {
+      "id": 137,
+      "friendly_name": "Set AbilityIndex",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 135,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 202,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 138,
+      "friendly_name": "Return Success",
+      "type_name": "ReturnSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 131,
+      "children_ids": [
+        139
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 139,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 138,
+      "children_ids": [
+        140,
+        141
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 140,
+      "friendly_name": "Is AbilityIndex 202?",
+      "type_name": "CompareSharedInt",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 139,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "variable": "AbilityIndex",
+        "compareTo": 202,
+        "variable_name": "AbilityIndex"
+      }
+    },
+    {
+      "id": 141,
+      "friendly_name": "Attack",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 139,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 201,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 142,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 105,
+      "children_ids": [
+        143
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 143,
+      "friendly_name": "Is Player Being Knocked Out",
+      "type_name": "IsPlayerBeingKnockedOut",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 142,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "Player": "$PlayerToChase"
+      }
+    },
+    {
+      "id": 144,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 81,
+      "children_ids": [
+        145
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 145,
+      "friendly_name": "Parallel Complete",
+      "type_name": "ParallelComplete",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 144,
+      "children_ids": [
+        146,
+        148,
+        150,
+        152,
+        155,
+        158,
+        161
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 146,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 145,
+      "children_ids": [
+        147
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 147,
+      "friendly_name": "Is Player Being Knocked Out",
+      "type_name": "IsPlayerBeingKnockedOut",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 146,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "Player": "$PlayerToChase"
+      }
+    },
+    {
+      "id": 148,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 145,
+      "children_ids": [
+        149
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 149,
+      "friendly_name": "Is Hiding",
+      "type_name": "CompareIntegerParameter",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 148,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "parameter": "AbilityIndex",
+        "compareTo": 108,
+        "animatorGameObject": "$PlayerToChase"
+      }
+    },
+    {
+      "id": 150,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 145,
+      "children_ids": [
+        151
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 151,
+      "friendly_name": "Is Crawling",
+      "type_name": "IsAbilityActive",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 150,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "TargetGameObject": "$PlayerToChase",
+        "AbilityType": "Crawl",
+        "PriorityIndex": -1
+      }
+    },
+    {
+      "id": 152,
+      "friendly_name": "Until Failure",
+      "type_name": "UntilFailure",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 145,
+      "children_ids": [
+        153
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 153,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 152,
+      "children_ids": [
+        154
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 154,
+      "friendly_name": "Can See Player",
+      "type_name": "CanSeePlayer",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 153,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayer": "$PlayerToChase",
+        "targetPlayerMode": true,
+        "GameObjectListtargetPlayers": [],
+        "objectLayerMask": 3,
+        "maxCollisionCount": 200,
+        "ignoreLayerMask": 3,
+        "fieldOfViewAngle": 75,
+        "viewDistance": 20,
+        "offset": "(0,1.4,0)",
+        "targetOffset": "(0,1.4,0)",
+        "headOffset": "(0,1.4,0)",
+        "crouchOffset": "(0,0.9,0)",
+        "additionalCrouchOffset": "(0,0,0)",
+        "useTargetBone": false,
+        "targetBone": "Hips",
+        "disableAgentColliderLayer": false,
+        "returnedBool": false,
+        "visionTolerance": 0.05,
+        "visionToleranceEdgeFrames": 2,
+        "playersInvisible": false,
+        "dynamicFOV": true,
+        "debug": false
+      }
+    },
+    {
+      "id": 155,
+      "friendly_name": "Until Failure",
+      "type_name": "UntilFailure",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 145,
+      "children_ids": [
+        156
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 156,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 155,
+      "children_ids": [
+        157
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 157,
+      "friendly_name": "Can Hear Player",
+      "type_name": "CanHearPlayer",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 156,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayer": "$PlayerToChase",
+        "targetPlayerMode": true,
+        "GameObjectListplayers": [],
+        "objectLayerMask": 3,
+        "maxCollisionCount": 200,
+        "hearingRadius": 1,
+        "walkingHearingRadius": 0,
+        "crouchingHearingRadius": 0,
+        "audibilityDistance": 15,
+        "offset": "(0,1.4,0)",
+        "playerHeard": "$PlayerHeard",
+        "playerHeardPosition": "(0,0,0)",
+        "hearingTolerance": 0.1,
+        "hearingToleranceEdgeFrames": 1,
+        "isPatrolTask": false
+      }
+    },
+    {
+      "id": 158,
+      "friendly_name": "Until Failure",
+      "type_name": "UntilFailure",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 145,
+      "children_ids": [
+        159
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 159,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 158,
+      "children_ids": [
+        160
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 160,
+      "friendly_name": "Player Flashlight On Me",
+      "type_name": "PlayerFlashlightOnMe",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 159,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayer": "$PlayerToChase",
+        "targetPlayerMode": true,
+        "GameObjectListplayers": [],
+        "viewDistance": 15,
+        "layerMask": 5,
+        "fryOnly": false,
+        "fryCount": 0,
+        "returnPlayerFryOnly": false,
+        "startedFrying": false
+      }
+    },
+    {
+      "id": 161,
+      "friendly_name": "Wait 3 secs",
+      "type_name": "Wait",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 145,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "waitTime": 3,
+        "randomWait": false,
+        "randomWaitMin": 1,
+        "randomWaitMax": 1
+      }
+    },
+    {
+      "id": 162,
+      "friendly_name": "Return Failure",
+      "type_name": "ReturnFailure",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 79,
+      "children_ids": [
+        163
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 163,
+      "friendly_name": "Reset Player To Chase",
+      "type_name": "SetSharedGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 162,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetVariable": "$PlayerToChase",
+        "valueCanBeNull": true
+      }
+    },
+    {
+      "id": 164,
+      "friendly_name": "Reset AbilityIndex",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 0,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 165,
+      "friendly_name": "Reset AbilityIntData",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIntData",
+        "intValue": 0,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 166,
+      "friendly_name": "OnGhostPursue Event",
+      "type_name": "ExecuteLocalEventGameObject",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 3,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "EventName": "OnGhostPursue"
+      }
+    },
+    {
+      "id": 167,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [
+        168
+      ],
+      "parameters": {
+        "Instant": true,
+        "count": 1,
+        "repeatForever": true,
+        "endOnFailure": false,
+        "repeat_forever": true,
+        "end_on_failure": false
+      }
+    },
+    {
+      "id": 168,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 167,
+      "children_ids": [
+        169,
+        170,
+        182
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 169,
+      "friendly_name": "Reset Started Focus",
+      "type_name": "SetSharedBool",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 168,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetValue": false,
+        "targetVariable": "StartedFocus",
+        "variable_name": "StartedFocus"
+      }
+    },
+    {
+      "id": 170,
+      "friendly_name": "Parallel Complete",
+      "type_name": "ParallelComplete",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 168,
+      "children_ids": [
+        171,
+        180
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 171,
+      "friendly_name": "Until Failure",
+      "type_name": "UntilFailure",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 170,
+      "children_ids": [
+        172
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 172,
+      "friendly_name": "Parallel Complete",
+      "type_name": "ParallelComplete",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 171,
+      "children_ids": [
+        173,
+        175
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 173,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 172,
+      "children_ids": [
+        174
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 174,
+      "friendly_name": "Player Focusing Me",
+      "type_name": "PlayerFlashlightOnMe",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 173,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayerMode": false,
+        "GameObjectListplayers": [],
+        "viewDistance": 6,
+        "layerMask": 5,
+        "fryOnly": true,
+        "fryCount": 0,
+        "returnPlayerFryOnly": false,
+        "startedFrying": false
+      }
+    },
+    {
+      "id": 175,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 172,
+      "children_ids": [
+        176,
+        178
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 176,
+      "friendly_name": "Until Success",
+      "type_name": "UntilSuccess",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 175,
+      "children_ids": [
+        177
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 177,
+      "friendly_name": "Started Focus",
+      "type_name": "CompareSharedBool",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 176,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "variable": "StartedFocus",
+        "compareTo": true,
+        "variable_name": "StartedFocus"
+      }
+    },
+    {
+      "id": 178,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 175,
+      "children_ids": [
+        179
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 179,
+      "friendly_name": "Wait",
+      "type_name": "Wait",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 178,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "waitTime": 0.75,
+        "randomWait": false,
+        "randomWaitMin": 1,
+        "randomWaitMax": 1
+      }
+    },
+    {
+      "id": 180,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 170,
+      "children_ids": [
+        181
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 181,
+      "friendly_name": "Players Focusing Me Wait",
+      "type_name": "PlayersFocusingMeWait",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 180,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "waitTime": 1.5,
+        "numPlayersFocusingMe": 0,
+        "GameObjectListplayers": [],
+        "maxPercentageBonus": 50
+      }
+    },
+    {
+      "id": 182,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 168,
+      "children_ids": [
+        183,
+        184,
+        185,
+        186
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 183,
+      "friendly_name": "Death",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 182,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIndex",
+        "intValue": 204,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 184,
+      "friendly_name": "Spawn Egg",
+      "type_name": "ExecuteEvent",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 182,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "EventName": "OnSpawnRitualBook"
+      }
+    },
+    {
+      "id": 185,
+      "friendly_name": "Reset AbilityIntData",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 182,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIntData",
+        "intValue": 0,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 186,
+      "friendly_name": "Stop Behavior Tree",
+      "type_name": "StopBehaviorTree",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 182,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "group": 0,
+        "pauseBehavior": false
+      }
+    },
+    {
+      "id": 187,
+      "friendly_name": "Repeater",
+      "type_name": "Repeater",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 1,
+      "children_ids": [
+        188
+      ],
+      "parameters": {
+        "Instant": true,
+        "count": 1,
+        "repeatForever": true,
+        "endOnFailure": false,
+        "repeat_forever": true,
+        "end_on_failure": false
+      }
+    },
+    {
+      "id": 188,
+      "friendly_name": "Selector",
+      "type_name": "Selector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 187,
+      "children_ids": [
+        189,
+        195
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 189,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 188,
+      "children_ids": [
+        190,
+        191,
+        193,
+        194
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 190,
+      "friendly_name": "Player Focusing Me",
+      "type_name": "PlayerFlashlightOnMe",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 189,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "targetPlayerMode": false,
+        "GameObjectListplayers": [],
+        "returnedPlayer": "$PlayerFryingMe",
+        "viewDistance": 6,
+        "layerMask": 5,
+        "fryOnly": true,
+        "fryCount": 0,
+        "returnPlayerFryOnly": true,
+        "startedFrying": false
+      }
+    },
+    {
+      "id": 191,
+      "friendly_name": "Inverter",
+      "type_name": "Inverter",
+      "category": "Decorator",
+      "is_placeholder": false,
+      "parent_id": 189,
+      "children_ids": [
+        192
+      ],
+      "parameters": {
+        "Instant": true
+      }
+    },
+    {
+      "id": 192,
+      "friendly_name": "Is Dead",
+      "type_name": "CompareIntegerParameter",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 191,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "parameter": "AbilityIndex",
+        "compareTo": 204
+      }
+    },
+    {
+      "id": 193,
+      "friendly_name": "Hit",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 189,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIntData",
+        "intValue": 666,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 194,
+      "friendly_name": "Set Speed To Low",
+      "type_name": "SetSpeed",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 189,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "speed": 0.1,
+        "FloatListm_Speeds": [],
+        "CheckForRepellentPerkNearby": false,
+        "ReturnedSpeed": 0
+      }
+    },
+    {
+      "id": 195,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 188,
+      "children_ids": [
+        196,
+        197
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 196,
+      "friendly_name": "Not Hit",
+      "type_name": "SetIntegerParameter",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 195,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "paramaterName": "AbilityIntData",
+        "intValue": 0,
+        "setOnce": false
+      }
+    },
+    {
+      "id": 197,
+      "friendly_name": "Selector",
+      "type_name": "Selector",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 195,
+      "children_ids": [
+        198,
+        201
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 198,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 197,
+      "children_ids": [
+        199,
+        200
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 199,
+      "friendly_name": "Is Fleeing",
+      "type_name": "CompareSharedBool",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 198,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "variable": "IsFleeing",
+        "compareTo": true,
+        "variable_name": "IsFleeing"
+      }
+    },
+    {
+      "id": 200,
+      "friendly_name": "Set Speed To Flee",
+      "type_name": "SetSpeed",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 198,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "speed": 3,
+        "FloatListm_Speeds": [],
+        "CheckForRepellentPerkNearby": true,
+        "ReturnedSpeed": 0
+      }
+    },
+    {
+      "id": 201,
+      "friendly_name": "Sequence",
+      "type_name": "Sequence",
+      "category": "Composite",
+      "is_placeholder": false,
+      "parent_id": 197,
+      "children_ids": [
+        202,
+        203
+      ],
+      "parameters": {
+        "Instant": true,
+        "abort_type": 0
+      }
+    },
+    {
+      "id": 202,
+      "friendly_name": "Is Not Fleeing",
+      "type_name": "CompareSharedBool",
+      "category": "Condition",
+      "is_placeholder": false,
+      "parent_id": 201,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "variable": "IsFleeing",
+        "compareTo": false,
+        "variable_name": "IsFleeing"
+      }
+    },
+    {
+      "id": 203,
+      "friendly_name": "Set Speed To Pursue",
+      "type_name": "SetSpeed",
+      "category": "Action",
+      "is_placeholder": false,
+      "parent_id": 201,
+      "children_ids": [],
+      "parameters": {
+        "Instant": true,
+        "speed": 1,
+        "FloatListm_Speeds": [
+          1.5,
+          1.5,
+          1.6,
+          1.6,
+          1.7,
+          1.8,
+          1.9,
+          2,
+          2.1,
+          2.2,
+          2.2
+        ],
+        "CheckForRepellentPerkNearby": true,
+        "ReturnedSpeed": 0
+      }
+    }
+  ],
+  "blackboard": {
+    "WanderDestination": {
+      "type_name": "vector3",
+      "value": "(0, 0, 0)",
+      "is_shared": false,
+      "description": "T\u1ecda \u0111\u1ed9 \u0111i\u1ec3m \u0111\u1ebfn tu\u1ea7n tra ng\u1eabu nhi\u00ean"
+    },
+    "WanderColliders": {
+      "type_name": "array",
+      "value": [],
+      "is_shared": false,
+      "description": "Danh s\u00e1ch v\u00f9ng tu\u1ea7n tra h\u1ee3p l\u1ec7"
+    },
+    "Players": {
+      "type_name": "array",
+      "value": [],
+      "is_shared": true,
+      "description": "Danh s\u00e1ch t\u1ea5t c\u1ea3 ng\u01b0\u1eddi ch\u01a1i trong ph\u00f2ng"
+    },
+    "PlayerToChase": {
+      "type_name": "object",
+      "value": null,
+      "is_shared": true,
+      "description": "Ng\u01b0\u1eddi ch\u01a1i m\u1ee5c ti\u00eau \u0111ang b\u1ecb r\u01b0\u1ee3t \u0111u\u1ed5i"
+    },
+    "OtherPlayerToChase": {
+      "type_name": "object",
+      "value": null,
+      "is_shared": false,
+      "description": "Ng\u01b0\u1eddi ch\u01a1i ph\u1ee5 ph\u00e1t hi\u1ec7n \u0111\u01b0\u1ee3c \u0111\u1ec3 \u0111\u1ed5i m\u1ee5c ti\u00eau"
+    },
+    "PlayerWithinDistance": {
+      "type_name": "object",
+      "value": null,
+      "is_shared": false,
+      "description": "Ng\u01b0\u1eddi ch\u01a1i \u1edf qu\u00e1 g\u1ea7n cu\u1ed1n s\u00e1ch c\u00fang t\u1ebf"
+    },
+    "PlayerHeard": {
+      "type_name": "object",
+      "value": null,
+      "is_shared": false,
+      "description": "Ng\u01b0\u1eddi ch\u01a1i b\u1ecb ph\u00e1t hi\u1ec7n ti\u1ebfng b\u01b0\u1edbc ch\u00e2n"
+    },
+    "PlayerFryingMe": {
+      "type_name": "object",
+      "value": null,
+      "is_shared": true,
+      "description": "Ng\u01b0\u1eddi ch\u01a1i \u0111ang r\u1ecdi \u0111\u00e8n pin UV thi\u00eau \u0111\u1ed1t Ghost"
+    },
+    "SeekPosition": {
+      "type_name": "vector3",
+      "value": "(0, 0, 0)",
+      "is_shared": false,
+      "description": "T\u1ecda \u0111\u1ed9 d\u00f2 t\u00ecm \u0111\u01b0\u1eddng \u0111i"
+    },
+    "FleeDestination": {
+      "type_name": "vector3",
+      "value": "(0, 0, 0)",
+      "is_shared": false,
+      "description": "T\u1ecda \u0111\u1ed9 ch\u1ea1y tr\u1ed1n khi b\u1ecb ng\u01b0\u1eddi ch\u01a1i \u00e1p s\u00e1t mang s\u00e1ch"
+    },
+    "TargetOffset": {
+      "type_name": "vector3",
+      "value": "(0, 0.8, 0)",
+      "is_shared": false,
+      "description": "\u0110\u1ed9 l\u1ec7ch t\u00e2m ng\u1ef1c ng\u01b0\u1eddi ch\u01a1i"
+    },
+    "StartedFocus": {
+      "type_name": "bool",
+      "value": false,
+      "is_shared": true,
+      "description": "True n\u1ebfu \u0111\u00e8n pin UV \u0111\u00e3 r\u1ecdi tr\u00fang b\u1eaft \u0111\u1ea7u \u0111\u1ebfm th\u1eddi gian"
+    },
+    "NumPlayersFocusingMe": {
+      "type_name": "int",
+      "value": 0,
+      "is_shared": true,
+      "description": "S\u1ed1 l\u01b0\u1ee3ng ng\u01b0\u1eddi ch\u01a1i \u0111ang r\u1ecdi UV v\u00e0o Ghost"
+    },
+    "IsFleeing": {
+      "type_name": "bool",
+      "value": false,
+      "is_shared": true,
+      "description": "True khi Ghost \u0111ang tha s\u00e1ch b\u1ecf ch\u1ea1y"
+    },
+    "NearRitualBook": {
+      "type_name": "bool",
+      "value": false,
+      "is_shared": true,
+      "description": "True khi ph\u00e1t hi\u1ec7n s\u00e1ch c\u00fang t\u1ebf b\u1ecb di d\u1eddi"
+    },
+    "DistanceToPursuedPlayer": {
+      "type_name": "float",
+      "value": 0.0,
+      "is_shared": false,
+      "description": "Kho\u1ea3ng c\u00e1ch \u0111o \u0111\u1ea1c th\u1ef1c t\u1ebf t\u1edbi m\u1ee5c ti\u00eau"
+    },
+    "AbilityIndex": {
+      "type_name": "int",
+      "value": 0,
+      "is_shared": true,
+      "description": "K\u00eanh tr\u1ea1ng th\u00e1i ch\u00ednh: 0=Idle/Patrol, 201=Attack, 202=Pursue, 203=Flee, 204=Death/Banished, 206=PickBook"
+    },
+    "AbilityIntData": {
+      "type_name": "int",
+      "value": 0,
+      "is_shared": true,
+      "description": "K\u00eanh hi\u1ec7u \u1ee9ng ph\u1ee5: 666=Hit by UV Flashlight (Frying / Stagger)"
+    },
+    "Speed": {
+      "type_name": "float",
+      "value": 1.0,
+      "is_shared": true,
+      "description": "T\u1ed1c \u0111\u1ed9 di chuy\u1ec3n hi\u1ec7n th\u1eddi c\u1ee7a Ghost"
+    },
+    "RitualBook": {
+      "type_name": "object",
+      "value": null,
+      "is_shared": true,
+      "description": "Node tham chi\u1ebfu \u0111\u1ebfn Cu\u1ed1n s\u00e1ch C\u00fang t\u1ebf"
+    },
+    "RitualBookMetadata": {
+      "type_name": "string",
+      "value": "",
+      "is_shared": false,
+      "description": "Chu\u1ed7i nh\u1eadn di\u1ec7n cu\u1ed1n s\u00e1ch"
+    }
+  },
+  "metadata": {
+    "author": "hazeruno",
+    "source": "Devour Ghost_42115.json",
+    "node_count": 203
+  }
+}

@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/fusebox.gd" id="1_fusebox_script"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fb"]
+size = Vector3(0.5, 0.7, 0.25)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fb"]
+size = Vector3(0.5, 0.7, 0.25)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fb"]
+albedo_color = Color(0.25, 0.28, 0.3, 1)
+metallic = 0.8
+roughness = 0.4
+
+[node name="FuseBox" type="StaticBody3D" groups=["FuseBox", "Interactable"]]
+collision_layer = 9
+collision_mask = 0
+script = ExtResource("1_fusebox_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_fb")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_fb")
+surface_material_override/0 = SubResource("StandardMaterial3D_fb")

@@ -1,0 +1,228 @@
+[gd_scene load_steps=2 format=3 uid="uid://c7xuihuddevour01"]
+
+[ext_resource type="Script" path="res://game/scripts/ui_hud.gd" id="1_hud_script"]
+
+[node name="UIHUD" type="CanvasLayer"]
+script = ExtResource("1_hud_script")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Crosshair" type="Label" parent="CenterContainer"]
+layout_mode = 2
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="CenterContainer"]
+layout_mode = 2
+offset_top = 40.0
+offset_bottom = 63.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TopLeftMargin" type="MarginContainer" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 360.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="TopLeftMargin"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="TopLeftMargin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.4, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = "DEVOUR: THE FARMHOUSE (MOLLY)"
+
+[node name="OfferingsLabel" type="Label" parent="TopLeftMargin/VBox"]
+layout_mode = 2
+text = "Rats Sacrificed: 0 / 9"
+
+[node name="BookLabel" type="Label" parent="TopLeftMargin/VBox"]
+layout_mode = 2
+text = "Rats in Bag: 0 / 3"
+
+[node name="InventoryLabel" type="Label" parent="TopLeftMargin/VBox"]
+layout_mode = 2
+text = "Keys Held: [None]"
+
+[node name="LivesLabel" type="Label" parent="TopLeftMargin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+text = "Sanity: ♥ ♥ ♥ (0/3 grabs)"
+
+[node name="BottomRightMargin" type="MarginContainer" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -280.0
+offset_top = -120.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="BottomRightMargin"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="FlashlightLabel" type="Label" parent="BottomRightMargin/VBox"]
+layout_mode = 2
+text = "Light: Tactical White [RMB for UV]"
+
+[node name="StaminaContainer" type="HBoxContainer" parent="BottomRightMargin/VBox"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="BottomRightMargin/VBox/StaminaContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "STAMINA"
+
+[node name="StaminaBar" type="ProgressBar" parent="BottomRightMargin/VBox/StaminaContainer"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
+show_percentage = false
+
+[node name="UVContainer" type="HBoxContainer" parent="BottomRightMargin/VBox"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="BottomRightMargin/VBox/UVContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "UV BATTERY"
+
+[node name="UVBar" type="ProgressBar" parent="BottomRightMargin/VBox/UVContainer"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
+show_percentage = false
+
+[node name="DamageOverlay" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.85, 0.05, 0.05, 1)
+
+[node name="WinPanel" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -100.0
+offset_right = 220.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="WinPanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="WinPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+theme_override_font_sizes/font_size = 22
+text = "MOLLY BANISHED! - 9 RATS SACRIFICED"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="WinPanel/VBox"]
+layout_mode = 2
+text = "You cleansed the Farmhouse and survived the night."
+horizontal_alignment = 1
+
+[node name="RestartHint" type="Label" parent="WinPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "Press [R] to Play Again"
+horizontal_alignment = 1
+
+[node name="LossPanel" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -100.0
+offset_right = 220.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="LossPanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="LossPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.1, 0.1, 1)
+theme_override_font_sizes/font_size = 22
+text = "CONSUMED BY MOLLY"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="LossPanel/VBox"]
+layout_mode = 2
+text = "Molly dragged you into the basement. Your soul is lost."
+horizontal_alignment = 1
+
+[node name="RestartHint" type="Label" parent="LossPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "Press [R] to Restart"
+horizontal_alignment = 1
+
+[node name="PausePanel" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -80.0
+offset_right = 160.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="PausePanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="PausePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "GAME PAUSED"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="PausePanel/VBox"]
+layout_mode = 2
+text = "Press [ESC] to Resume
+Press [R] to Restart"
+horizontal_alignment = 1

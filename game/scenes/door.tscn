@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://c7xdoordevour01"]
+
+[ext_resource type="Script" path="res://game/scripts/door.gd" id="1_door_script"]
+[ext_resource type="PackedScene" uid="uid://82moe20rb1su" path="res://game/assets/models/door.glb" id="2_door_glb"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_door"]
+size = Vector3(1, 2.1, 0.1)
+
+[node name="Door" type="AnimatableBody3D" groups=["Door", "doors", "interactable"]]
+collision_layer = 9
+collision_mask = 6
+script = ExtResource("1_door_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.05, 0)
+shape = SubResource("BoxShape3D_door")
+
+[node name="MeshRoot" type="Node3D" parent="."]
+
+[node name="DoorModel" parent="MeshRoot" instance=ExtResource("2_door_glb")]

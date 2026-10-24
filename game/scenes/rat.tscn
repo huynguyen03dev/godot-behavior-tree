@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://c7xratdevour01"]
+
+[ext_resource type="Script" path="res://game/scripts/rat.gd" id="1_rat_script"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_rat"]
+radius = 0.35
+
+[node name="Rat" type="Area3D" groups=["rats", "interactable"]]
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("1_rat_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("SphereShape3D_rat")
+
+[node name="MeshRoot" type="Node3D" parent="."]
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+unit_size = 3.0
+max_distance = 12.0
+bus = &"Master"
